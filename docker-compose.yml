@@ -1,8 +1,16 @@
 services:
   web:
-    # 既存の定義のままでOK。DBに繋ぐなら下を追加
+    build:
+      context: .
+      dockerfile: Dockerfile.dev   # 本番は Dockerfile に変える
+    command: flask run --host=0.0.0.0 --port=8000 --debug
+    ports: ["8000:8000"]
+    volumes:
+      - .:/app
     environment:
-      - DATABASE_URL=postgres://app:pass@db:5432/appdb
+      FLASK_APP: wsgi.py
+      FLASK_RUN_PORT: "8000"
+      DATABASE_URL: postgres://app:pass@db:5432/appdb
     depends_on: [db]
 
   db:
@@ -11,7 +19,6 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: appdb
-    ports: ["5432:5432"]              # WSL外からも触るなら付ける。内部だけなら外してよい
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
