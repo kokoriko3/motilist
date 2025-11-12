@@ -1,0 +1,35 @@
+{% extends 'loginbase.html' %}
+
+{% block title %}ログイン{% endblock %}
+
+{% block form %}
+  <form method="post" novalidate>
+    <div class="input-field">
+      <label for="login-email">メールアドレス</label>
+      <input
+        id="login-email"
+        name="email"
+        type="email"
+        placeholder="入力"
+        required
+        value="{{ form.email }}"
+      />
+    </div>
+
+    <div class="input-field">
+      <label for="login-password">パスワード</label>
+      <input
+        id="login-password"
+        name="password"
+        type="password"
+        placeholder="入力"
+        required
+        minlength="8"
+      />
+    </div>
+
+    <p class="helper-link"><a href="#">ログインID、パスワードをお忘れの方</a></p>
+
+    <button type="submit" class="cta-button">ログインする</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'loginbase.html' %}
+
+{% block title %}新規登録{% endblock %}
+
+{% block form %}
+  <form method="post" novalidate>
+    <div class="input-field">
+      <label for="register-name">表示名</label>
+      <input
+        id="register-name"
+        name="name"
+        type="text"
+        placeholder="入力"
+        required
+        value="{{ form.name }}"
+      />
+    </div>
+
+    <div class="input-field">
+      <label for="register-email">メールアドレス</label>
+      <input
+        id="register-email"
+        name="email"
+        type="email"
+        placeholder="入力"
+        required
+        value="{{ form.email }}"
+      />
+    </div>
+
+    <div class="input-field">
+      <label for="register-password">パスワード</label>
+      <input
+        id="register-password"
+        name="password"
+        type="password"
+        placeholder="入力"
+        required
+        minlength="8"
+      />
+    </div>
+
+    <div class="input-field">
+      <label for="register-password-confirm">パスワード（確認）</label>
+      <input
+        id="register-password-confirm"
+        name="password_confirm"
+        type="password"
+        placeholder="入力"
+        required
+        minlength="8"
+      />
+    </div>
+
+    <button type="submit" class="cta-button">アカウントを作成</button>
+  </form>
+{% endblock %}
