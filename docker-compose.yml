@@ -3,29 +3,30 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev   # 本番は Dockerfile に変える
-    command: flask run --host=0.0.0.0 --port=8000 --debug
+    # command: flask run --host=0.0.0.0 --port=8000 --debug
     ports: ["8000:8000"]
     volumes:
       - .:/app
     environment:
       FLASK_APP: wsgi.py
       FLASK_RUN_PORT: "8000"
-      DATABASE_URL: postgres://app:pass@db:5432/appdb
+      DATABASE_URL: postgresql+psycopg://app:pass@db:5432/appdb
     depends_on: [db]
 
   db:
     image: postgres:16
+    container_name: motilist-pg
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: appdb
     volumes:
       - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d appdb || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
 
 volumes:
   pgdata:
