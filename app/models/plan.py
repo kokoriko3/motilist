@@ -1,8 +1,10 @@
+# plan.py
 from app import db
 
-# --- ユーザの計画 ---
+
 class Plan(db.Model):
     __tablename__ = "plans"
+
     planId = db.Column(db.Integer, primary_key=True)
     userId = db.Column(db.Integer, db.ForeignKey("users.userId"), nullable=False, index=True)
     anonymousId = db.Column(db.String(64), index=True)
@@ -16,9 +18,32 @@ class Plan(db.Model):
     createdAt = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     updatedAt = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
-# --- 交通手段の ---
+    user = db.relationship("User", back_populates="plans")
+    transport_snapshots = db.relationship(
+        "TransportSnapshot",
+        back_populates="plan",
+        cascade="all, delete-orphan",
+    )
+    lodging_snapshots = db.relationship(
+        "LodgingSnapshot",
+        back_populates="plan",
+        cascade="all, delete-orphan",
+    )
+    itineraries = db.relationship(
+        "Itinerary",
+        back_populates="plan",
+        cascade="all, delete-orphan",
+    )
+    checklists = db.relationship(
+        "Checklist",
+        back_populates="plan",
+        cascade="all, delete-orphan",
+    )
+
+
 class TransportSnapshot(db.Model):
     __tablename__ = "transport_snapshots"
+
     transportSnapshotId = db.Column(db.Integer, primary_key=True)
     planId = db.Column(db.Integer, db.ForeignKey("plans.planId"), nullable=False, index=True)
     sourceApi = db.Column(db.String(80), nullable=False)
@@ -38,10 +63,12 @@ class TransportSnapshot(db.Model):
     createdAt = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     updatedAt = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
+    plan = db.relationship("Plan", back_populates="transport_snapshots")
 
-# --- 宿のスナップショット ---
+
 class LodgingSnapshot(db.Model):
     __tablename__ = "lodging_snapshots"
+
     lodgingSnapshotId = db.Column(db.Integer, primary_key=True)
     planId = db.Column(db.Integer, db.ForeignKey("plans.planId"), nullable=False, index=True)
     sourceApi = db.Column(db.String(80), nullable=False)
@@ -58,9 +85,12 @@ class LodgingSnapshot(db.Model):
     createdAt = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     updatedAt = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
-# --- 日程 ---
+    plan = db.relationship("Plan", back_populates="lodging_snapshots")
+
+
 class Itinerary(db.Model):
     __tablename__ = "itineraries"
+
     itineraryId = db.Column(db.Integer, primary_key=True)
     planId = db.Column(db.Integer, db.ForeignKey("plans.planId"), nullable=False, index=True)
     title = db.Column(db.String(255), nullable=False)
@@ -72,9 +102,17 @@ class Itinerary(db.Model):
     createdAt = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     updatedAt = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
-# --- 日程詳細 ---
+    plan = db.relationship("Plan", back_populates="itineraries")
+    slots = db.relationship(
+        "ItinerarySlot",
+        back_populates="itinerary",
+        cascade="all, delete-orphan",
+    )
+
+
 class ItinerarySlot(db.Model):
     __tablename__ = "itinerary_slots"
+
     itinerarySlotId = db.Column(db.Integer, primary_key=True)
     itineraryId = db.Column(db.Integer, db.ForeignKey("itineraries.itineraryId"), nullable=False, index=True)
     day = db.Column(db.Integer, nullable=False)
@@ -90,11 +128,14 @@ class ItinerarySlot(db.Model):
     createdAt = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     updatedAt = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
-# --- テンプレート ---
+    itinerary = db.relationship("Itinerary", back_populates="slots")
+
+
 class Template(db.Model):
     __tablename__ = "templates"
+
     templateId = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, db.ForeignKey("users.userId"), nullable=False, index=True)  # 図のstringは整合性上intに読み替え
+    userId = db.Column(db.Integer, db.ForeignKey("users.userId"), nullable=False, index=True)
     publicTitle = db.Column(db.String(255), nullable=False)
     shortNote = db.Column(db.Text)
     itineraryOutlineJson = db.Column(db.JSON)
@@ -102,15 +143,23 @@ class Template(db.Model):
     days = db.Column(db.Integer)
     itemsCount = db.Column(db.Integer)
     essentialRatio = db.Column(db.Float)
-    tags = db.Column(db.JSON)  # string[] → JSON(list[str])
+    tags = db.Column(db.JSON)  # string[] → JSON(list[str]) として保存
     visibility = db.Column(db.String(40), default="private", nullable=False)
     displayVersion = db.Column(db.Integer, default=1, nullable=False)
     createdAt = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     updatedAt = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
-# --- 共有 ---
+    user = db.relationship("User", back_populates="templates")
+    share_links = db.relationship(
+        "ShareLink",
+        back_populates="template",
+        cascade="all, delete-orphan",
+    )
+
+
 class ShareLink(db.Model):
     __tablename__ = "share_links"
+
     shareId = db.Column(db.Integer, primary_key=True)
     templateId = db.Column(db.Integer, db.ForeignKey("templates.templateId"), nullable=False, index=True)
     urlToken = db.Column(db.String(100), unique=True, nullable=False, index=True)
@@ -119,6 +168,9 @@ class ShareLink(db.Model):
     expiresAt = db.Column(db.DateTime)
     disabled = db.Column(db.Boolean, default=False, nullable=False)
     accessCount = db.Column(db.Integer, default=0, nullable=False)
-    createdById = db.Column(db.Integer, db.ForeignKey("users.userId"), nullable=True, index=True)  # 図のstring→int
+    createdById = db.Column(db.Integer, db.ForeignKey("users.userId"), nullable=True, index=True)
     createdAt = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     lastAccessAt = db.Column(db.DateTime)
+
+    template = db.relationship("Template", back_populates="share_links")
+    createdBy = db.relationship("User", back_populates="created_share_links")
