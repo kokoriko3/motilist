@@ -8,3 +8,7 @@ bp = Blueprint(
 @bp.route("/")
 def index():
     return "hello world"
+
+@bp.route("plan_create")
+def plan_create():
+    return render_template("plan_create.html")
