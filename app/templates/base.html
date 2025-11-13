@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}もちリスト{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </head>
+  <body class="{% block body_class %}{% endblock %}">
+    <header class="site-header">
+      <div class="header-left">
+        <button class="icon-button" aria-label="メニュー">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <span class="brand-name">もちリスト</span>
+      </div>
+      <nav class="header-nav">
+        <a href="{{ url_for('public_plans') }}">他人のプラン</a>
+        <a href="{{ url_for('my_plans') }}">自分のプラン一覧</a>
+        <div class="profile-dropdown" data-dropdown>
+          <button class="icon-user" aria-label="アカウントメニュー" type="button"></button>
+          <div class="dropdown-panel">
+            <div class="dropdown-row">
+              <span>トラベルコンシェルジュ</span>
+              <a href="{{ url_for('logout') }}">ログアウト</a>
+            </div>
+            <a class="dropdown-row profile-link" href="{{ url_for('account') }}">
+              <span class="icon-user small"></span>
+              <span>アカウント名</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <small>© 2025 Mochi List. All rights reserved.</small>
+    </footer>
+  </body>
+</html>

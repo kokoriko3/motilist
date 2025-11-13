@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}新規登録完了 | もちリスト{% endblock %}
+{% block body_class %}complete-body{% endblock %}
+
+{% block content %}
+  <div class="complete-main">
+    <section class="complete-card">
+      <div class="complete-icon" aria-hidden="true">✔</div>
+      <h1>新規登録が完了しました</h1>
+      <p class="complete-subtext">トラベルコンシェルジュにご登録いただき<br />誠にありがとうございます</p>
+      <a class="complete-button" href="{{ url_for('login') }}">プランを作成する</a>
+    </section>
+  </div>
+{% endblock %}
