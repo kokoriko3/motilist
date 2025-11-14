@@ -3,9 +3,9 @@
 {% block title %}ログイン{% endblock %}
 
 {% block form %}
-  <form method="post" novalidate>
-    <div class="input-field">
-      <label for="login-email">メールアドレス</label>
+  <form method="post" class="auth-form" novalidate>
+    <label class="auth-field" for="login-email">
+      <span>メールアドレス</span>
       <input
         id="login-email"
         name="email"
@@ -14,22 +14,23 @@
         required
         value="{{ form.email }}"
       />
+      {% if errors.get('email') %}
+        <span class="field-error">{{ errors['email'][0] }}</span>
+      {% endif %}
+    </label>
+
+    <label class="auth-field" for="login-password">
+      <span>パスワード</span>
+      <input id="login-password" name="password" type="password" placeholder="入力" required minlength="8" />
+      {% if errors.get('password') %}
+        <span class="field-error">{{ errors['password'][0] }}</span>
+      {% endif %}
+    </label>
+
+    <div class="auth-link-row">
+      <a href="#">ログインID、パスワードをお忘れの方</a>
     </div>
 
-    <div class="input-field">
-      <label for="login-password">パスワード</label>
-      <input
-        id="login-password"
-        name="password"
-        type="password"
-        placeholder="入力"
-        required
-        minlength="8"
-      />
-    </div>
-
-    <p class="helper-link"><a href="#">ログインID、パスワードをお忘れの方</a></p>
-
-    <button type="submit" class="cta-button">ログインする</button>
+    <button type="submit" class="button-dark">ログインする</button>
   </form>
 {% endblock %}

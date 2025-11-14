@@ -3,55 +3,31 @@
 {% block title %}新規登録{% endblock %}
 
 {% block form %}
-  <form method="post" novalidate>
-    <div class="input-field">
-      <label for="register-name">表示名</label>
-      <input
-        id="register-name"
-        name="name"
-        type="text"
-        placeholder="入力"
-        required
-        value="{{ form.name }}"
-      />
-    </div>
+  <form method="post" class="auth-form" novalidate>
+    <label class="auth-field" for="register-name">
+      <span>ユーザー名</span>
+      <input id="register-name" name="name" type="text" placeholder="入力" required value="{{ form.name }}" />
+      {% if errors.get('name') %}
+        <span class="field-error">{{ errors['name'][0] }}</span>
+      {% endif %}
+    </label>
 
-    <div class="input-field">
-      <label for="register-email">メールアドレス</label>
-      <input
-        id="register-email"
-        name="email"
-        type="email"
-        placeholder="入力"
-        required
-        value="{{ form.email }}"
-      />
-    </div>
+    <label class="auth-field" for="register-email">
+      <span>メールアドレス</span>
+      <input id="register-email" name="email" type="email" placeholder="入力" required value="{{ form.email }}" />
+      {% if errors.get('email') %}
+        <span class="field-error">{{ errors['email'][0] }}</span>
+      {% endif %}
+    </label>
 
-    <div class="input-field">
-      <label for="register-password">パスワード</label>
-      <input
-        id="register-password"
-        name="password"
-        type="password"
-        placeholder="入力"
-        required
-        minlength="8"
-      />
-    </div>
+    <label class="auth-field" for="register-password">
+      <span>パスワード</span>
+      <input id="register-password" name="password" type="password" placeholder="入力" required minlength="8" />
+      {% if errors.get('password') %}
+        <span class="field-error">{{ errors['password'][0] }}</span>
+      {% endif %}
+    </label>
 
-    <div class="input-field">
-      <label for="register-password-confirm">パスワード（確認）</label>
-      <input
-        id="register-password-confirm"
-        name="password_confirm"
-        type="password"
-        placeholder="入力"
-        required
-        minlength="8"
-      />
-    </div>
-
-    <button type="submit" class="cta-button">アカウントを作成</button>
+    <button type="submit" class="button-dark">アカウントを作成する</button>
   </form>
 {% endblock %}

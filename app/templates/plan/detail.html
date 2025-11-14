@@ -1,0 +1,63 @@
+{% extends 'layout.html' %}
+
+{% block title %}プラン詳細 | Mochi List{% endblock %}
+
+{% block content %}
+  <section class="page-section plan-detail" data-plan-detail data-plan-id="{{ plan.id }}">
+    <header class="detail-header">
+      <p class="eyebrow">{{ plan.tag }}</p>
+      <h1>{{ plan.title }}</h1>
+      <p class="section-lede">{{ plan.summary }}</p>
+      <div class="detail-meta">
+        <span>{{ plan.destination }}</span>
+        <span>日程 {{ plan.start_date }} / {{ plan.duration }}</span>
+        <span>{{ plan.members }}名で参加</span>
+      </div>
+    </header>
+
+    <div class="detail-grid">
+      <article class="detail-panel">
+        <div class="detail-panel__header">
+          <h2>リアルタイム進捗</h2>
+          <button class="secondary-button" data-refresh-timeline type="button">最新情報を取得</button>
+        </div>
+        <ul class="plan-timeline" data-timeline>
+          {% for entry in timeline %}
+            <li class="timeline-entry">
+              <time>{{ entry.time }}</time>
+              <p>{{ entry.description }}</p>
+            </li>
+          {% endfor %}
+        </ul>
+      </article>
+
+      <aside class="detail-sidebar">
+        <h3>現在のステータス</h3>
+        <p class="detail-status">{{ plan.status }}</p>
+        <dl>
+          <div>
+            <dt>作成者</dt>
+            <dd>{{ plan.owner }}</dd>
+          </div>
+          <div>
+            <dt>共有タグ</dt>
+            <dd>{{ plan.tag }}</dd>
+          </div>
+          <div>
+            <dt>交通手段</dt>
+            <dd>{{ plan.transport }}</dd>
+          </div>
+          <div>
+            <dt>宿泊場所</dt>
+            <dd>{{ plan.accommodation }}</dd>
+          </div>
+        </dl>
+        <div class="links-stack">
+          <a class="text-link" href="{{ url_for('plan_transit') }}">交通手段を確認する</a>
+          <a class="text-link" href="{{ url_for('plan_item_list') }}">持ち物リストを見る</a>
+          <a class="text-link" href="{{ url_for('plan_schedule') }}">スケジュールを開く</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+{% endblock %}

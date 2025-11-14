@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+
+{% block title %}ゲスト向け案内 | Mochi List{% endblock %}
+
+{% block content %}
+  <section class="page-section guest-gate">
+    <p>旅行プランを作成するにはアカウントを作成してください</p>
+    <a class="cta-large" href="{{ url_for('register') }}">アカウントを作成する</a>
+  </section>
+{% endblock %}
