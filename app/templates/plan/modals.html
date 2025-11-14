@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block title %}モーダルサンプル | Mochi List{% endblock %}
+
+{% block body_class %}has-modal{% endblock %}
+
+{% block content %}
+  <section class="modal-gallery">
+    <div class="modal-overlay">
+      <article class="modal-card">
+        <a class="modal-back" href="#">&larr; 戻る</a>
+        <h2>タイトル</h2>
+        <label>
+          <input type="text" placeholder="プランタイトル" />
+        </label>
+        <label>
+          <span>説明</span>
+          <textarea rows="2"></textarea>
+        </label>
+        <div class="radio-pill-group">
+          <span>公開設定</span>
+          <div class="radio-pill-options">
+            <label class="radio-pill is-active">
+              <input type="radio" checked />
+              <span>非公開</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" />
+              <span>公開</span>
+            </label>
+          </div>
+        </div>
+        {% if modal_error %}
+          <p class="form-error">※ {{ modal_error }}</p>
+        {% endif %}
+        <div class="modal-card__actions">
+          <button type="button" class="cta-large small">保存</button>
+        </div>
+      </article>
+    </div>
+
+    <div class="modal-overlay modal-overlay--message">
+      <article class="modal-card modal-card--message">
+        <p>チェックリストが存在しません</p>
+      </article>
+    </div>
+  </section>
+{% endblock %}

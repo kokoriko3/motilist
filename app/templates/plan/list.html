@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+
+{% block title %}自分のプラン一覧 | Mochi List{% endblock %}
+
+{% block content %}
+  <section class="page-section plan-shelf">
+    <header class="plan-shelf__header">
+      <h1>プラン一覧</h1>
+      <div class="plan-shelf__actions">
+        <form method="get" class="plan-search-form">
+          <label class="plan-search">
+            <span class="plan-search__icon">🔍</span>
+            <input type="search" name="q" placeholder="自分の旅行プランを検索" value="{{ query }}" />
+          </label>
+        </form>
+        <a class="plan-index__create plan-index__create--ghost" href="{{ url_for('plan_create') }}">＋旅行プランを作成する</a>
+      </div>
+    </header>
+
+    {% if plans %}
+      <div class="plan-tiles plan-tiles--wide">
+        {% for plan in plans %}
+          {% include 'components/_plan_card.html' %}
+        {% endfor %}
+      </div>
+      <p class="plan-pagination">
+        <span class="is-current">1</span>
+        <span>2</span>
+        <span>3</span>
+        <span>4</span>
+        <span>…</span>
+        <span>20</span>
+      </p>
+    {% else %}
+      <div class="plan-shelf__empty">
+        <p class="plan-shelf__empty-count">検索結果 {{ result_count }}件</p>
+        <p class="plan-shelf__empty-hint">条件を変えて再検索してください。</p>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

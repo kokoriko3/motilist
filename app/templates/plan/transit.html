@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+
+{% block title %}交通手段 | Mochi List{% endblock %}
+
+{% block content %}
+  <section class="page-section">
+    <h1>交通手段を確認</h1>
+    <p class="section-lede">移動区間ごとに必要な手配状況を整理します。フライトやレンタカーは早めに予約しておきましょう。</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>区間</th>
+          <th>所要時間</th>
+          <th>メモ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for segment in segments %}
+          <tr>
+            <td>{{ segment.origin }} → {{ segment.destination }} ({{ segment.mode }})</td>
+            <td>{{ segment.duration }}</td>
+            <td>{{ segment.memo }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}
