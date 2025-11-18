@@ -4,6 +4,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from app.services.db_service import PlanDBService
 from app.forms.plan_form import PlanCreateForm
+from flask_login import current_user
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
