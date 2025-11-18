@@ -26,8 +26,8 @@
         </div>
       </div>
       <nav class="header-nav">
-        <a class="{{ 'active' if active_nav == 'public' else '' }}" href="{{ url_for('public_plans') }}">他人のプラン</a>
-        <a class="{{ 'active' if active_nav == 'plans' else '' }}" href="{{ url_for('plan_list') }}">自分のプラン一覧</a>
+        <a class="{{ 'active' if active_nav == 'public' else '' }}" href="#">他人のプラン(準備中)</a>
+        <a class="{{ 'active' if active_nav == 'plans' else '' }}" href="{{ url_for('plan.plan_list') }}">自分のプラン一覧</a>
         <div class="profile-dropdown" data-dropdown>
           <button class="icon-user" aria-label="アカウントメニュー" type="button"></button>
           <div class="dropdown-panel">
