@@ -1,11 +1,14 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate  
-
-
 from flask_login import LoginManager
 from config import Config
 from .extensions import bcrypt
+
+from app.models.user import User
+from app.models.plan import Plan,TransportSnapshot,StaySnapshot,Schedule,ScheduleDetail,Template,Share
+from app.models.checklist import Checklist,ChecklistItem,Item,Category
+
 
 db = SQLAlchemy()
 migrate = Migrate()  
