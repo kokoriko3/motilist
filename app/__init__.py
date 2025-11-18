@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 
 from flask_login import LoginManager
 from config import Config
-from extensions import bcrypt
+from .extensions import bcrypt
 
 db = SQLAlchemy()
 migrate = Migrate()  
