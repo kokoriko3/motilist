@@ -1,13 +1,10 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate  
-from config import Config
 
-from app.routes.plan_routes import plan_bp
-from app.routes.auth_routes import auth_bp
 
 from flask_login import LoginManager
-from user import User
+from config import Config
 from extensions import bcrypt
 
 db = SQLAlchemy()
@@ -19,21 +16,27 @@ login_manager.login_view = "auth.login"
 
 @login_manager.user_loader
 def load_user(user_id):
+    from models.user import User
     return User.query.get(int(user_id))
 
 def create_app():
     app = Flask(__name__,
                 template_folder='templates',
-                static_folder='static')
+                static_folder='static'
+                )
     
+    # 設定の読み込み
     app.config.from_object(Config)
-    bcrypt.init_app(app)
-    
-    db.init_app(app)
-    migrate.init_app(app, db) 
 
-    from app.routes import plan_routes
-    app.register_blueprint(plan_routes.bp)
+    # 拡張の初期化
+    bcrypt.init_app(app)
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
+
+    # ルートのimportはここ（関数の中）で行う。
+    from app.routes.plan_routes import plan_bp
+    from app.routes.auth_routes import auth_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(plan_bp)

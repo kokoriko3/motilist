@@ -11,7 +11,18 @@ plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
 # ----------------------------------------
 #  プラン一覧（トップ）
-#  /plans
+#  /plansfrom flask_login import current_user
+
+# @plan_bp.route("/", methods=["GET"])
+# def plan_list():
+#     if not current_user.is_authenticated:
+#         # ログインしてないとき：プラン無し + ログインを促す
+#         plans = []
+#         return render_template("plan/list.html", plans=plans, show_login_link=True)
+
+#     # ログインしているとき：自分のプランだけ表示
+#     plans = PlanDBService.get_all_plans(user_id=current_user.id)
+#     return render_template("plan/list.html", plans=plans, show_login_link=False)
 # ----------------------------------------
 @plan_bp.route("/", methods=["GET"])
 def plan_list():
