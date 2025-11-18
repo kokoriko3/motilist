@@ -20,7 +20,7 @@ class SignUpForm(FlaskForm):
     )
 
     password = PasswordField(
-        "パスワード"
+        "パスワード",
         validators=[
             DataRequired("パスワードは必須です。")
         ],
