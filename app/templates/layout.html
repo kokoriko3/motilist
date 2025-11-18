@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}もちリスト{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script defer src="{{ url_for('static', filename='js/plan_detail.js') }}"></script>
+  </head>
+  <body class="{% block body_class %}{% endblock %}">
+    <header class="site-header">
+      <div class="header-left">
+        <button class="icon-button" aria-label="メニュー">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="brand-lockup">
+          <span class="brand-name">{{ config['BRAND_NAME'] }}</span>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a class="{{ 'active' if active_nav == 'public' else '' }}" href="{{ url_for('public_plans') }}">他人のプラン</a>
+        <a class="{{ 'active' if active_nav == 'plans' else '' }}" href="{{ url_for('plan_list') }}">自分のプラン一覧</a>
+        <div class="profile-dropdown" data-dropdown>
+          <button class="icon-user" aria-label="アカウントメニュー" type="button"></button>
+          <div class="dropdown-panel">
+            <div class="dropdown-header">
+              <p class="dropdown-title">{{ config['BRAND_NAME'] }}</p>
+              <p class="dropdown-subtitle">{{ config['ACCOUNT_DISPLAY_NAME'] }}</p>
+              <a class="dropdown-link" href="{{ url_for('account') }}">アカウント情報</a>
+            </div>
+            <button class="dropdown-row logout-row" type="button" data-logout-trigger>ログアウト</button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <small>&copy; 2025 Mochi List. All rights reserved.</small>
+    </footer>
+    <section class="logout-modal" data-logout-modal hidden>
+      <div class="logout-modal__backdrop" data-logout-dismiss></div>
+      <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+        <p id="logout-title">ログアウトしますか</p>
+        <div class="logout-modal__actions">
+          <button type="button" class="secondary-button" data-logout-cancel>戻る</button>
+          <button type="button" class="cta-button" data-logout-confirm data-logout-url="{{ url_for('logout') }}">ログアウト</button>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
+
+
+
+
+

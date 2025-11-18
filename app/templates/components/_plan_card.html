@@ -1,0 +1,41 @@
+<article class="plan-tile">
+  <div class="plan-tile__header">
+    <div>
+      <p class="plan-tile__title">{{ plan.title }}</p>
+      <p class="plan-tile__date">
+        <span>日程</span>
+        {{ plan.start_date }}
+        <span class="plan-tile__duration">{{ plan.duration }}</span>
+      </p>
+    </div>
+    {% if can_delete | default(True) %}
+      <button class="plan-tile__delete" type="button" aria-label="プランを削除">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M9 4.5h6l.75 1.5H20v1.5H4V6h4.25L9 4.5Zm1 5.5v7m4-7v7M6.5 7.5h11l-.75 11.5H7.25L6.5 7.5Z"
+            stroke="currentColor"
+            stroke-width="1.4"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    {% endif %}
+  </div>
+
+  <dl class="plan-tile__list">
+    <div>
+      <dt>交通手段</dt>
+      <dd>{{ plan.transport }}</dd>
+    </div>
+    <div>
+      <dt>宿泊場所</dt>
+      <dd>{{ plan.accommodation }}</dd>
+    </div>
+  </dl>
+
+  <div class="plan-tile__footer">
+    <a class="plan-tile__detail" href="{{ url_for('plan_detail', plan_id=plan.id) }}">詳細 →</a>
+  </div>
+</article>

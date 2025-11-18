@@ -1,12 +1,11 @@
+
+
 # app/routes/plan_routes.py
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from app.services.db_service import PlanDBService
-from flask_login import current_user
 from app.forms.plan_form import PlanCreateForm
 
-plan_bp = Blueprint(
-    "plan", __name__, url_prefix="/plans"
-    )
+plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
 
 # ----------------------------------------
@@ -15,15 +14,8 @@ plan_bp = Blueprint(
 # ----------------------------------------
 @plan_bp.route("/", methods=["GET"])
 def plan_list():
-    if not currrent_user.is_authenticated:
-        # ログインしていないとき：プランなし + ログインを促す
-        plans = []
-        return render_template("plan/list.html", plans=plans, show_login_link=True)
-
-    # ログインしているとき：自分のプランだけ表示
-    plans = PlanDBService.get_all_plans(user_id=current_user.id)
-    return render_template("plan/list.html", plans=plans, show_login_link=False)
-
+    plans = PlanDBService.get_all_plans()
+    return render_template("plan/list.html", plans=plans)
 
 
 # ----------------------------------------
