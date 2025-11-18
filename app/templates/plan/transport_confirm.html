@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}交通手段確定{% endblock %}
+{% block content %}
+<section class="transport-shell">
+  <div class="plan-header">
+    <div>
+      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+    </div>
+    <div class="plan-meta">
+      <span class="plan-date">1月1日~1月3日</span>
+      <button type="button" class="pill-button">共有</button>
+      <button type="button" class="pill-button">保存</button>
+    </div>
+  </div>
+
+  <div class="plan-tabs">
+    <a class="active">交通手段</a>
+    <a href="{{ url_for('stay_select') }}">宿泊場所</a>
+    <a href="{{ url_for('schedule_list') }}">スケジュール</a>
+    <a href="{{ url_for('checklist_list') }}">持ち物</a>
+  </div>
+
+  <div class="transport-body">
+    <div class="error-inline" data-transport-error hidden>保存に失敗しました</div>
+
+    <div class="transport-options">
+      <div class="transport-card selected">
+        <div class="transport-card__header">
+          <span class="transport-title">金額重視</span>
+          <span class="transport-price">300円</span>
+          <span class="transport-time">移動時間１時間</span>
+        </div>
+        <div class="transport-route">バス(○○前→○○駅前)→電車(のぞみ3号)</div>
+      </div>
+    </div>
+
+    <div class="cta-row transport-actions">
+      <a class="pill-ghost" href="{{ url_for('plan_transit') }}">交通手段を選び直す</a>
+      <button type="button" class="cta-primary" data-transport-save>この交通手段で確定</button>
+    </div>
+  </div>
+</section>
+<script defer src="{{ url_for('static', filename='js/transport.js') }}"></script>
+{% endblock %}
