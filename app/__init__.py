@@ -32,11 +32,11 @@ def create_app():
     login_manager.init_app(app)
 
     # ルートのimportはここ（関数の中）で行う。
-    from app.routes.plan_routes import plan_bp
+    # from app.routes.plan_routes import plan_bp
     from app.routes.auth_routes import auth_bp
     
     app.register_blueprint(auth_bp)
-    app.register_blueprint(plan_bp)
+    # app.register_blueprint(plan_bp)
 
 
     return app

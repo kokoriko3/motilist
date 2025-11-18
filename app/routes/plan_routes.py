@@ -1,47 +1,47 @@
 
 
-# # app/routes/plan_routes.py
-# from flask import Blueprint, render_template, redirect, url_for, request, flash
-# # from app.services.db_service import PlanDBService
+# app/routes/plan_routes.py
+from flask import Blueprint, render_template, redirect, url_for, request, flash
+# from app.services.db_service import PlanDBService
 # from app.forms.plan_form import PlanCreateForm
-# from flask_login import current_user
+from flask_login import current_user
 
-# plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
+plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
 
-# # ----------------------------------------
-# #  プラン一覧（トップ）
-# #  /plansfrom flask_login import current_user
+# ----------------------------------------
+#  プラン一覧（トップ）
+#  /plansfrom flask_login import current_user
 
-# # @plan_bp.route("/", methods=["GET"])
-# # def plan_list():
-# #     if not current_user.is_authenticated:
-# #         # ログインしてないとき：プラン無し + ログインを促す
-# #         plans = []
-# #         return render_template("plan/list.html", plans=plans, show_login_link=True)
-
-# #     # ログインしているとき：自分のプランだけ表示
-# #     plans = PlanDBService.get_all_plans(user_id=current_user.id)
-# #     return render_template("plan/list.html", plans=plans, show_login_link=False)
-# # ----------------------------------------
 # @plan_bp.route("/", methods=["GET"])
 # def plan_list():
-#     plans = PlanDBService.get_all_plans()
-#     return render_template("plan/list.html", plans=plans)
+#     if not current_user.is_authenticated:
+#         # ログインしてないとき：プラン無し + ログインを促す
+#         plans = []
+#         return render_template("plan/list.html", plans=plans, show_login_link=True)
+
+#     # ログインしているとき：自分のプランだけ表示
+#     plans = PlanDBService.get_all_plans(user_id=current_user.id)
+#     return render_template("plan/list.html", plans=plans, show_login_link=False)
+# ----------------------------------------
+@plan_bp.route("/", methods=["GET"])
+def plan_list():
+    plans = PlanDBService.get_all_plans()
+    return render_template("plan/list.html", plans=plans)
 
 
-# # ----------------------------------------
-# #  プラン詳細ページ
-# #  /plans/<id>
-# # ----------------------------------------
-# @plan_bp.route("/<int:plan_id>", methods=["GET"])
-# def plan_detail(plan_id):
-#     plan = PlanDBService.get_plan_by_id(plan_id)
-#     if not plan:
-#         flash("指定されたプランは存在しません。")
-#         return redirect(url_for("plan.plan_list"))
+# ----------------------------------------
+#  プラン詳細ページ
+#  /plans/<id>
+# ----------------------------------------
+@plan_bp.route("/<int:plan_id>", methods=["GET"])
+def plan_detail(plan_id):
+    plan = PlanDBService.get_plan_by_id(plan_id)
+    if not plan:
+        flash("指定されたプランは存在しません。")
+        return redirect(url_for("plan.plan_list"))
 
-#     return render_template("plan/detail.html", plan=plan)
+    return render_template("plan/detail.html", plan=plan)
 
 
 # # ----------------------------------------
