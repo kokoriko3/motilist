@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}宿泊先確定{% endblock %}
+{% block content %}
+<section class="stay-shell">
+  <div class="plan-header">
+    <div>
+      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+    </div>
+    <div class="plan-meta">
+      <span class="plan-date">1月1日~1月3日</span>
+      <button type="button" class="pill-button">共有</button>
+      <button type="button" class="pill-button">保存</button>
+    </div>
+  </div>
+
+  <div class="plan-tabs">
+    <a href="{{ url_for('plan_transit') }}">交通手段</a>
+    <a class="active">宿泊場所</a>
+    <a href="{{ url_for('schedule_list') }}">スケジュール</a>
+    <a href="{{ url_for('checklist_list') }}">持ち物</a>
+  </div>
+
+  <div class="stay-body">
+    <div class="banner error-banner" data-stay-error hidden>保存に失敗しました</div>
+
+    <article class="stay-card selected">
+      <div class="stay-card__main">
+        <p class="stay-name">○○ホテル</p>
+        <p class="stay-price">10000円~</p>
+        <p class="stay-address">住所</p>
+      </div>
+      <div class="stay-card__meta">
+        <span class="stay-stars">★★★★★</span>
+        <a class="stay-detail" href="#">詳細 ↗</a>
+      </div>
+      <div class="stay-card__thumb">画像</div>
+    </article>
+
+    <div class="stay-actions">
+      <a class="pill-ghost" href="{{ url_for('plan_hotel') }}">宿泊先を選び直す</a>
+      <button type="button" class="cta-primary" data-stay-save>この宿泊先で確定</button>
+    </div>
+  </div>
+</section>
+<script defer src="{{ url_for('static', filename='js/stay.js') }}"></script>
+{% endblock %}
