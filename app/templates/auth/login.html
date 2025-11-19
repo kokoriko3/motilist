@@ -3,34 +3,37 @@
 {% block title %}ログイン{% endblock %}
 
 {% block form %}
-  <form method="post" class="auth-form" novalidate>
-    <label class="auth-field" for="login-email">
-      <span>メールアドレス</span>
-      <input
-        id="login-email"
-        name="email"
-        type="email"
-        placeholder="入力"
-        required
-        value="{{ form.email }}"
-      />
-      {% if errors.get('email') %}
-        <span class="field-error">{{ errors['email'][0] }}</span>
-      {% endif %}
-    </label>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }} {# CSRF トークンを出力 #}
 
-    <label class="auth-field" for="login-password">
-      <span>パスワード</span>
-      <input id="login-password" name="password" type="password" placeholder="入力" required minlength="8" />
-      {% if errors.get('password') %}
-        <span class="field-error">{{ errors['password'][0] }}</span>
+    <div class="input-field">
+      {{ form.email.label }}
+      {{ form.email(class="input", placeholder="入力", id="login-email") }}
+      {% if form.email.errors %}
+        <ul class="error-messages">
+          {% for error in form.email.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
       {% endif %}
-    </label>
-
-    <div class="auth-link-row">
-      <a href="#">ログインID、パスワードをお忘れの方</a>
     </div>
 
-    <button type="submit" class="button-dark">ログインする</button>
+    <div class="input-field">
+      {{ form.password.label }}
+      {{ form.password(class="input", placeholder="入力", id="login-password") }}
+      {% if form.password.errors %}
+        <ul class="error-messages">
+          {% for error in form.password.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <p class="helper-link">
+      <a href="#">ログインID、パスワードをお忘れの方</a>
+    </p>
+
+    <button type="submit" class="cta-button">ログインする</button>
   </form>
 {% endblock %}
