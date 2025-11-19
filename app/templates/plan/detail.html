@@ -1,0 +1,84 @@
+{% extends 'layout.html' %}
+
+{% block title %}プラン詳細 | {{ config['BRAND_NAME'] }}{% endblock %}
+
+{% block content %}
+  <section class="page-section plan-detail" data-plan-detail data-plan-id="{{ plan.id }}">
+    <article class="plan-detail-card">
+      <div class="plan-detail-card__header">
+        <div>
+          <h1>{{ plan.title }}</h1>
+          <dl class="plan-detail-summary">
+            <div>
+              <dt>日程</dt>
+              <dd>{{ plan.start_date }}　　{{ plan.duration }}</dd>
+            </div>
+            <div>
+              <dt>交通手段</dt>
+              <dd>{{ plan.transport }}</dd>
+            </div>
+            <div>
+              <dt>宿泊先</dt>
+              <dd>{{ plan.accommodation }}</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="plan-detail-card__meta">
+          <p>{{ meta.created_on }}</p>
+          {% if is_owned %}
+            <a class="save-plan-button" href="{{ url_for('plan_edit', plan_id=plan.id) }}">プランを編集</a>
+          {% else %}
+            <a class="save-plan-button" href="{{ url_for('plan_modals') }}">自分のプランとして保存する</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <section class="plan-detail-body">
+        <div class="info-columns">
+          <div>
+            <p class="section-label">宿泊場所</p>
+            <p class="info-bold">{{ plan.accommodation }}</p>
+            <p>{{ meta.price }}</p>
+          </div>
+          <div>
+            <p class="section-label">主な滞在場所</p>
+            <ul>
+              {% for place in stay_locations %}
+                <li>{{ place }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <section class="packing-section">
+          <header class="packing-section__header">
+            <p class="section-label">主な持ち物</p>
+            <span>アイテム総数{{ meta.items_total }}</span>
+          </header>
+          <table class="packing-table">
+            <thead>
+              <tr>
+                <th>必需品</th>
+                <th>補足品</th>
+                <th>説明</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in packing_details %}
+                <tr>
+                  <td>{{ item.essential }}</td>
+                  <td>{{ item.extra }}</td>
+                  <td>{{ item.note }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </section>
+      </section>
+
+      <div class="detail-card__footer">
+        <button class="cta-button ghost" type="button" onclick="window.location.href='{{ url_for('plan_list') }}'">戻る</button>
+      </div>
+    </article>
+  </section>
+{% endblock %}

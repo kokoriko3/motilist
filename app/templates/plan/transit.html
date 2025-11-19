@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}交通手段{% endblock %}
+{% block content %}
+<section class="transport-shell">
+  <div class="plan-header">
+    <div>
+      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+    </div>
+    <div class="plan-meta">
+      <span class="plan-date">1月1日~1月3日</span>
+      <button type="button" class="pill-button">共有</button>
+      <button type="button" class="pill-button">保存</button>
+    </div>
+  </div>
+
+  <div class="plan-tabs">
+    <a class="active">交通手段</a>
+    <a href="{{ url_for('stay_select') }}">宿泊場所</a>
+    <a href="{{ url_for('schedule_list') }}">スケジュール</a>
+    <a href="{{ url_for('checklist_list') }}">持ち物</a>
+  </div>
+
+  <div class="transport-body">
+    <div class="error-inline" data-transport-error hidden>選択してください</div>
+
+    <div class="transport-options" data-transport-list>
+      {% for option in options if option.id != 'car' %}
+      <button type="button" class="transport-card" data-option="{{ option.id }}">
+        <div class="transport-card__header">
+          <span class="transport-title">{{ option.title }}</span>
+          <span class="transport-price">{{ option.price }}</span>
+          <span class="transport-time">{{ option.time }}</span>
+        </div>
+        <div class="transport-route">{{ option.route }}</div>
+      </button>
+      {% endfor %}
+
+      {% set car = (options | selectattr('id','equalto','car') | list)[0] %}
+      <button type="button" class="transport-card transport-card--outline" data-option="{{ car.id }}">
+        <span class="transport-title">{{ car.title }}</span>
+        <span class="transport-time">{{ car.time }}</span>
+      </button>
+    </div>
+
+    <div class="cta-row transport-actions">
+      <button type="button" class="cta-primary" data-transport-confirm data-redirect="{{ confirm_target }}">{{ button_label }}</button>
+    </div>
+  </div>
+</section>
+<script defer src="{{ url_for('static', filename='js/transport.js') }}"></script>
+{% endblock %}

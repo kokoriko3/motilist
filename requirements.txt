@@ -47,3 +47,5 @@ flask-bcrypt
 flask-wtf
 WTForms==3.1.2
 email_validator
+flask_bcrypt
+requests

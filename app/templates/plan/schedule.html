@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+
+{% block title %}スケジュール | Mochi List{% endblock %}
+
+{% block content %}
+  <section class="page-section">
+    <h1>日別スケジュール</h1>
+    <p class="section-lede">訪問するスポットや移動時間を日別に確認できます。</p>
+
+    <div class="schedule-list">
+      {% for day in schedule %}
+        <article class="schedule-card">
+          <header>
+            <span class="eyebrow">{{ day.day }}</span>
+            <h2>{{ day.title }}</h2>
+          </header>
+          <ul>
+            {% for activity in day.activities %}
+              <li>{{ activity }}</li>
+            {% endfor %}
+          </ul>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'layout.html' %}
+
+{% block title %}旅行概要の入力 | {{ config['BRAND_NAME'] }}{% endblock %}
+
+{% block content %}
+  <section class="page-section travel-form">
+    <div class="travel-form__header">
+      <h1>旅行概要を入力してください</h1>
+      <span class="travel-form__note">※は必須です</span>
+    </div>
+
+    {% if form_state.system_error %}
+      <p class="form-error">システムエラーです。</p>
+    {% elif form_state.missing_required %}
+      <p class="form-error">必須項目が未入力です</p>
+    {% endif %}
+
+    <form class="travel-form__body">
+      <div class="travel-form__row">
+        <label>
+          <span>行きたい場所</span>
+          <input type="text" placeholder="例: 沖縄, 東京タワー" />
+        </label>
+        <div class="origin-select">
+          <div class="origin-pill">
+            <label>
+              <input type="radio" name="origin" value="current" {% if form_state.selected_origin == 'current' %}checked{% endif %} />
+              <span>現在地</span>
+            </label>
+            <label>
+              <input type="radio" name="origin" value="custom" {% if form_state.selected_origin == 'custom' %}checked{% endif %} />
+              <span>出発場所を指定する</span>
+            </label>
+          </div>
+          <input type="text" placeholder="出発地を入力" value="{{ form_state.custom_origin }}" />
+        </div>
+      </div>
+
+      <div class="travel-form__row travel-form__row--chips" data-purpose>
+        <label>
+          <span>旅行の目的（複数入力可）</span>
+          <div class="purpose-add-row">
+            <input type="text" data-purpose-input placeholder="例：観光" />
+            <button class="purpose-add-button" type="button" data-purpose-add>追加</button>
+          </div>
+        </label>
+        <div class="chip-group" data-purpose-list>
+          {% for value in form_state.purpose_values %}
+            <span class="chip is-selected" data-purpose-chip data-value="{{ value }}">
+              <span class="chip__label">{{ value }}</span>
+              <button class="chip__remove" type="button" aria-label="削除" data-purpose-remove>&times;</button>
+            </span>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="purposes" data-purpose-hidden value="{{ form_state.purpose_values|join(',') }}" />
+      </div>
+
+      <div class="travel-form__row travel-form__row--short">
+        <label>
+          <span>日数</span>
+          <input type="number" placeholder="日間" min="1" />
+        </label>
+        <label>
+          <span>出発日</span>
+          <input type="text" placeholder="MM/DD" />
+        </label>
+      </div>
+
+      <div class="travel-form__row">
+        <span>旅行に求めること</span>
+        <div class="need-grid">
+          {% for option in form_state.needs %}
+            <label class="need-option">
+              <input type="checkbox" />
+              <span>{{ option }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <a class="cta-large" href="{{ url_for('plan_transit') }}">旅行プランを作成する✨</a>
+    </form>
+  </section>
+{% endblock %}

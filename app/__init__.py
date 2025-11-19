@@ -1,27 +1,38 @@
+# app/__init__.py
 from flask import Flask
-from .extensions import db, bcrypt, csrf
-from .routes.auth_routes import auth_bp
-from .routes.plan_routes import plan_bp
+from config import Config
+# extensionsから作成済みのインスタンスをインポート
+from app.extensions import db, migrate, bcrypt, login_manager
 
 def create_app():
-    app = Flask(__name__)
-    app.config.from_object("config.Config")
-
-    # DB設定
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-    # 拡張機能を初期化
+    app = Flask(__name__,
+                template_folder='templates',
+                static_folder='static')
+    
+    app.config.from_object(Config)
+    
+    # アプリと拡張機能を紐付け
     db.init_app(app)
+    migrate.init_app(app, db) 
     bcrypt.init_app(app)
-    csrf.init_app(app)
+    login_manager.init_app(app)
+    login_manager.login_view = "auth.login"
 
-    # Blueprint 登録
-    app.register_blueprint(auth_bp, url_prefix="/auth")
+    # --- 循環参照を防ぐため、ここ(関数内)でモデルとBlueprintをインポート ---
+    
+    # Userモデルのインポート (user_loaderのため)
+    # ※ import user ではなく、正しいパス(app.models.user)を指定します
+    from app.models.user import User 
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+    # Blueprintの登録
+    from app.routes.plan_routes import plan_bp
+    from app.routes.auth_routes import auth_bp
+    
     app.register_blueprint(plan_bp)
-
-    # DB作成
-    with app.app_context():
-        db.create_all()
+    app.register_blueprint(auth_bp)
 
     return app
