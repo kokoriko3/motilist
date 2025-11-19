@@ -4,52 +4,58 @@
 
 {% block form %}
   <form method="post" novalidate>
+    {{ form.hidden_tag() }} {# CSRF トークン #}
+
+    {# 表示名 #}
     <div class="input-field">
-      <label for="register-name">表示名</label>
-      <input
-        id="register-name"
-        name="name"
-        type="text"
-        placeholder="入力"
-        required
-        value="{{ form.name }}"
-      />
+      {{ form.displayName.label }}
+      {{ form.displayName(class="input", placeholder="入力", id="register-displayName") }}
+      {% if form.displayName.errors %}
+        <ul class="error-messages">
+          {% for error in form.displayName.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
+    {# メールアドレス #}
     <div class="input-field">
-      <label for="register-email">メールアドレス</label>
-      <input
-        id="register-email"
-        name="email"
-        type="email"
-        placeholder="入力"
-        required
-        value="{{ form.email }}"
-      />
+      {{ form.email.label }}
+      {{ form.email(class="input", placeholder="入力", id="register-email") }}
+      {% if form.email.errors %}
+        <ul class="error-messages">
+          {% for error in form.email.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
+    {# パスワード #}
     <div class="input-field">
-      <label for="register-password">パスワード</label>
-      <input
-        id="register-password"
-        name="password"
-        type="password"
-        placeholder="入力"
-        required
-        minlength="8"
-      />
+      {{ form.password.label }}
+      {{ form.password(class="input", placeholder="入力", id="register-password") }}
+      {% if form.password.errors %}
+        <ul class="error-messages">
+          {% for error in form.password.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
+    {# パスワード確認 #}
     <div class="input-field">
-      <label for="register-password-confirm">パスワード（確認）</label>
-      <input
-        id="register-password-confirm"
-        name="password_confirm"
-        type="password"
-        placeholder="入力"
-        required
-        minlength="8"
-      />
+      {{ form.password_confirm.label }}
+      {{ form.password_confirm(class="input", placeholder="入力", id="register-password-confirm") }}
+      {% if form.password_confirm.errors %}
+        <ul class="error-messages">
+          {% for error in form.password_confirm.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
     <button type="submit" class="cta-button">アカウントを作成</button>

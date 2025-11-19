@@ -1,5 +1,5 @@
 # user.py
-from app import db
+from app.extensions import db
 from flask_login import UserMixin
 
 class User(UserMixin,db.Model):
@@ -13,18 +13,10 @@ class User(UserMixin,db.Model):
     createdAt = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     updatedAt = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)
 
-    # Plan / Template / ShareLink は plan.py 側にある
-    plans = db.relationship(
-        "Plan",
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
-    templates = db.relationship(
-        "Template",
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
-    created_share_links = db.relationship(
-        "ShareLink",
-        back_populates="createdBy",
-    )
+    plans = db.relationship("Plan", back_populates="user", cascade="all, delete-orphan")
+    templates = db.relationship("Template", back_populates="user", cascade="all, delete-orphan")
+    created_share_links = db.relationship("ShareLink", back_populates="createdBy")
+    
+    def get_id(self):
+        """Flask-Login 用"""
+        return str(self.userId)
