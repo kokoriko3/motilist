@@ -33,6 +33,11 @@ def public_plan_list():
 
     plans = PlanDBService.get_public_plans()
 
+    print("---- 公開テンプレート一覧 ----")
+    print(plans)
+    for t in plans:
+        print("Template:", t.template_id, t.public_title, t.publish_status)
+
     return render_template(
         "plan/public_list.html",  # or "plan/list.html" を流用でもOK
         plans=plans,
