@@ -21,17 +21,20 @@
           <span></span>
           <span></span>
         </button>
-        <span class="brand-name">もちリスト</span>
+        <div class="brand-lockup">
+          <span class="brand-name">{{ config.get('BRAND_NAME', 'Mochi List') }}</span>
+        </div>
       </div>
       <nav class="header-nav">
-        <a href="">他人のプラン</a>
-        <a href="">自分のプラン一覧</a>
+        <a class="{{ 'active' if active_nav == 'public' else '' }}" href="{{ url_for('plan.public_plan_list') }}">他人のプラン(準備中)</a>
+        <a class="{{ 'active' if active_nav == 'plans' else '' }}" href="{{ url_for('plan.plan_list') }}">自分のプラン一覧</a>
         <div class="profile-dropdown" data-dropdown>
           <button class="icon-user" aria-label="アカウントメニュー" type="button"></button>
           <div class="dropdown-panel">
-            <div class="dropdown-row">
-              <span>トラベルコンシェルジュ</span>
-              <a href="">ログアウト</a>
+            <div class="dropdown-header">
+              <p class="dropdown-title">{{ config.get('BRAND_NAME', 'Mochi List') }}</p>
+              <p class="dropdown-subtitle">{{ config.get('ACCOUNT_DISPLAY_NAME', ゲスト) }}</p>
+              <a class="dropdown-link" href="#">アカウント情報</a>
             </div>
             <a class="dropdown-row profile-link" href="">
               <span class="icon-user small"></span>
@@ -49,5 +52,15 @@
     <footer class="site-footer">
       <small>© 2025 Mochi List. All rights reserved.</small>
     </footer>
+    <section class="logout-modal" data-logout-modal hidden>
+      <div class="logout-modal__backdrop" data-logout-dismiss></div>
+      <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+        <p id="logout-title">ログアウトしますか</p>
+        <div class="logout-modal__actions">
+          <button type="button" class="secondary-button" data-logout-cancel>戻る</button>
+          <button type="button" class="cta-button" data-logout-confirm data-logout-url="#">ログアウト</button>
+        </div>
+      </div>
+    </section>
   </body>
 </html>

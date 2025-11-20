@@ -1,21 +1,47 @@
-
+import re
 
 # app/routes/plan_routes.py
 from flask import Blueprint, render_template, redirect, url_for, request, flash
-# from app.services.db_service import PlanDBService
-# from app.forms.plan_form import PlanCreateForm
+from app.services.db_service import PlanDBService
+from app.forms.plan_form import PlanCreateForm
+from flask_login import current_user
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
 
 # ----------------------------------------
 #  プラン一覧（トップ）
-#  /plans
-# ----------------------------------------
+#  /plansfrom flask_login import current_user
+
 @plan_bp.route("/", methods=["GET"])
 def plan_list():
-    plans = PlanDBService.get_all_plans()
-    return render_template("plan/list.html", plans=plans)
+    if not current_user.is_authenticated:
+        # ログインしてないとき：プラン無し + ログインを促す
+        plans = []
+        return render_template("plan/list.html", plans=plans, show_login_link=True)
+
+    # ログインしているとき：自分のプランだけ表示
+    plans = PlanDBService.get_all_plans(user_id=current_user.id)
+    return render_template("plan/list.html", plans=plans, show_login_link=False)
+
+
+# 公開プラン一覧
+@plan_bp.route("/public", methods=["GET"])
+def public_plan_list():
+    # 誰でも見れる想定なのでログインチェックなし
+    q = request.args.get("q", "")
+
+    plans = []
+    # PlanDBService.get_public_plans(query=q)
+
+    return render_template(
+        "plan/public_list.html",  # or "plan/list.html" を流用でもOK
+        plans=plans,
+        query=q,
+        result_count=len(plans),
+        active_nav="public",
+    )
+
 
 
 # ----------------------------------------
@@ -32,22 +58,26 @@ def plan_detail(plan_id):
     return render_template("plan/detail.html", plan=plan)
 
 
-# @plan_bp.route("/create", methods=["GET", "POST"])
-# def plan_create():
-#     form = PlanCreateForm()
+# ----------------------------------------
+#  プラン作成画面（AIに生成依頼）
+#  /plans/create
+# ----------------------------------------
+@plan_bp.route("/create", methods=["GET", "POST"])
+def plan_create():
+    form = PlanCreateForm()
 
-#     if request.method == "POST":
-#         if form.validate_on_submit():
-#             # DBにプラン作成 → id を返す
-#             new_plan_id = PlanDBService.create_plan(form)
+    if request.method == "POST":
+        if form.validate_on_submit():
+            # DBにプラン作成 → id を返す
+            new_plan_id = PlanDBService.create_plan(form)
 
-#             # AI生成は JS(AJAX) で行うためここではしない
-#             flash("プランを作成しました。詳細画面で編集できます。")
-#             return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
+            # AI生成は JS(AJAX) で行うためここではしない
+            flash("プランを作成しました。詳細画面で編集できます。")
+            return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
 
-#         flash("入力内容に誤りがあります。")
+        flash("入力内容に誤りがあります。")
 
-#     return render_template("plan/plan_create.html", form=form)
+    return render_template("plan/plan_create.html", form=form)
 
 
 # # ----------------------------------------

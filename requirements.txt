@@ -43,9 +43,10 @@ Werkzeug==3.0.6
 zipp==3.20.2
 gunicorn
 Flask-Migrate
+Flask-Bcrypt
+Flask-WTF
+WTForms
 flask-bcrypt
-flask-wtf
 WTForms==3.1.2
 email_validator
-flask_bcrypt
 requests

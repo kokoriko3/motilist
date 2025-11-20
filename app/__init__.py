@@ -7,8 +7,10 @@ from app.extensions import db, migrate, bcrypt, login_manager
 def create_app():
     app = Flask(__name__,
                 template_folder='templates',
-                static_folder='static')
+                static_folder='static'
+                )
     
+    # 設定の読み込み
     app.config.from_object(Config)
     
     # アプリと拡張機能を紐付け
