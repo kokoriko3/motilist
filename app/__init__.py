@@ -1,20 +1,8 @@
+# app/__init__.py
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate  
-from flask_login import LoginManager
 from config import Config
-from .extensions import bcrypt
-
-db = SQLAlchemy()
-migrate = Migrate()  
-login_manager = LoginManager()
-login_manager.login_view = "auth.login"
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    from app.models.user import User
-    return User.query.get(int(user_id))
+# extensionsから作成済みのインスタンスをインポート
+from app.extensions import db, migrate, bcrypt, login_manager
 
 def create_app():
     app = Flask(__name__,
@@ -24,22 +12,29 @@ def create_app():
     
     # 設定の読み込み
     app.config.from_object(Config)
-
-    # 拡張の初期化
-    bcrypt.init_app(app)
+    
+    # アプリと拡張機能を紐付け
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db) 
+    bcrypt.init_app(app)
     login_manager.init_app(app)
+    login_manager.login_view = "auth.login"
 
-    # ルートのimportはここ（関数の中）で行う。
+    # --- 循環参照を防ぐため、ここ(関数内)でモデルとBlueprintをインポート ---
+    
+    # Userモデルのインポート (user_loaderのため)
+    # ※ import user ではなく、正しいパス(app.models.user)を指定します
+    from app.models.user import User 
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+    # Blueprintの登録
     from app.routes.plan_routes import plan_bp
     from app.routes.auth_routes import auth_bp
     
-    app.register_blueprint(auth_bp)
     app.register_blueprint(plan_bp)
-
+    app.register_blueprint(auth_bp)
 
     return app
-
-
-

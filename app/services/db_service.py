@@ -1,24 +1,17 @@
-from app import db
+from app.extensions import db, bcrypt
 from app.models.user import User
 from app.models.plan import Plan
 from flask_login import current_user
 
 
 class UserDBService:
-
-
     @staticmethod
-    def get_user_by_email(email: str):
-        return User.query.filter_by(email=email).first()
-
-
-    @staticmethod
-    def create_user(display_name: str, email: str, password_hash: str):
+    def create_user(email, displayName, password):
         user = User(
-            displayName=display_name,
             email=email,
-            passwordHash=password_hash,
-    )
+            displayName=displayName,
+            passwordHash=bcrypt.generate_password_hash(password).decode("utf-8")
+        )
         db.session.add(user)
         db.session.commit()
         return user

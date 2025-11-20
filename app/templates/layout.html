@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-    <script defer src="{{ url_for('static', filename='js/plan_detail.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
   </head>
   <body class="{% block body_class %}{% endblock %}">
     <header class="site-header">
@@ -36,7 +36,10 @@
               <p class="dropdown-subtitle">{{ config.get('ACCOUNT_DISPLAY_NAME', ゲスト) }}</p>
               <a class="dropdown-link" href="#">アカウント情報</a>
             </div>
-            <button class="dropdown-row logout-row" type="button" data-logout-trigger>ログアウト</button>
+            <a class="dropdown-row profile-link" href="">
+              <span class="icon-user small"></span>
+              <span>アカウント名</span>
+            </a>
           </div>
         </div>
       </nav>
@@ -47,7 +50,7 @@
     </main>
 
     <footer class="site-footer">
-      <small>&copy; 2025 Mochi List. All rights reserved.</small>
+      <small>© 2025 Mochi List. All rights reserved.</small>
     </footer>
     <section class="logout-modal" data-logout-modal hidden>
       <div class="logout-modal__backdrop" data-logout-dismiss></div>
@@ -61,8 +64,3 @@
     </section>
   </body>
 </html>
-
-
-
-
-
