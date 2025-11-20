@@ -47,6 +47,7 @@ class PlanDBService:
         if user_id is None:
             user_id = current_user.id
 
+        # 形だけ書いて動きを確認しただけなので変更してください
         plan = Plan(
             user_id=user_id,
             destination=destination,
