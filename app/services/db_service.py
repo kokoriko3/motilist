@@ -1,6 +1,6 @@
 from app.extensions import db, bcrypt
 from app.models.user import User
-from app.models.plan import Plan
+from app.models.plan import Plan, Template
 from flask_login import current_user
 
 
@@ -32,6 +32,15 @@ class PlanDBService:
             .order_by(Plan.created_at.desc())
             .all()
         )
+    
+    @staticmethod
+    def get_public_plans():
+        # 公開planの取得
+        return (
+            Template.query.filter_by(publish_status="public")
+            .all()
+        )
+    
     
     @staticmethod
     def get_plan_by_id(plan_id, user_id=None):
