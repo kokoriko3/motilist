@@ -62,6 +62,22 @@ def plan_detail(plan_id):
 #  プラン作成画面（AIに生成依頼）
 #  /plans/create
 # ----------------------------------------
+@plan_bp.route("/create", methods=["GET"])
+def plan_create_form():
+    form_state = {
+        "selected_origin": "current",
+        "custom_origin": "",
+        "purpose_values": [],
+        "needs": ["安く行きたい", "ゆっくりしたい"],
+        "selected_needs": [],
+    }
+    return render_template(
+        "plan/plan_create.html",
+        form_state=form_state,
+        active_nav="plans"
+    )
+
+# プラン作成フォーム送信後のルーティングと処理
 def _split_to_list(raw: str) -> list[str]:
     """
     「,」「、」「改行」で区切って list[str] にするユーティリティ
@@ -73,7 +89,7 @@ def _split_to_list(raw: str) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
-@plan_bp.route("/create", methods=["GET", "POST"])
+@plan_bp.route("/create_form", methods=["GET", "POST"])
 # @login_required
 def plan_create():
     form = PlanCreateForm()
