@@ -13,7 +13,7 @@
             <input type="search" name="q" placeholder="自分の旅行プランを検索" value="{{ query }}" />
           </label>
         </form>
-        <a class="plan-index__create plan-index__create--ghost" href="#">＋旅行プランを作成する</a>
+        <a class="plan-index__create plan-index__create--ghost" href="{{url_for('plan.plan_create')}}">＋旅行プランを作成する</a>
       </div>
     </header>
 
