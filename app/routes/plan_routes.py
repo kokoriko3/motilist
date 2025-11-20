@@ -23,11 +23,24 @@ def plan_list():
     # ログインしているとき：自分のプランだけ表示
     plans = PlanDBService.get_all_plans(user_id=current_user.id)
     return render_template("plan/list.html", plans=plans, show_login_link=False)
-# ----------------------------------------
-# @plan_bp.route("/", methods=["GET"])
-# def plan_list():
-#     plans = PlanDBService.get_all_plans()
-#     return render_template("plan/list.html", plans=plans)
+
+
+# 公開プラン一覧
+@plan_bp.route("/public", methods=["GET"])
+def public_plan_list():
+    # 誰でも見れる想定なのでログインチェックなし
+    q = request.args.get("q", "")
+
+    plans = PlanDBService.get_public_plans(query=q)
+
+    return render_template(
+        "plan/public_list.html",  # or "plan/list.html" を流用でもOK
+        plans=plans,
+        query=q,
+        result_count=len(plans),
+        active_nav="public",
+    )
+
 
 
 # ----------------------------------------
