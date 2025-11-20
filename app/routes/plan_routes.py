@@ -1,9 +1,9 @@
-
+import re
 
 # app/routes/plan_routes.py
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from app.services.db_service import PlanDBService
-# from app.forms.plan_form import PlanCreateForm
+from app.forms.plan_form import PlanCreateForm
 from flask_login import current_user
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
@@ -58,22 +58,26 @@ def plan_detail(plan_id):
     return render_template("plan/detail.html", plan=plan)
 
 
-# @plan_bp.route("/create", methods=["GET", "POST"])
-# def plan_create():
-#     form = PlanCreateForm()
+# ----------------------------------------
+#  プラン作成画面（AIに生成依頼）
+#  /plans/create
+# ----------------------------------------
+@plan_bp.route("/create", methods=["GET", "POST"])
+def plan_create():
+    form = PlanCreateForm()
 
-#     if request.method == "POST":
-#         if form.validate_on_submit():
-#             # DBにプラン作成 → id を返す
-#             new_plan_id = PlanDBService.create_plan(form)
+    if request.method == "POST":
+        if form.validate_on_submit():
+            # DBにプラン作成 → id を返す
+            new_plan_id = PlanDBService.create_plan(form)
 
-#             # AI生成は JS(AJAX) で行うためここではしない
-#             flash("プランを作成しました。詳細画面で編集できます。")
-#             return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
+            # AI生成は JS(AJAX) で行うためここではしない
+            flash("プランを作成しました。詳細画面で編集できます。")
+            return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
 
-#         flash("入力内容に誤りがあります。")
+        flash("入力内容に誤りがあります。")
 
-#     return render_template("plan/plan_create.html", form=form)
+    return render_template("plan/plan_create.html", form=form)
 
 
 # # ----------------------------------------
