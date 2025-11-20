@@ -23,8 +23,8 @@
 
     {% if plans %}
       <div class="plan-tiles plan-tiles--public">
-        {% for plan in plans %}
-          {% with plan=plan, can_delete=False, detail_url=url_for('plan_detail', plan_id=plan.id, source='public') %}
+        {% for template in plans %}
+          {% with plan=template, can_delete=False, detail_url=url_for('plan.plan_detail', plan_id=template.template_id, source='public') %}
             {% include 'components/_plan_card.html' %}
           {% endwith %}
         {% endfor %}
