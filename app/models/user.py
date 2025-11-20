@@ -15,8 +15,8 @@ class User(UserMixin,db.Model):
 
     plans = db.relationship("Plan", back_populates="user", cascade="all, delete-orphan")
     templates = db.relationship("Template", back_populates="user", cascade="all, delete-orphan")
-    created_share_links = db.relationship("ShareLink", back_populates="createdBy")
+    created_shares = db.relationship("Share", back_populates="createdBy")
     
     def get_id(self):
         """Flask-Login 用"""
-        return str(self.userId)
+        return str(self.user_id)
