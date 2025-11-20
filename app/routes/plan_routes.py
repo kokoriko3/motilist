@@ -57,9 +57,32 @@ def plan_detail(plan_id):
 
     return render_template("plan/detail.html", plan=plan)
 
-
 # ----------------------------------------
 #  プラン作成画面（AIに生成依頼）
+#  /plans/create_form でも /plans/create でもどっちかに統一
+# ----------------------------------------
+@plan_bp.route("/create_form", methods=["GET"])
+def plan_create_form():
+    form_state = {
+        "system_error": False,
+        "missing_required": False,
+        "selected_origin": "current",
+        "custom_origin": "",
+        "purpose_values": [],
+        "needs": ["安く行きたい", "ゆっくりしたい", "アクティビティ重視"],
+        "selected_needs": [],
+        "destination": "",
+        "days": "",
+        "start_date": "",
+    }
+    return render_template(
+        "plan/plan_create.html",
+        form_state=form_state,   # ★これを必ず渡す
+        active_nav="plans",
+    )
+
+# ----------------------------------------
+#  プランフォーム送信後処理（AIに生成依頼）
 #  /plans/create
 # ----------------------------------------
 @plan_bp.route("/create", methods=["GET", "POST"])
