@@ -31,8 +31,7 @@ def public_plan_list():
     # 誰でも見れる想定なのでログインチェックなし
     q = request.args.get("q", "")
 
-    plans = []
-    PlanDBService.get_public_plans(query=q)
+    plans = PlanDBService.get_public_plans()
 
     return render_template(
         "plan/public_list.html",  # or "plan/list.html" を流用でもOK
