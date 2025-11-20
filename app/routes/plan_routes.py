@@ -82,7 +82,7 @@ def plan_create():
         active_nav="plans"
     )
 
-# プラン作成フォーム送信後のルーティングと処理
+
 def _split_to_list(raw: str) -> list[str]:
     """
     「,」「、」「改行」で区切って list[str] にするユーティリティ
@@ -93,24 +93,24 @@ def _split_to_list(raw: str) -> list[str]:
     parts = re.split(r"[,、\n\r]+", raw)
     return [p.strip() for p in parts if p.strip()]
 
+# # プラン作成フォーム送信後のルーティングと処理
+# @plan_bp.route("/create_form", methods=["GET", "POST"])
+# # @login_required
+# def plan_create_form():
+#     form = PlanCreateForm()
 
-@plan_bp.route("/create_form", methods=["GET", "POST"])
-# @login_required
-def plan_create_form():
-    form = PlanCreateForm()
+#     if request.method == "POST":
+#         if form.validate_on_submit():
+#             # DBにプラン作成 → id を返す
+#             new_plan_id = PlanDBService.create_plan(form)
 
-    if request.method == "POST":
-        if form.validate_on_submit():
-            # DBにプラン作成 → id を返す
-            new_plan_id = PlanDBService.create_plan(form)
+#             # AI生成は JS(AJAX) で行うためここではしない
+#             flash("プランを作成しました。詳細画面で編集できます。")
+#             return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
 
-            # AI生成は JS(AJAX) で行うためここではしない
-            flash("プランを作成しました。詳細画面で編集できます。")
-            return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
+#         flash("入力内容に誤りがあります。")
 
-        flash("入力内容に誤りがあります。")
-
-    return render_template("plan/plan_create.html", form=form)
+#     return render_template("plan/plan_create.html", form=form)
 
 
 # # ----------------------------------------
