@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
-# from app.forms.auth_form import LoginForm
+from app.forms.auth_form import LoginForm
 from app.services.db_service import UserDBService
 from app.extensions import db, bcrypt
 from app.models.user import User
@@ -26,11 +26,9 @@ def login():
             flash("パスワードが一致しません", "error")
             return render_template("auth/login.html", form=form)
 
-        session["user_id"] = user.userId
+        session["user_id"] = user.user_id
         flash("ログインしました", "success")
-        return redirect(url_for("plan.list"))
-
-    # 初回アクセスまたはバリデーション失敗時
+        return redirect(url_for("plan.plan_list"))
     return render_template("auth/login.html", form=form)
 
 
@@ -60,10 +58,14 @@ def register():
 
         # ユーザー作成
         new_user = User(
-            displayName=form.displayName.data,
+            # 修正前: displayName=form.displayName.data,
+            display_name=form.displayName.data,  # 👈 Userモデルの定義に合わせる
+
             email=form.email.data,
-            passwordHash=hashed_password,
-            anonymousId=None  # 必要なら UUID などで生成可能
+            passwordHash=hashed_password,  # これは Userモデルでも passwordHash なのでOK
+
+            # 修正前: anonymousId=None
+            anonymous_id=None  # 👈 Userモデルの定義に合わせる
         )
 
         # DBに保存

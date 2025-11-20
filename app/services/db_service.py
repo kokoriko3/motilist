@@ -16,6 +16,10 @@ class UserDBService:
         db.session.commit()
         return user
     
+    @staticmethod
+    def get_user_by_email(email):
+        return User.query.filter_by(email=email).first()
+    
 class PlanDBService:
     @staticmethod
     def get_all_plans(user_id=None):
