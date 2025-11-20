@@ -15,9 +15,9 @@
 
   <div class="plan-tabs">
     <a class="active">交通手段</a>
-    <a href="{{ url_for('stay_select') }}">宿泊場所</a>
-    <a href="{{ url_for('schedule_list') }}">スケジュール</a>
-    <a href="{{ url_for('checklist_list') }}">持ち物</a>
+    <a href="{{ url_for('plan.stay_select') }}">宿泊場所</a>
+    <a href="{{ url_for('plan.schedule_list') }}">スケジュール</a>
+    <a href="{{ url_for('plan.checklist_list') }}">持ち物</a>
   </div>
 
   <div class="transport-body">
@@ -35,7 +35,7 @@
     </div>
 
     <div class="cta-row transport-actions">
-      <a class="pill-ghost" href="{{ url_for('plan_transit') }}">交通手段を選び直す</a>
+      <a class="pill-ghost" href="{{ url_for('plan.plan_transit') }}">交通手段を選び直す</a>
       <button type="button" class="cta-primary" data-transport-save>この交通手段で確定</button>
     </div>
   </div>
