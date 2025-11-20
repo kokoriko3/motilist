@@ -63,7 +63,7 @@ def plan_detail(plan_id):
 #  /plans/create
 # ----------------------------------------
 @plan_bp.route("/create", methods=["GET"])
-def plan_create_form():
+def plan_create():
     form_state = {
         "system_error": False,
         "missing_required": False,
@@ -96,7 +96,7 @@ def _split_to_list(raw: str) -> list[str]:
 
 @plan_bp.route("/create_form", methods=["GET", "POST"])
 # @login_required
-def plan_create():
+def plan_create_form():
     form = PlanCreateForm()
 
     if request.method == "POST":
