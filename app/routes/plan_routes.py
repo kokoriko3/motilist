@@ -1,9 +1,9 @@
-
+import re
 
 # app/routes/plan_routes.py
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from app.services.db_service import PlanDBService
-# from app.forms.plan_form import PlanCreateForm
+from app.forms.plan_form import PlanCreateForm
 from flask_login import current_user
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
@@ -62,22 +62,40 @@ def plan_detail(plan_id):
 #  プラン作成画面（AIに生成依頼）
 #  /plans/create
 # ----------------------------------------
+def _split_to_list(raw: str) -> list[str]:
+    """
+    「,」「、」「改行」で区切って list[str] にするユーティリティ
+    """
+    if not raw:
+        return []
+
+    parts = re.split(r"[,、\n\r]+", raw)
+    return [p.strip() for p in parts if p.strip()]
+
+
 @plan_bp.route("/create", methods=["GET", "POST"])
+# @login_required
 def plan_create():
     form = PlanCreateForm()
 
-    if request.method == "POST":
-        if form.validate_on_submit():
-            # DBにプラン作成 → id を返す
-            new_plan_id = PlanDBService.create_plan(form)
+    if form.validate_on_submit():
+        purposes = _split_to_list(form.purposes_raw.data)
+        options = _split_to_list(form.options_raw.data)
 
-            # AI生成は JS(AJAX) で行うためここではしない
-            flash("プランを作成しました。詳細画面で編集できます。")
-            return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
+        new_plan_id = PlanDBService.create_plan(
+            user_id=current_user.id,
+            destination=form.destination.data,
+            departure=form.departure.data,
+            start_date=form.start_date.data,
+            days=form.days.data,
+            purposes=purposes,   # list[str] → JSONカラムに保存
+            options=options,
+        )
 
-        flash("入力内容に誤りがあります。")
+        flash("プランを作成しました。")
+        return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
 
-    return render_template("plan/plan_create.html", form=form)
+    return render_template("plan/plan_create.html", form=form, active_nav="plans")
 
 
 # ----------------------------------------

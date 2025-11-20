@@ -49,17 +49,19 @@ class PlanDBService:
         )
     
     @staticmethod
-    def create_plan(form, user_id=None):
+    def create_plan(user_id, destination, departure, start_date, days, purposes, options):
         """フォームから新規プランを作成して、id を返す"""
         if user_id is None:
             user_id = current_user.id
 
         plan = Plan(
             user_id=user_id,
-            title=form.title.data,
-            description=form.description.data,
-            start_date=form.start_date.data,
-            end_date=form.end_date.data,
+            destination=destination,
+            departure=departure,
+            start_date=start_date,
+            days=days,
+            purposes=purposes,  # JSONカラム (SQLAlchemy JSON / JSONB)
+            options=options,    # 同上
         )
 
         db.session.add(plan)
