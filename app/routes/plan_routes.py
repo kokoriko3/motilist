@@ -32,7 +32,7 @@ def public_plan_list():
     q = request.args.get("q", "")
 
     plans = []
-    # PlanDBService.get_public_plans(query=q)
+    PlanDBService.get_public_plans(query=q)
 
     return render_template(
         "plan/public_list.html",  # or "plan/list.html" を流用でもOK
