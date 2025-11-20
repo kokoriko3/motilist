@@ -46,3 +46,7 @@ Flask-Migrate
 Flask-Bcrypt
 Flask-WTF
 WTForms
+flask-bcrypt
+WTForms==3.1.2
+email_validator
+requests

@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}持ち物リスト作成{% endblock %}
+{% block content %}
+<section class="plan-shell">
+  <div class="plan-header">
+    <div>
+      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+    </div>
+    <div class="plan-meta">
+      <span class="plan-date">1月1日~1月3日</span>
+      <button type="button" class="pill-button">共有</button>
+      <button type="button" class="pill-button">保存</button>
+    </div>
+  </div>
+
+  <div class="plan-tabs">
+    <a href="{{ url_for('plan_transit') }}">交通手段</a>
+    <a href="{{ url_for('stay_select') }}">宿泊場所</a>
+    <a href="{{ url_for('schedule_list') }}">スケジュール</a>
+    <a class="active">持ち物</a>
+  </div>
+
+  <div class="checklist-body">
+    <div class="cta-row">
+      <button type="button" class="cta-primary" data-checklist-generate>持ち物リストを作成</button>
+    </div>
+    <div class="checklist-error" data-checklist-error hidden>持ち物の予測に失敗しました　再度実行してください</div>
+  </div>
+</section>
+<script defer src="{{ url_for('static', filename='js/checklist.js') }}"></script>
+{% endblock %}

@@ -8,8 +8,8 @@
     <section class="complete-card success-card">
       <div class="complete-check" aria-hidden="true">✔</div>
       <h1>新規登録が完了しました</h1>
-      <p class="complete-subtext">{{ config['BRAND_NAME'] }}にご登録いただき<br />誠にありがとうございます</p>
-      <a class="complete-button" href="{{ url_for('plan_create') }}">プランを作成する</a>
+      <p class="complete-subtext">トラベルコンシェルジュにご登録いただき<br />誠にありがとうございます</p>
+      <a class="complete-button" href="{{ url_for('auth.login') }}">プランを作成する</a>
     </section>
   </div>
 {% endblock %}

@@ -58,112 +58,108 @@ def plan_detail(plan_id):
     return render_template("plan/detail.html", plan=plan)
 
 
-# ----------------------------------------
-#  プラン作成画面（AIに生成依頼）
-#  /plans/create
-# ----------------------------------------
-@plan_bp.route("/create", methods=["GET", "POST"])
-def plan_create():
-    form = PlanCreateForm()
+# @plan_bp.route("/create", methods=["GET", "POST"])
+# def plan_create():
+#     form = PlanCreateForm()
 
-    if request.method == "POST":
-        if form.validate_on_submit():
-            # DBにプラン作成 → id を返す
-            new_plan_id = PlanDBService.create_plan(form)
+#     if request.method == "POST":
+#         if form.validate_on_submit():
+#             # DBにプラン作成 → id を返す
+#             new_plan_id = PlanDBService.create_plan(form)
 
-            # AI生成は JS(AJAX) で行うためここではしない
-            flash("プランを作成しました。詳細画面で編集できます。")
-            return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
+#             # AI生成は JS(AJAX) で行うためここではしない
+#             flash("プランを作成しました。詳細画面で編集できます。")
+#             return redirect(url_for("plan.plan_detail", plan_id=new_plan_id))
 
-        flash("入力内容に誤りがあります。")
+#         flash("入力内容に誤りがあります。")
 
-    return render_template("plan/plan_create.html", form=form)
+#     return render_template("plan/plan_create.html", form=form)
 
 
-# ----------------------------------------
-#  交通手段選択画面
-#  /plans/<id>/transit
-# ----------------------------------------
-@plan_bp.route("/<int:plan_id>/transit", methods=["GET", "POST"])
-def plan_transit(plan_id):
-    plan = PlanDBService.get_plan_by_id(plan_id)
+# # ----------------------------------------
+# #  交通手段選択画面
+# #  /plans/<id>/transit
+# # ----------------------------------------
+# @plan_bp.route("/<int:plan_id>/transit", methods=["GET", "POST"])
+# def plan_transit(plan_id):
+#     plan = PlanDBService.get_plan_by_id(plan_id)
 
-    if not plan:
-        flash("プランが存在しません。")
-        return redirect(url_for("plan.plan_list"))
+#     if not plan:
+#         flash("プランが存在しません。")
+#         return redirect(url_for("plan.plan_list"))
 
-    if request.method == "POST":
-        # 選択された交通手段をDBに保存
-        transit = request.form.get("transit")
-        PlanDBService.update_transit(plan_id, transit)
+#     if request.method == "POST":
+#         # 選択された交通手段をDBに保存
+#         transit = request.form.get("transit")
+#         PlanDBService.update_transit(plan_id, transit)
 
-        flash("交通手段を更新しました。")
-        return redirect(url_for("plan.plan_detail", plan_id=plan_id))
+#         flash("交通手段を更新しました。")
+#         return redirect(url_for("plan.plan_detail", plan_id=plan_id))
 
-    return render_template("plan/transit.html", plan=plan)
-
-
-# ----------------------------------------
-#  ホテル選択画面
-#  /plans/<id>/hotel
-# ----------------------------------------
-@plan_bp.route("/<int:plan_id>/hotel", methods=["GET", "POST"])
-def plan_hotel(plan_id):
-    plan = PlanDBService.get_plan_by_id(plan_id)
-
-    if not plan:
-        flash("プランが存在しません。")
-        return redirect(url_for("plan.plan_list"))
-
-    if request.method == "POST":
-        hotel = request.form.get("hotel")
-        PlanDBService.update_hotel(plan_id, hotel)
-
-        flash("ホテル情報を更新しました。")
-        return redirect(url_for("plan.plan_detail", plan_id=plan_id))
-
-    return render_template("plan/hotel.html", plan=plan)
+#     return render_template("plan/transit.html", plan=plan)
 
 
-# ----------------------------------------
-#  日程確定画面（編集可）
-#  /plans/<id>/schedule
-# ----------------------------------------
-@plan_bp.route("/<int:plan_id>/schedule", methods=["GET", "POST"])
-def plan_schedule(plan_id):
-    plan = PlanDBService.get_plan_with_schedule(plan_id)
+# # ----------------------------------------
+# #  ホテル選択画面
+# #  /plans/<id>/hotel
+# # ----------------------------------------
+# @plan_bp.route("/<int:plan_id>/hotel", methods=["GET", "POST"])
+# def plan_hotel(plan_id):
+#     plan = PlanDBService.get_plan_by_id(plan_id)
 
-    if not plan:
-        flash("プランが存在しません。")
-        return redirect(url_for("plan.plan_list"))
+#     if not plan:
+#         flash("プランが存在しません。")
+#         return redirect(url_for("plan.plan_list"))
 
-    if request.method == "POST":
-        updated_schedule = request.form.to_dict()
-        PlanDBService.update_schedule(plan_id, updated_schedule)
+#     if request.method == "POST":
+#         hotel = request.form.get("hotel")
+#         PlanDBService.update_hotel(plan_id, hotel)
 
-        flash("日程を更新しました。")
-        return redirect(url_for("plan.plan_detail", plan_id=plan_id))
+#         flash("ホテル情報を更新しました。")
+#         return redirect(url_for("plan.plan_detail", plan_id=plan_id))
 
-    return render_template("plan/schedule.html", plan=plan)
+#     return render_template("plan/hotel.html", plan=plan)
 
 
-# ----------------------------------------
-#  持ち物リスト編集画面
-#  /plans/<id>/items
-# ----------------------------------------
-@plan_bp.route("/<int:plan_id>/items", methods=["GET", "POST"])
-def plan_items(plan_id):
-    plan = PlanDBService.get_plan_with_items(plan_id)
+# # ----------------------------------------
+# #  日程確定画面（編集可）
+# #  /plans/<id>/schedule
+# # ----------------------------------------
+# @plan_bp.route("/<int:plan_id>/schedule", methods=["GET", "POST"])
+# def plan_schedule(plan_id):
+#     plan = PlanDBService.get_plan_with_schedule(plan_id)
 
-    if not plan:
-        flash("プランが存在しません。")
-        return redirect(url_for("plan.plan_list"))
+#     if not plan:
+#         flash("プランが存在しません。")
+#         return redirect(url_for("plan.plan_list"))
 
-    if request.method == "POST":
-        updated_items = request.form.to_dict()
-        PlanDBService.update_items(plan_id, updated_items)
+#     if request.method == "POST":
+#         updated_schedule = request.form.to_dict()
+#         PlanDBService.update_schedule(plan_id, updated_schedule)
 
-        flash("持ち物リストを更新しました。")
-        return redirect(url_for("plan.plan_detail", plan_id=plan_id))
+#         flash("日程を更新しました。")
+#         return redirect(url_for("plan.plan_detail", plan_id=plan_id))
 
-    return render_template("plan/item_list.html", plan=plan)
+#     return render_template("plan/schedule.html", plan=plan)
+
+
+# # ----------------------------------------
+# #  持ち物リスト編集画面
+# #  /plans/<id>/items
+# # ----------------------------------------
+# @plan_bp.route("/<int:plan_id>/items", methods=["GET", "POST"])
+# def plan_items(plan_id):
+#     plan = PlanDBService.get_plan_with_items(plan_id)
+
+#     if not plan:
+#         flash("プランが存在しません。")
+#         return redirect(url_for("plan.plan_list"))
+
+#     if request.method == "POST":
+#         updated_items = request.form.to_dict()
+#         PlanDBService.update_items(plan_id, updated_items)
+
+#         flash("持ち物リストを更新しました。")
+#         return redirect(url_for("plan.plan_detail", plan_id=plan_id))
+
+#     return render_template("plan/item_list.html", plan=plan)
