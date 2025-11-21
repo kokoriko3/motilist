@@ -1,7 +1,6 @@
 from app.extensions import db, bcrypt
 from app.models.user import User
-from app.models.plan import Plan
-from app.models.plan import Template
+from app.models.plan import Plan, Template
 from flask_login import current_user
 
 
