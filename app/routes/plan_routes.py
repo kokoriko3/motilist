@@ -62,21 +62,11 @@ def plan_detail(plan_id):
 # ----------------------------------------
 @plan_bp.route("/create_form", methods=["GET"])
 def plan_create_form():
-    form_state = {
-        "system_error": False,
-        "missing_required": False,
-        "selected_origin": "current",
-        "custom_origin": "",
-        "purpose_values": [],
-        "needs": ["安く行きたい", "ゆっくりしたい", "アクティビティ重視"],
-        "selected_needs": [],
-        "destination": "",
-        "days": "",
-        "start_date": "",
-    }
+    form = PlanCreateForm()
+
     return render_template(
         "plan/plan_create.html",
-        form_state=form_state,   # ★これを必ず渡す
+        form=form,            
         active_nav="plans",
     )
 
