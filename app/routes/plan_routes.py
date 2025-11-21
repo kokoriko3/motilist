@@ -20,8 +20,13 @@ def plan_list():
         plans = []
         return render_template("plan/list.html", plans=plans, show_login_link=True)
 
+    print("DEBUG: current_user.id =", current_user.id)
+    print("DEBUG: plans count   =", len(plans))
+    # デバッグ
+    for p in plans:
+        print("DEBUG: plan_id =", p.plan_id, "user_id =", p.user_id)
     # ログインしているとき：自分のプランだけ表示
-    plans = PlanDBService.get_all_plans(user_id=1)
+    plans = PlanDBService.get_all_plans(user_id=current_user.id)
     return render_template("plan/list.html", plans=plans, show_login_link=False)
 
 # 公開プラン一覧
