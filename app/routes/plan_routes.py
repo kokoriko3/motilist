@@ -47,14 +47,28 @@ def public_plan_list():
 #  プラン詳細ページ
 #  /plans/<id>
 # ----------------------------------------
-@plan_bp.route("/<int:template_id>", methods=["GET"])
-def plan_detail(template_id):
-    plan = PlanDBService.get_template_by_id(template_id)
+@plan_bp.route("/<int:plan_id>", methods=["GET"])
+def plan_detail(plan_id):
+    plan = PlanDBService.get_template_by_id(plan_id)
     if not plan:
         flash("指定されたプランは存在しません。")
         return redirect(url_for("plan.plan_list"))
 
     return render_template("plan/detail.html", plan=plan)
+
+# ----------------------------------------
+#  公開テンプレート詳細ページ
+#  /plans/templates/<template_id>
+# ----------------------------------------
+@plan_bp.route("/templates/<int:template_id>", methods=["GET"])
+def template_detail(template_id):
+    template = PlanDBService.get_template_by_id(template_id)
+    if not template:
+        flash("指定されたプランは存在しません。")
+        return redirect(url_for("plan.public_plan_list"))
+
+    # Jinja 側では「plan」として扱いたいなら、変数名はどっちでもOK
+    return render_template("plan/detail.html", plan=template)
 
 # ----------------------------------------
 #  プラン作成画面（AIに生成依頼）

@@ -43,7 +43,7 @@ class PlanDBService:
     
     @staticmethod
     def get_template_by_id(plan_id, user_id=None):
-        """指定IDのプランを1件取得（自分のプランだけ）"""
+        """指定IDのプランを1件取得（1件のテンプレート詳細）"""
         if user_id is None:
             user_id = current_user.id
 
@@ -52,6 +52,18 @@ class PlanDBService:
             .filter_by(id=plan_id)
             .first()
         )
+    
+    staticmethod
+    def get_template_by_id(template_id, user_id=None):
+        """指定IDのテンプレートを1件取得（公開用なら user_id フィルタなしでもOK）"""
+
+        q = Template.query.filter_by(template_id=template_id)
+
+        # 「マイテンプレ閲覧」用に user_id を使うならこういう形にする
+        if user_id is not None:
+            q = q.filter_by(user_id=user_id)
+
+        return q.first()
     
     @staticmethod
     def create_plan(user_id, destination, departure, start_date, days, purposes, options):
