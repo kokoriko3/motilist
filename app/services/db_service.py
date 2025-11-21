@@ -1,7 +1,6 @@
 from app.extensions import db, bcrypt
 from app.models.user import User
-from app.models.plan import Plan
-from app.models.plan import Template
+from app.models.plan import Plan, Template
 from flask_login import current_user
 
 
@@ -60,6 +59,7 @@ class PlanDBService:
         if user_id is None:
             user_id = current_user.id
 
+        # 形だけ書いて動きを確認しただけなので変更してください
         plan = Plan(
             user_id=user_id,
             destination=destination,
