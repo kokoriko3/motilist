@@ -215,26 +215,6 @@ def run_seed():
             ]
         }
 
-        checklist_summary_json = {
-            "rows": [
-                {
-                    "essential": "Tシャツ",
-                    "extra": "替えTシャツ1枚",
-                    "note": "汗かきなので予備が必要"
-                },
-                {
-                    "essential": "ズボン",
-                    "extra": "",
-                    "note": "動きやすいもの"
-                },
-                {
-                    "essential": "スマホ",
-                    "extra": "モバイルバッテリー",
-                    "note": "充電切れ対策"
-                },
-            ]
-        }
-
         # Template & share ------------------------------------------------------
         template = Template(
             user_id=user.user_id,
@@ -242,7 +222,11 @@ def run_seed():
             public_title="大阪1泊2日テンプレ",
             note="seed.pyで投入したサンプルテンプレ",
             schedule_summary_json=schedule_summary_json,
-            checklist_summary_json=checklist_summary_json,
+            checklist_summary_json={
+            "essential_items": ["Tシャツ", "ズボン", "スマホ"],
+                "extra_items": ["帽子", "日焼け止め"],
+                "description": "○○場所では気温が低いので厚手の服が必要です"
+            },
             days=plan.days,
             total_items=3,
             required_ratio=1.0,
