@@ -1,0 +1,46 @@
+<!-- 4. プラン詳細画面 -->
+<section id="view-detail" class="page-section plan-detail" hidden>
+  <article class="plan-detail-card">
+    <div class="plan-detail-card__header">
+      <div>
+        <h1 id="summary-title">タイトル</h1>
+        <dl class="plan-detail-summary">
+          <div><dt>日程</dt><dd id="summary-date">--</dd></div>
+          <div><dt>交通手段</dt><dd id="summary-transport">未定</dd></div>
+          <div><dt>宿泊先</dt><dd id="summary-stay">未定</dd></div>
+        </dl>
+      </div>
+      <div class="plan-detail-card__meta">
+        <p id="summary-created">作成日: --</p>
+        <div id="summary-actions"></div>
+      </div>
+    </div>
+    <section class="plan-detail-body">
+      <div class="info-columns">
+        <div>
+          <p class="section-label">宿泊場所</p>
+          <p class="info-bold" id="summary-stay-bold">未定</p>
+          <p id="summary-price">--</p>
+        </div>
+        <div>
+          <p class="section-label">主な滞在場所</p>
+          <ul id="summary-locations"><li>(未設定)</li></ul>
+        </div>
+      </div>
+      <section class="packing-section">
+        <header class="packing-section__header">
+          <p class="section-label">主な持ち物</p>
+          <span id="summary-items-count">アイテム総数 0</span>
+        </header>
+        <table class="packing-table" id="summary-packing-table"></table>
+      </section>
+    </section>
+    <section class="plan-description">
+      <p class="section-label">プラン概要</p>
+      <p id="summary-description" class="plan-description__body">(説明が未入力です)</p>
+    </section>
+    <div class="detail-card__footer">
+      <button class="cta-button ghost" onclick="app.goBackFromDetail()">戻る</button>
+    </div>
+  </article>
+</section>

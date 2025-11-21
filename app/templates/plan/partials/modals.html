@@ -1,0 +1,49 @@
+<!-- Share Modal -->
+<div id="shareModal" class="custom-modal share-modal">
+  <div class="custom-modal__backdrop" onclick="app.closeShareModal()"></div>
+  <div class="custom-modal__dialog share-modal__dialog">
+    <h3 class="custom-modal__title">プランを共有</h3>
+    <p class="custom-modal__desc">以下のURLをコピーして共有してください</p>
+    <div class="share-link-box">
+      <input type="text" id="shareUrl" readonly>
+      <button class="share-copy-btn" onclick="app.copyShareUrl()">コピー</button>
+    </div>
+    <button class="modal-close-btn" onclick="app.closeShareModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div id="deleteModal" class="custom-modal">
+  <div class="custom-modal__backdrop" onclick="app.closeDeleteModal()"></div>
+  <div class="custom-modal__dialog">
+    <h3 class="custom-modal__title">プランを削除しますか？</h3>
+    <p class="custom-modal__desc">削除したプランは元に戻せません。</p>
+    <div class="delete-actions">
+      <button class="delete-cancel-btn" onclick="app.closeDeleteModal()">キャンセル</button>
+      <button class="delete-confirm-btn" onclick="app.deletePlan()">削除する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Finish Plan Modal -->
+<div id="finishModal" class="custom-modal">
+  <div class="custom-modal__backdrop" onclick="app.closeFinishModal()"></div>
+  <div class="custom-modal__dialog">
+    <h3 class="custom-modal__title">プランを保存</h3>
+    <div class="finish-form">
+        <label>プランタイトル</label>
+        <input type="text" id="finish-title">
+        <label>説明</label>
+        <textarea id="finish-desc"></textarea>
+        <label>公開設定</label>
+        <div class="finish-radio-group">
+            <label><input type="radio" name="visibility" value="private" checked> 非公開</label>
+            <label><input type="radio" name="visibility" value="public"> 公開</label>
+        </div>
+        <div class="delete-actions" style="margin-top:20px;">
+            <button class="delete-cancel-btn" onclick="app.closeFinishModal()">キャンセル</button>
+            <button class="delete-confirm-btn" style="background:#4f46e5;" onclick="app.completePlan()">保存</button>
+        </div>
+    </div>
+  </div>
+</div>

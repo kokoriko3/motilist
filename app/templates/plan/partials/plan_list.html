@@ -1,0 +1,30 @@
+<!-- 2. 自分のプラン一覧画面 -->
+<section id="view-list" class="page-section plan-shelf" hidden>
+  <div class="plan-shelf__header">
+    <h1>プラン一覧</h1>
+    <div class="plan-shelf__actions">
+      <div class="plan-search">
+        <span class="plan-search__icon">🔍</span>
+        <input id="plan-search-input" type="search" placeholder="自分のプランを検索" />
+      </div>
+      <button class="button-dark" style="width: auto; padding: 10px 20px;" onclick="app.router.go('create')">
+        ＋ 旅行プランを作成する
+      </button>
+    </div>
+  </div>
+  <div class="plan-tiles" id="planListContainer"></div>
+</section>
+
+<!-- 2.5. 他人のプラン一覧画面 -->
+<section id="view-public-list" class="page-section plan-shelf" hidden>
+  <div class="plan-shelf__header">
+    <h1>公開 プラン一覧</h1>
+    <div class="plan-shelf__actions">
+      <div class="plan-search">
+        <span class="plan-search__icon">🔍</span>
+        <input id="public-plan-search-input" type="search" placeholder="他人の旅行プランを検索" />
+      </div>
+    </div>
+  </div>
+  <div class="plan-tiles" id="publicPlanListContainer"></div>
+</section>

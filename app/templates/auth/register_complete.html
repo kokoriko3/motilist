@@ -1,16 +1,2 @@
-{% extends 'layout.html' %}
-
-{% block title %}新規登録が完了しました | {{ config['BRAND_NAME'] }}{% endblock %}
-{% block body_class %}complete-body{% endblock %}
-
-{% block content %}
-  <div class="complete-main">
-    <section class="complete-card success-card">
-      <div class="complete-check" aria-hidden="true">✔</div>
-      <h1>新規登録が完了しました</h1>
-      <p class="complete-subtext">トラベルコンシェルジュにご登録いただき<br />誠にありがとうございます</p>
-      <a class="complete-button" href="{{ url_for('auth.login') }}">プランを作成する</a>
-    </section>
-  </div>
-{% endblock %}
-
+{% extends 'app_shell.html' %}
+{% set initial_view = 'register-complete' %}

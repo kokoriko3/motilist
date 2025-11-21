@@ -1,0 +1,66 @@
+<!-- 6. ワークスペース (移動・宿泊・日程・持ち物) -->
+<section id="view-workspace" class="plan-shell" hidden>
+  <div class="plan-header">
+    <div>
+      <button onclick="app.router.go('detail')" style="background: none; border: none; color: #666; font-size: 0.9rem;">&larr; 概要に戻る</button>
+      <p class="plan-title" id="ws-title">タイトル</p>
+    </div>
+    <div class="plan-meta">
+      <span id="ws-date">日付</span>
+    </div>
+  </div>
+
+  <div class="plan-tabs">
+    <button class="active" onclick="app.switchWorkspaceTab('transit', this)">交通手段</button>
+    <button onclick="app.switchWorkspaceTab('stay', this)">宿泊場所</button>
+    <button onclick="app.switchWorkspaceTab('schedule', this)">スケジュール</button>
+    <button onclick="app.switchWorkspaceTab('checklist', this)">持ち物</button>
+  </div>
+
+  <!-- Tab: Transit -->
+  <div id="tab-transit" class="transport-body">
+    <div class="transport-options">
+      <div class="transport-card" data-name="新幹線 (のぞみ)" data-price="15000" onclick="app.selectCard(this, 'transit')">
+        <div class="card-row"><span class="card-title">新幹線 (のぞみ)</span><span class="card-price">15,000円</span></div>
+        <div class="card-desc">所要時間: 5時間 / 東京駅発</div>
+      </div>
+      <div class="transport-card" data-name="飛行機 (JAL/ANA)" data-price="12000" onclick="app.selectCard(this, 'transit')">
+        <div class="card-row"><span class="card-title">飛行機 (JAL/ANA)</span><span class="card-price">12,000円</span></div>
+        <div class="card-desc">所要時間: 2時間 / 羽田空港発</div>
+      </div>
+    </div>
+    <div class="cta-row"><button class="cta-primary" onclick="app.saveWorkspace('stay')">保存して次へ</button></div>
+  </div>
+
+  <!-- Tab: Stay -->
+  <div id="tab-stay" class="stay-body" hidden>
+    <div class="stay-list">
+      <div class="stay-card" data-name="ホテル日航福岡" data-price="18000" onclick="app.selectCard(this, 'stay')">
+        <div class="card-row"><span class="card-title">ホテル日航福岡</span><span class="card-price">18,000円~</span></div>
+        <div class="card-desc">博多駅直結 / ★★★★★ 4.8</div>
+      </div>
+      <div class="stay-card" data-name="THE BASICS FUKUOKA" data-price="15000" onclick="app.selectCard(this, 'stay')">
+        <div class="card-row"><span class="card-title">THE BASICS FUKUOKA</span><span class="card-price">15,000円~</span></div>
+        <div class="card-desc">おしゃれな内装 / ★★★★☆ 4.5</div>
+      </div>
+    </div>
+    <div class="cta-row"><button class="cta-primary" onclick="app.saveWorkspace('schedule')">保存して次へ</button></div>
+  </div>
+
+  <!-- Tab: Schedule -->
+  <div id="tab-schedule" class="schedule-body" hidden>
+    <div class="schedule-row"><div class="col-time">10:00</div><div>空港到着</div></div>
+    <div class="schedule-row"><div class="col-time">12:00</div><div>ランチ</div></div>
+    <div class="cta-row"><button class="cta-primary" onclick="app.saveWorkspace('checklist')">スケジュール保存</button></div>
+  </div>
+
+  <!-- Tab: Checklist -->
+  <div id="tab-checklist" class="checklist-body" hidden>
+    <div class="checklist-toolbar">
+      <input type="text" id="new-category-name" placeholder="カテゴリ名を入力" />
+      <button class="cta-button ghost" style="max-width:200px;" onclick="app.addCategory()">カテゴリを追加</button>
+    </div>
+    <div class="checklist-grid" id="checklistContainer"></div>
+    <div class="cta-row"><button class="cta-primary" onclick="app.openFinishModal()">プランを保存して終了</button></div>
+  </div>
+</section>

@@ -1,0 +1,52 @@
+<!-- 3. プラン作成画面 -->
+<section id="view-create" class="page-section travel-form" hidden>
+  <div class="travel-form__header">
+    <h1>旅行概要を入力してください</h1>
+    <span class="travel-form__note">※は必須です</span>
+  </div>
+  <form class="travel-form__body" onsubmit="event.preventDefault(); app.createPlan();">
+    <div class="travel-form__row">
+      <label>
+        <span>行きたい場所</span>
+        <input type="text" id="create-destination" placeholder="例: 沖縄, 東京タワー" required />
+      </label>
+      <div class="origin-select">
+        <div class="origin-pill">
+          <label><input type="radio" name="origin" value="current" checked onchange="app.toggleOrigin(this.value)" /><span>現在地</span></label>
+          <label><input type="radio" name="origin" value="custom" onchange="app.toggleOrigin(this.value)" /><span>出発場所を指定する</span></label>
+        </div>
+        <input type="text" id="create-origin-input" placeholder="出発地を入力" disabled style="margin-top: 8px;" />
+      </div>
+    </div>
+
+    <div class="travel-form__row travel-form__row--chips">
+      <label>
+        <span>旅行の目的（複数入力可）</span>
+        <div class="purpose-add-row">
+          <input type="text" id="create-purpose-input" placeholder="例：観光" style="flex: 1;" />
+          <button class="purpose-add-button" type="button" onclick="app.addPurposeChip('create')">追加</button>
+        </div>
+      </label>
+      <div class="chip-group" id="create-purpose-list"></div>
+    </div>
+
+    <div class="travel-form__row travel-form__row--short">
+      <label><span>日数</span><input type="number" id="create-days" placeholder="日間" min="1" required /></label>
+      <label><span>出発日</span><input type="date" id="create-date" required /></label>
+    </div>
+
+    <div class="travel-form__row">
+      <span>旅行に求めること</span>
+      <div class="need-grid">
+        <label class="need-option"><input type="checkbox" name="needs" value="リラックス"><span>リラックス</span></label>
+        <label class="need-option"><input type="checkbox" name="needs" value="アクティブ"><span>アクティブ</span></label>
+        <label class="need-option"><input type="checkbox" name="needs" value="グルメ"><span>グルメ</span></label>
+        <label class="need-option"><input type="checkbox" name="needs" value="文化・歴史"><span>文化・歴史</span></label>
+        <label class="need-option"><input type="checkbox" name="needs" value="写真映え"><span>写真映え</span></label>
+        <label class="need-option"><input type="checkbox" name="needs" value="穴場スポット"><span>穴場スポット</span></label>
+      </div>
+    </div>
+
+    <button type="submit" class="cta-large">旅行プランを作成する✨</button>
+  </form>
+</section>
