@@ -20,9 +20,10 @@
     {% if plans %}
       <div class="plan-tiles plan-tiles--wide">
         {% for plan in plans %}
-          {% with detail_url=url_for('plan_detail', plan_id=plan.id, source='own') %}
+          {% with plan=plan, can_delete=False %}
             {% include 'components/_plan_card.html' %}
           {% endwith %}
+        {% endfor %}
         {% endfor %}
       </div>
       <p class="plan-pagination">
