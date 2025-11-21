@@ -1,0 +1,12 @@
+{% extends 'app_shell.html' %}
+{% set initial_view = 'workspace' %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof app === 'undefined') return;
+      const stayTab = document.querySelectorAll('.plan-tabs button')[1];
+      if (stayTab) app.switchWorkspaceTab('stay', stayTab);
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'app_shell.html' %}
+{% set initial_view = 'workspace' %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof app === 'undefined') return;
+      const checklistTab = document.querySelectorAll('.plan-tabs button')[3];
+      if (checklistTab) app.switchWorkspaceTab('checklist', checklistTab);
+    });
+  </script>
+{% endblock %}
