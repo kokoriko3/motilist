@@ -4,7 +4,7 @@ import re
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from app.services.db_service import PlanDBService
 from app.forms.plan_form import PlanCreateForm
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
@@ -14,6 +14,7 @@ plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 #  /plansfrom flask_login import current_user
 
 @plan_bp.route("/", methods=["GET"])
+@login_required
 def plan_list():
     if not current_user.is_authenticated:
         # ログインしてないとき：プラン無し + ログインを促す
