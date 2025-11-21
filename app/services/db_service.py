@@ -41,7 +41,6 @@ class PlanDBService:
             .all()
         )
     
-    
     @staticmethod
     def get_plan_by_id(plan_id, user_id=None):
         """指定IDのプランを1件取得（自分のプランだけ）"""

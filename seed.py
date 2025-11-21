@@ -8,7 +8,7 @@ from datetime import date, datetime
 from uuid import uuid4
 
 from app import create_app
-from app.extensions import db
+from app.extensions import db,bcrypt
 from app.models.user import User
 from app.models.plan import (
     Plan,
@@ -47,8 +47,9 @@ def run_seed():
             anonymous_id="anon-123",
             display_name="デモユーザー",
             email="demo@example.com",
-            passwordHash="dummy-hash",
+            # passwordHash="dummy-hash",
         )
+        user.passwordHash = bcrypt.generate_password_hash("password123").decode("utf-8")
         db.session.add(user)
         db.session.flush()
 

@@ -1,84 +1,132 @@
 {% extends 'layout.html' %}
 
-{% block title %}旅行概要の入力 | {{ config['BRAND_NAME'] }}{% endblock %}
+{% block title %}旅行概要の入力 | もちリスト{% endblock %}
 
 {% block content %}
-  <section class="page-section travel-form">
-    <div class="travel-form__header">
-      <h1>旅行概要を入力してください</h1>
-      <span class="travel-form__note">※は必須です</span>
+<div class="plan-create-container">
+  <header class="page-header">
+    <h1>旅行概要を入力してください <span class="required-note">※は必須です</span></h1>
+  </header>
+
+  <form method="POST" action="{{ url_for('plan.plan_create') }}" class="plan-form">
+    {{ form.csrf_token }}
+
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>行きたい場所</label>
+      <input type="text" name="destination" class="form-input" placeholder="" value="{{ form.destination.data or '' }}">
     </div>
 
-    {% if form_state.system_error %}
-      <p class="form-error">システムエラーです。</p>
-    {% elif form_state.missing_required %}
-      <p class="form-error">必須項目が未入力です</p>
-    {% endif %}
-
-    <form class="travel-form__body">
-      <div class="travel-form__row">
-        <label>
-          <span>行きたい場所</span>
-          <input type="text" placeholder="例: 沖縄, 東京タワー" />
+    <div class="form-group">
+      <label class="form-label"><span class="required">*</span>出発地点</label>
+      <div class="origin-container">
+        <label class="radio-card">
+          <input type="radio" name="origin_type" value="current" checked>
+          <span class="radio-mark"></span>
+          <span class="radio-text">現在地</span>
         </label>
-        <div class="origin-select">
-          <div class="origin-pill">
-            <label>
-              <input type="radio" name="origin" value="current" {% if form_state.selected_origin == 'current' %}checked{% endif %} />
-              <span>現在地</span>
-            </label>
-            <label>
-              <input type="radio" name="origin" value="custom" {% if form_state.selected_origin == 'custom' %}checked{% endif %} />
-              <span>出発場所を指定する</span>
-            </label>
-          </div>
-          <input type="text" placeholder="出発地を入力" value="{{ form_state.custom_origin }}" />
+
+        <div class="origin-custom-wrapper">
+          <label class="radio-card">
+            <input type="radio" name="origin_type" value="custom">
+            <span class="radio-mark"></span>
+            <span class="radio-text">出発場所を指定する</span>
+          </label>
+          <input type="text" name="departure" class="form-input mt-2" placeholder="" value="{{ form.departure.data or '' }}">
         </div>
       </div>
+    </div>
 
-      <div class="travel-form__row travel-form__row--chips" data-purpose>
-        <label>
-          <span>旅行の目的（複数入力可）</span>
-          <div class="purpose-add-row">
-            <input type="text" data-purpose-input placeholder="例：観光" />
-            <button class="purpose-add-button" type="button" data-purpose-add>追加</button>
-          </div>
-        </label>
-        <div class="chip-group" data-purpose-list>
-          {% for value in form_state.purpose_values %}
-            <span class="chip is-selected" data-purpose-chip data-value="{{ value }}">
-              <span class="chip__label">{{ value }}</span>
-              <button class="chip__remove" type="button" aria-label="削除" data-purpose-remove>&times;</button>
-            </span>
-          {% endfor %}
+    <div class="form-group">
+      <label class="form-label">旅行の目的(複数選択可)</label>
+      <div class="purpose-container">
+        <input type="text" class="form-input purpose-input" data-purpose-input placeholder="観光/合宿">
+        <div class="chip-list" data-purpose-list>
+          <span class="chip">観光 <button type="button">&times;</button></span>
+          <span class="chip">温泉 <button type="button">&times;</button></span>
         </div>
-        <input type="hidden" name="purposes" data-purpose-hidden value="{{ form_state.purpose_values|join(',') }}" />
-      </div>
+        <input type="hidden" name="purposes_raw" data-purpose-hidden value="{{ form.purposes_raw.data or '' }}">
+        <button type="button" style="display:none;" data-purpose-add></button> </div>
+    </div>
 
-      <div class="travel-form__row travel-form__row--short">
-        <label>
-          <span>日数</span>
-          <input type="number" placeholder="日間" min="1" />
+    <div class="form-row">
+      <div class="form-group col-half">
+        <label class="form-label"><span class="required">*</span>日数</label>
+        <input type="number" name="days" class="form-input" placeholder="日間" value="{{ form.days.data or '' }}">
+      </div>
+      <div class="form-group col-half">
+        <label class="form-label">出発日</label>
+        <input type="date" name="start_date" class="form-input" placeholder="MM/DD" value="{{ form.start_date.data or '' }}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">旅行に求めること</label>
+      <div class="needs-grid">
+        {% set needs_options = [
+          "節約重視", "ちょっと贅沢", "アクティブ", "ゆったり", "グルメ",
+          "ショッピング", "歴史", "自然", "穴場スポット", "定番スポット"
+        ] %}
+        {% for option in needs_options %}
+        <label class="checkbox-card">
+          <input type="checkbox" name="needs" value="{{ option }}">
+          <span class="checkbox-text">{{ option }}</span>
         </label>
-        <label>
-          <span>出発日</span>
-          <input type="text" placeholder="MM/DD" />
-        </label>
+        {% endfor %}
       </div>
+    </div>
 
-      <div class="travel-form__row">
-        <span>旅行に求めること</span>
-        <div class="need-grid">
-          {% for option in form_state.needs %}
-            <label class="need-option">
-              <input type="checkbox" />
-              <span>{{ option }}</span>
-            </label>
-          {% endfor %}
-        </div>
-      </div>
+    <div class="form-actions">
+      <button type="submit" class="submit-btn">旅行プランを作成する✨</button>
+    </div>
 
-      <a class="cta-large" href="#">旅行プランを作成する✨</a>
-    </form>
-  </section>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.querySelector('[data-purpose-input]');
+  const list = document.querySelector('[data-purpose-list]');
+  const hidden = document.querySelector('[data-purpose-hidden]');
+  
+  // 初期値があればセット、なければ空
+  let values = hidden.value ? hidden.value.split(',').filter(v => v) : [];
+  // デモ用に空なら初期値を入れる（画像に合わせるため）
+  if (values.length === 0) values = ["観光", "温泉"];
+
+  const render = () => {
+    list.innerHTML = '';
+    values.forEach((val, idx) => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.innerHTML = `${val} <button type="button" class="chip-remove">&times;</button>`;
+      chip.querySelector('.chip-remove').onclick = () => remove(idx);
+      list.appendChild(chip);
+    });
+    hidden.value = values.join(',');
+  };
+
+  const add = () => {
+    const val = input.value.trim();
+    if (val && !values.includes(val)) {
+      values.push(val);
+      input.value = '';
+      render();
+    }
+  };
+
+  const remove = (index) => {
+    values.splice(index, 1);
+    render();
+  };
+
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      add();
+    }
+  });
+  
+  render();
+});
+</script>
 {% endblock %}

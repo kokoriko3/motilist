@@ -33,11 +33,6 @@ def public_plan_list():
 
     plans = PlanDBService.get_public_plans()
 
-    print("---- 公開テンプレート一覧 ----")
-    print(plans)
-    for t in plans:
-        print("Template:", t.template_id, t.public_title, t.publish_status)
-
     return render_template(
         "plan/public_list.html",  # or "plan/list.html" を流用でもOK
         plans=plans,
@@ -61,9 +56,22 @@ def plan_detail(plan_id):
 
     return render_template("plan/detail.html", plan=plan)
 
-
 # ----------------------------------------
 #  プラン作成画面（AIに生成依頼）
+#  /plans/create_form でも /plans/create でもどっちかに統一
+# ----------------------------------------
+@plan_bp.route("/create_form", methods=["GET"])
+def plan_create_form():
+    form = PlanCreateForm()
+
+    return render_template(
+        "plan/plan_create.html",
+        form=form,            
+        active_nav="plans",
+    )
+
+# ----------------------------------------
+#  プランフォーム送信後処理（AIに生成依頼）
 #  /plans/create
 # ----------------------------------------
 @plan_bp.route("/create", methods=["GET"])
