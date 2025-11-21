@@ -4,6 +4,7 @@ from app.services.db_service import UserDBService
 from app.extensions import db, bcrypt
 from app.models.user import User
 from app.forms.register_form import RegisterForm
+from flask_login import login_user
 
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -26,7 +27,7 @@ def login():
             flash("パスワードが一致しません", "error")
             return render_template("auth/login.html", form=form)
 
-        session["user_id"] = user.user_id
+        login_user(user)
         flash("ログインしました", "success")
         return redirect(url_for("plan.plan_list"))
     return render_template("auth/login.html", form=form)
