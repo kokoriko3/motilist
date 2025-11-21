@@ -33,13 +33,22 @@
           <div class="dropdown-panel">
             <div class="dropdown-header">
               <p class="dropdown-title">{{ config.get('BRAND_NAME', 'Mochi List') }}</p>
-              <p class="dropdown-subtitle">{{ config.get('ACCOUNT_DISPLAY_NAME', ゲスト) }}</p>
+              <p class="dropdown-subtitle">{{ config.get('ACCOUNT_DISPLAY_NAME', 'ゲスト') }}</p>
               <a class="dropdown-link" href="#">アカウント情報</a>
             </div>
             <a class="dropdown-row profile-link" href="">
               <span class="icon-user small"></span>
               <span>アカウント名</span>
             </a>
+            <!-- ★ これを追加 -->
+            <button
+              class="dropdown-row logout-row"
+              type="button"
+              data-logout-trigger 
+              data-logout-url="{{ url_for('auth.logout') }}"
+            >
+              ログアウト
+            </button>
           </div>
         </div>
       </nav>

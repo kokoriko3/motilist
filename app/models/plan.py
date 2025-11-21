@@ -18,6 +18,11 @@ class Plan(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)  # [cite: 7]
 
     user = db.relationship("User", back_populates="plans")
+    templates = db.relationship(
+        "Template",
+        back_populates="plan",
+        cascade="all, delete-orphan",
+    )
     transport_snapshots = db.relationship(
         "TransportSnapshot",
         back_populates="plan",
@@ -149,6 +154,7 @@ class Template(db.Model):
 
     template_id = db.Column(db.Integer, primary_key=True)  # 
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False, index=True)  # [cite: 36, 2]
+    plan_id = db.Column(db.Integer, db.ForeignKey("plans.plan_id"), nullable=False, index=True)
     public_title = db.Column(db.String(255), nullable=False)  # 
     note = db.Column(db.Text)  # 
     schedule_summary_json = db.Column(db.JSON)  # 
@@ -163,6 +169,7 @@ class Template(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)  # 
 
     user = db.relationship("User", back_populates="templates")
+    plan = db.relationship("Plan", back_populates="templates")
     share_links = db.relationship(
         "Share",  # クラス名を "ShareLink" -> "Share" に修正
         back_populates="template",
