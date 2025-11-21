@@ -42,14 +42,14 @@ class PlanDBService:
         )
     
     @staticmethod
-    def get_plan_by_id(plan_id, user_id=None):
+    def get_template_by_id(plan_id, user_id=None):
         """指定IDのプランを1件取得（自分のプランだけ）"""
         if user_id is None:
             user_id = current_user.id
 
         return (
-            Plan.query
-            .filter_by(id=plan_id, user_id=user_id)
+            Template.query
+            .filter_by(id=plan_id)
             .first()
         )
     

@@ -7,11 +7,11 @@
     <article class="plan-detail-card">
       <div class="plan-detail-card__header">
         <div>
-          <h1>{{ template.title }}</h1>
+          <h1>{{ plan.public_title }}</h1>
           <dl class="plan-detail-summary">
             <div>
               <dt>日程</dt>
-              <dd>{{ template.plan.start_date }}　　{{ template.plan.days }}</dd>
+              <dd>{{ plan.plan.start_date }}　　{{ plan.plan.days }}</dd>
             </div>
             <div>
               <dt>交通手段</dt>
@@ -26,9 +26,9 @@
         <div class="plan-detail-card__meta">
           <p>{{ meta.created_on }}</p>
           {% if is_owned %}
-            <a class="save-plan-button" href="{{ url_for('plan_edit', plan_id=plan.id) }}">プランを編集</a>
+            <a class="save-plan-button" href="#">プランを編集</a>
           {% else %}
-            <a class="save-plan-button" href="{{ url_for('plan_modals') }}">自分のプランとして保存する</a>
+            <a class="save-plan-button" href="#">自分のプランとして保存する</a>
           {% endif %}
         </div>
       </div>
@@ -77,7 +77,7 @@
       </section>
 
       <div class="detail-card__footer">
-        <button class="cta-button ghost" type="button" onclick="window.location.href='{{ url_for('plan_list') }}'">戻る</button>
+        <a class="cta-button ghost" href="{{ url_for('plan.public_plan_list') }}">戻る</a>
       </div>
     </article>
   </section>

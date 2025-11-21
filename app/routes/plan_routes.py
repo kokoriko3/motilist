@@ -49,7 +49,7 @@ def public_plan_list():
 # ----------------------------------------
 @plan_bp.route("/<int:plan_id>", methods=["GET"])
 def plan_detail(plan_id):
-    plan = PlanDBService.get_plan_by_id(plan_id)
+    plan = PlanDBService.get_template_by_id(plan_id)
     if not plan:
         flash("指定されたプランは存在しません。")
         return redirect(url_for("plan.plan_list"))
