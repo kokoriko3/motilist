@@ -29,7 +29,7 @@ class PlanDBService:
 
         return (
             Template.query.filter_by(user_id=user_id)
-            .order_by(Plan.created_at.desc())
+            .order_by(Template.created_at.desc())
             .all()
         )
     
