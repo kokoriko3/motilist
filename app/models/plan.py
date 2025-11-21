@@ -18,7 +18,7 @@ class Plan(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now(), nullable=False)  # [cite: 7]
 
     user = db.relationship("User", back_populates="plans")
-    template = db.relationship(
+    templates = db.relationship(
         "Template",
         back_populates="plan",
         cascade="all, delete-orphan",

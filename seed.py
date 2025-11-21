@@ -189,6 +189,7 @@ def run_seed():
         # Template & share ------------------------------------------------------
         template = Template(
             user_id=user.user_id,
+            plan_id=plan.plan_id,
             public_title="大阪1泊2日テンプレ",
             note="seed.pyで投入したサンプルテンプレ",
             schedule_summary_json={"example": True},
