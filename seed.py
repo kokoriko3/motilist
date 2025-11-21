@@ -186,13 +186,34 @@ def run_seed():
         ]
         db.session.add_all(schedule_details)
 
+        schedule_summary_json={
+            "days": [
+                {
+                    "day": 1,
+                    "title": "移動 & チェックイン",
+                    "traffic_method": "電車",
+                    "places": ["新大阪", "梅田周辺", "道頓堀"],
+                    "start": "09:00",
+                    "end": "10:00"
+                },
+                {
+                    "day": 2,
+                    "title": "自由行動",
+                    "traffic_method": "徒歩",
+                    "places": ["梅田", "難波"],
+                    "start": "10:00",
+                    "end": "15:00"
+                }
+            ]
+        }
+
         # Template & share ------------------------------------------------------
         template = Template(
             user_id=user.user_id,
             plan_id=plan.plan_id,
             public_title="大阪1泊2日テンプレ",
             note="seed.pyで投入したサンプルテンプレ",
-            schedule_summary_json={"example": True},
+            schedule_summary_json=schedule_summary_json,
             checklist_summary_json={"items": ["Tシャツ", "ズボン", "スマホ"]},
             days=plan.days,
             total_items=3,
