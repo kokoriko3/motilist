@@ -198,6 +198,13 @@ def run_seed():
                     "end": "10:00"
                 },
                 {
+                    "day": 1,
+                    "title": "アパホテル〈小倉駅新幹線口〉",
+                    "address": "〒802-0001 福岡県北九州市小倉北区浅野２丁目１３−２２",
+                    "start": "16:00",
+                    "end": "00:00"
+                },
+                {
                     "day": 2,
                     "title": "自由行動",
                     "traffic_method": "徒歩",
@@ -208,6 +215,26 @@ def run_seed():
             ]
         }
 
+        checklist_summary_json = {
+            "rows": [
+                {
+                    "essential": "Tシャツ",
+                    "extra": "替えTシャツ1枚",
+                    "note": "汗かきなので予備が必要"
+                },
+                {
+                    "essential": "ズボン",
+                    "extra": "",
+                    "note": "動きやすいもの"
+                },
+                {
+                    "essential": "スマホ",
+                    "extra": "モバイルバッテリー",
+                    "note": "充電切れ対策"
+                },
+            ]
+        }
+
         # Template & share ------------------------------------------------------
         template = Template(
             user_id=user.user_id,
@@ -215,7 +242,7 @@ def run_seed():
             public_title="大阪1泊2日テンプレ",
             note="seed.pyで投入したサンプルテンプレ",
             schedule_summary_json=schedule_summary_json,
-            checklist_summary_json={"items": ["Tシャツ", "ズボン", "スマホ"]},
+            checklist_summary_json=checklist_summary_json,
             days=plan.days,
             total_items=3,
             required_ratio=1.0,

@@ -65,13 +65,19 @@
               </tr>
             </thead>
             <tbody>
-              {% for item in packing_details %}
+              {% if plan.checklist_summary_json and plan.checklist_summary_json.rows %}
+                {% for row in plan.checklist_summary_json.rows %}
+                  <tr>
+                    <td>{{ row.essential }}</td>
+                    <td>{{ row.extra }}</td>
+                    <td>{{ row.note }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
                 <tr>
-                  <td>{{ item.essential }}</td>
-                  <td>{{ item.extra }}</td>
-                  <td>{{ item.note }}</td>
+                  <td colspan="3">持ち物の概要は登録されていません。</td>
                 </tr>
-              {% endfor %}
+              {% endif %}
             </tbody>
           </table>
         </section>
