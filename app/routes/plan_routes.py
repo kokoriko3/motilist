@@ -21,9 +21,8 @@ def plan_list():
         return render_template("plan/list.html", plans=plans, show_login_link=True)
 
     # ログインしているとき：自分のプランだけ表示
-    plans = PlanDBService.get_all_plans(user_id=current_user.id)
+    plans = PlanDBService.get_all_plans(user_id=1)
     return render_template("plan/list.html", plans=plans, show_login_link=False)
-
 
 # 公開プラン一覧
 @plan_bp.route("/public", methods=["GET"])
