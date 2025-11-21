@@ -37,6 +37,6 @@
 
   <div class="plan-tile__footer">
     {% set detail_href = detail_url  %}
-    <a class="plan-tile__detail" href="{{ url_for('plan.plan_detail' plan_id=plan.template_id) }}">詳細 へ</a>
+    <a class="plan-tile__detail" href="{{ url_for('plan.plan_detail', template_id=plan.template_id) }}">詳細 へ</a>
   </div>
 </article>
