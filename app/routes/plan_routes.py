@@ -23,8 +23,8 @@ def plan_list():
 
     
     # ログインしているとき：自分のプランだけ表示
-    plans = PlanDBService.get_all_plans(user_id=current_user.id)
-    print("DEBUG: current_user.id =", current_user.id)
+    plans = PlanDBService.get_all_plans(user_id=current_user.user_id)
+    print("DEBUG: current_user.id =", current_user.user_id)
     print("DEBUG: plans count   =", len(plans))
     # デバッグ
     for p in plans:
