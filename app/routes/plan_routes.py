@@ -43,6 +43,41 @@ def public_plan_list():
 
 
 
+@plan_bp.route("/transit", methods=["GET"])
+def plan_transit():
+    return render_template(
+        "plan/transit.html",
+        options=[],
+        confirm_target=url_for("plan.stay_select"),
+        button_label="宿泊候補を見に行く",
+    )
+
+
+@plan_bp.route("/stay", methods=["GET"])
+def stay_select():
+    return render_template("plan/hotel_select.html", stay_options=[])
+
+
+@plan_bp.route("/schedule", methods=["GET"])
+def schedule_list():
+    return render_template("plan/schedule_list.html", days=[])
+
+
+@plan_bp.route("/schedule/edit", methods=["GET"])
+def schedule_edit():
+    return render_template("plan/schedule_edit.html", days=[])
+
+
+@plan_bp.route("/checklists", methods=["GET"])
+def checklist_list():
+    return render_template("plan/checklist_list.html", categories=[])
+
+
+@plan_bp.route("/checklists/edit", methods=["GET"])
+def checklist_edit():
+    return render_template("plan/checklist_edit.html", categories=[])
+
+
 # ----------------------------------------
 #  プラン詳細ページ
 #  /plans/<id>

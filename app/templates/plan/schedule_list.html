@@ -14,16 +14,16 @@
   </div>
 
   <div class="plan-tabs">
-    <a href="{{ url_for('plan_transit') }}">交通手段</a>
-    <a href="{{ url_for('stay_select') }}">宿泊場所</a>
+    <a href="{{ url_for('plan.plan_transit') }}">交通手段</a>
+    <a href="{{ url_for('plan.stay_select') }}">宿泊場所</a>
     <a class="active">スケジュール</a>
-    <a href="{{ url_for('checklist_list') }}">持ち物</a>
+    <a href="{{ url_for('plan.checklist_list') }}">持ち物</a>
   </div>
 
   <div class="schedule-body">
     <div class="panel-header">
       <div class="error-inline" data-schedule-error hidden>日程の取得に失敗しました</div>
-      <a class="cta-primary small" href="{{ url_for('schedule_edit') }}" name="edit">編集</a>
+      <a class="cta-primary small" href="{{ url_for('plan.schedule_edit') }}" name="edit">編集</a>
     </div>
 
     <div class="schedule-grid">
