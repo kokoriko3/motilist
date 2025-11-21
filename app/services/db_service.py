@@ -28,7 +28,7 @@ class PlanDBService:
             user_id = current_user.id
 
         return (
-            Plan.query.filter_by(user_id=user_id)
+            Template.query.filter_by(user_id=user_id)
             .order_by(Plan.created_at.desc())
             .all()
         )
