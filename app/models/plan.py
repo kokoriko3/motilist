@@ -154,7 +154,7 @@ class Template(db.Model):
 
     template_id = db.Column(db.Integer, primary_key=True)  # 
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False, index=True)  # [cite: 36, 2]
-    plan_id = db.Column(db.Integer, db.ForeignKey("plans.plan_id"), nullabel=False, index=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey("plans.plan_id"), nullable=False, index=True)
     public_title = db.Column(db.String(255), nullable=False)  # 
     note = db.Column(db.Text)  # 
     schedule_summary_json = db.Column(db.JSON)  # 
