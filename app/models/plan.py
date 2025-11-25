@@ -18,6 +18,7 @@ class Plan(db.Model):
     purpose = db.Column(db.Text, nullable=True)
     options = db.Column(db.JSON, nullable=True)
     
+    # AI生成結果の一時保存用
     transit = db.Column(db.JSON, nullable=True)
     hotel = db.Column(db.JSON, nullable=True)
 
@@ -31,26 +32,40 @@ class Plan(db.Model):
     schedules = db.relationship('Schedule', backref='plan', lazy=True, cascade="all, delete-orphan")
     hotel_candidates = db.relationship('HotelSnapshot', backref='plan', lazy=True, cascade="all, delete-orphan")
     
-    # ▼▼▼ 追加: Checklistとのリレーション（Checklistモデルは別ファイルだが文字列指定でOK） ▼▼▼
     checklists = db.relationship("Checklist", back_populates="plan", cascade="all, delete-orphan")
 
 class Template(db.Model):
     __tablename__ = 'templates'
-    id = db.Column(db.Integer, primary_key=True)
+
+    template_id = db.Column(db.Integer, primary_key=True)
+    
     plan_id = db.Column(db.Integer, db.ForeignKey('plans.id'), nullable=False)
     
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     user = db.relationship("User", back_populates="templates")
+    public_title = db.Column(db.String(255), nullable=False)
+    short_note = db.Column(db.String(255)) # または db.Text
+    itinerary_outline_json = db.Column(db.JSON, nullable=False)
+    checklist_summary_json = db.Column(db.JSON, nullable=False)
+    days = db.Column(db.Integer)
+    items_count = db.Column(db.Integer)
+    essential_ratio = db.Column(db.Integer) # 0-100想定
 
-    publish_status = db.Column(db.String(50), default="private")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    tags = db.Column(db.String(255)) # カンマ区切り等
+    visibility = db.Column(db.String(50), default="private", nullable=False)
+    display_version = db.Column(db.Integer, default=1, nullable=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     shares = db.relationship("Share", back_populates="template", cascade="all, delete-orphan")
 
 class Share(db.Model):
     __tablename__ = "shares"
     id = db.Column(db.Integer, primary_key=True)
-    template_id = db.Column(db.Integer, db.ForeignKey('templates.id'), nullable=False)
+    
+    template_id = db.Column(db.Integer, db.ForeignKey('templates.template_id'), nullable=False)
     
     issuer_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
     createdBy = db.relationship("User", back_populates="created_shares")
