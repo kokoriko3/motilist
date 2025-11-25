@@ -1,10 +1,11 @@
 import os
 import json
 import google.generativeai as genai # ★ OpenAI の代わりに Gemini をインポート
-from google.generativeai.types import GenerationConfig # ★ JSONモード設定に必要
+import google.generativeai as genai
+from google.generativeai import GenerationConfig
 from flask import current_app # flask から current_app をインポート
 
-def generate_plan_from_inputs(destination,start_point, days, objective, **kwargs):    
+def generate_plan_from_inputs(destination,start_point, days, purpose_raw, **kwargs):    
     try:
         api_key = current_app.config['GEMINI_API_KEY']
         
@@ -23,15 +24,15 @@ def generate_plan_from_inputs(destination,start_point, days, objective, **kwargs
         - 目的地: {destination}
         - 日数: {days}日間
         - 出発地点: {start_point}
-        - 旅行の目的: {objective}
+        - 旅行の目的: {purpose_raw}
         - その他の希望: {kwargs.get('travel_style', '特になし')}
         
         #指示
         1.  「transport_options」キーで、出発地から目的地までの主要な交通手段を4パターン提案してください。
-            - 「price_重視」（価格重視）
-            - 「speed_重視」（速度重視）
-            - 「ai_おすすめ」（AIのおすすめバランス）
-            - 「car_利用」（車利用）
+            - 「価格重視」（価格重視）
+            - 「速度重視」（速度重視）
+            - 「おすすめ」（AIのおすすめバランス）
+            - 「車利用」（車利用）
             - 各提案には `method` (手段), `estimated_cost` (円), `estimated_time` (分) を含めてください。
             - 概算で構いません。不明な場合は null を入れてください。
         2.  「itinerary」の日程詳細(details)では、目的地に到着してからの短距離移動（徒歩、バス、タクシーなど）のみを
@@ -41,22 +42,31 @@ def generate_plan_from_inputs(destination,start_point, days, objective, **kwargs
         {{
           "plan_title": "（AIが考えたプランのタイトル）",
           "transport_options": {{
-            "price_重視": {{
-              "method": "夜行バス",
+            "価格重視": {{
+              "method": "夜行バス + 徒歩"
               "estimated_cost": 8000,
-              "estimated_time": 480
+              "estimated_time": 480,
+              "transit_count":1,
+              "departure_time":7:00,
+              "arrival_time":14:00
             }},
-            "speed_重視": {{
-              "method": "新幹線",
+            "速度重視": {{
+              "method": "新幹線 + 電車",
               "estimated_cost": 25000,
-              "estimated_time": 180
+              "estimated_time": 180,
+              "transit_count":3,
+              "departure_time":7:00,
+              "arrival_time":10:00
             }},
-            "ai_おすすめ": {{
+            "おすすめ": {{
               "method": "飛行機（LCC） + 電車",
               "estimated_cost": 15000,
-              "estimated_time": 240
+              "estimated_time": 240,
+              "transit_count":3,
+              "departure_time":7:00,
+              "arrival_time":12:00
             }},
-            "car_利用": {{
+            "車": {{
               "method": "自家用車（高速道路利用）",
               "estimated_cost": 12000,
               "estimated_time": 420

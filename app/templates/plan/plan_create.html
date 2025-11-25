@@ -8,71 +8,112 @@
     <h1>旅行概要を入力してください <span class="required-note">※は必須です</span></h1>
   </header>
 
-  <form method="POST" action="{{ url_for('plan.plan_create') }}" class="plan-form">
+  {# POST送信先を指定。ルート名は plan_routes.py に合わせて適宜調整してください #}
+  <form method="POST" action="{{ url_for('plan.plan_create_form') }}" class="plan-form">
     {{ form.csrf_token }}
 
+    {# --- 行先 --- #}
     <div class="form-group">
-      <label class="form-label"><span class="required">*</span>行きたい場所</label>
-      <input type="text" name="destination" class="form-input" placeholder="" value="{{ form.destination.data or '' }}">
+      {{ form.destination.label(class="form-label") }}
+      {{ form.destination(class="form-input", placeholder="例:東京タワー") }}
+      
+      {% if form.destination.errors %}
+        <ul class="error-messages">
+          {% for error in form.destination.errors %}
+            <li class="error-text">{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
+    {# --- 出発地 --- #}
     <div class="form-group">
-      <label class="form-label"><span class="required">*</span>出発地点</label>
-      <div class="origin-container">
+      <label class="form-label">出発地</label>
+      <div class="origin-custom-wrapper">
         <label class="radio-card">
-          <input type="radio" name="origin_type" value="current" checked>
-          <span class="radio-mark"></span>
-          <span class="radio-text">現在地</span>
-        </label>
-
-        <div class="origin-custom-wrapper">
-          <label class="radio-card">
-            <input type="radio" name="origin_type" value="custom">
             <span class="radio-mark"></span>
             <span class="radio-text">出発場所を指定する</span>
-          </label>
-          <input type="text" name="departure" class="form-input mt-2" placeholder="" value="{{ form.departure.data or '' }}">
-        </div>
+        </label>
+        {{ form.departure(class="form-input mt-2", placeholder="例: 東京駅") }}
+        
+        {% if form.departure.errors %}
+          <ul class="error-messages">
+            {% for error in form.departure.errors %}
+              <li class="error-text">{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       </div>
     </div>
 
+    {# --- 目的 (JavaScript制御) --- #}
     <div class="form-group">
-      <label class="form-label">旅行の目的(複数選択可)</label>
+      {{ form.purposes_raw.label(class="form-label") }}
       <div class="purpose-container">
-        <input type="text" class="form-input purpose-input" data-purpose-input placeholder="観光/合宿">
-        <div class="chip-list" data-purpose-list>
-          <span class="chip">観光 <button type="button">&times;</button></span>
-          <span class="chip">温泉 <button type="button">&times;</button></span>
-        </div>
-        <input type="hidden" name="purposes_raw" data-purpose-hidden value="{{ form.purposes_raw.data or '' }}">
-        <button type="button" style="display:none;" data-purpose-add></button> </div>
+        {# ユーザー入力用（送信はしないのでname属性なし） #}
+        <input type="text" class="form-input purpose-input" data-purpose-input placeholder="観光/合宿 (Enterで追加)">
+        
+        {# チップ表示エリア #}
+        <div class="chip-list" data-purpose-list></div>
+        
+        {# WTFormsのフィールド (隠しておく・JSがここに値を書き込む) #}
+        {{ form.purposes_raw(style="display:none;", **{'data-purpose-hidden': ''}) }}
+      </div>
+      {% if form.purposes_raw.errors %}
+        <ul class="error-messages">
+          {% for error in form.purposes_raw.errors %}
+            <li class="error-text">{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
+    {# --- 日数 & 出発日 --- #}
     <div class="form-row">
       <div class="form-group col-half">
-        <label class="form-label"><span class="required">*</span>日数</label>
-        <input type="number" name="days" class="form-input" placeholder="日間" value="{{ form.days.data or '' }}">
+        {{ form.days.label(class="form-label") }}
+        {{ form.days(class="form-input", placeholder="日間", type="number") }}
+        {% if form.days.errors %}
+          <ul class="error-messages">
+            {% for error in form.days.errors %}
+              <li class="error-text">{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       </div>
+
       <div class="form-group col-half">
-        <label class="form-label">出発日</label>
-        <input type="date" name="start_date" class="form-input" placeholder="MM/DD" value="{{ form.start_date.data or '' }}">
+        {{ form.start_date.label(class="form-label") }}
+        {{ form.start_date(class="form-input", placeholder="YYYY-MM-DD", type="date") }}
+        {% if form.start_date.errors %}
+          <ul class="error-messages">
+            {% for error in form.start_date.errors %}
+              <li class="error-text">{{ error }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       </div>
     </div>
 
+    {# --- オプション (Checkbox) --- #}
     <div class="form-group">
-      <label class="form-label">旅行に求めること</label>
+      {{ form.options.label(class="form-label") }}
       <div class="needs-grid">
-        {% set needs_options = [
-          "節約重視", "ちょっと贅沢", "アクティブ", "ゆったり", "グルメ",
-          "ショッピング", "歴史", "自然", "穴場スポット", "定番スポット"
-        ] %}
-        {% for option in needs_options %}
+        {# WTFormsのSelectMultipleFieldの選択肢をループして表示 #}
+        {% for subfield in form.options %}
         <label class="checkbox-card">
-          <input type="checkbox" name="needs" value="{{ option }}">
-          <span class="checkbox-text">{{ option }}</span>
+          {{ subfield }}
+          <span class="checkbox-text">{{ subfield.label.text }}</span>
         </label>
         {% endfor %}
       </div>
+      {% if form.options.errors %}
+        <ul class="error-messages">
+          {% for error in form.options.errors %}
+            <li class="error-text">{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
     <div class="form-actions">
@@ -87,21 +128,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.querySelector('[data-purpose-input]');
   const list = document.querySelector('[data-purpose-list]');
   const hidden = document.querySelector('[data-purpose-hidden]');
-  
-  // 初期値があればセット、なければ空
-  let values = hidden.value ? hidden.value.split(',').filter(v => v) : [];
-  // デモ用に空なら初期値を入れる（画像に合わせるため）
-  if (values.length === 0) values = ["観光", "温泉"];
+
+  // 【修正点】初期値を空にします。
+  // 隠しフィールド(WTForms)に値が入っている場合(バリデーションエラーで戻ってきた時など)のみ復元します。
+  let values = hidden.value ? hidden.value.split(',').map(s => s.trim()).filter(s => s) : [];
 
   const render = () => {
     list.innerHTML = '';
     values.forEach((val, idx) => {
       const chip = document.createElement('span');
       chip.className = 'chip';
-      chip.innerHTML = `${val} <button type="button" class="chip-remove">&times;</button>`;
-      chip.querySelector('.chip-remove').onclick = () => remove(idx);
+      // エスケープ処理をしてXSS対策
+      chip.textContent = val + ' ';
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'chip-remove';
+      removeBtn.innerHTML = '&times;';
+      removeBtn.onclick = () => remove(idx);
+      
+      chip.appendChild(removeBtn);
       list.appendChild(chip);
     });
+    // 配列をカンマ区切り文字列にして隠しフィールドへセット
     hidden.value = values.join(',');
   };
 
@@ -121,12 +170,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
   input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
+      e.preventDefault(); // エンターキーでのフォーム送信を防ぐ
       add();
     }
   });
   
+  // 初期描画
   render();
 });
 </script>
+
+<style>
+.error-messages {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0;
+    color: #e74c3c;
+    font-size: 0.9em;
+}
+/* 目的入力欄のチップスタイル（念のため） */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    margin: 4px;
+    background-color: #e0f2f1;
+    color: #00695c;
+    border-radius: 16px;
+    font-size: 0.9em;
+}
+.chip-remove {
+    background: none;
+    border: none;
+    color: #00695c;
+    margin-left: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1em;
+    line-height: 1;
+}
+</style>
 {% endblock %}
