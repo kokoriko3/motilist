@@ -247,3 +247,30 @@ def _split_to_list(raw: str) -> list[str]:
 #         return redirect(url_for("plan.plan_detail", plan_id=plan_id))
 
 #     return render_template("plan/item_list.html", plan=plan)
+
+
+
+@plan_bp.route("/<int:plan_id>", methods=["GET"])
+def plan_detail(plan_id):
+    data = PlanDBService.get_plan_detail(plan_id)
+
+    if not data:
+        flash("指定されたプランは存在しません。")
+        return redirect(url_for("plan.plan_list"))
+
+    plan = data["plan"]
+
+    # ログインユーザーが作成者か判定
+    is_owned = False
+    if current_user.is_authenticated and plan.user_id == current_user.id:
+        is_owned = True
+
+    return render_template(
+        "plan/detail.html",
+        plan=plan,
+        template=data["template"],
+        stay_locations=data["stay_locations"],
+        packing_details=data["packing_details"],
+        meta=data["meta"],
+        is_owned=is_owned,
+    )

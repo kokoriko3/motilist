@@ -2,6 +2,14 @@ from app.extensions import db, bcrypt
 from app.models.user import User
 from app.models.plan import Plan, Template
 from flask_login import current_user
+from app.models import (
+    Plan,
+    Template,
+    TransportSnapshot,
+    StaySnapshot,
+    Checklist
+)
+from sqlalchemy.orm import joinedload
 
 
 class UserDBService:
@@ -96,3 +104,71 @@ class PlanDBService:
         plan.hotel = hotel
         db.session.commit()
         return True
+    
+
+    def get_plan_detail(plan_id: int):
+        """詳細ページ用：複数テーブルをまとめて読み込む"""
+
+        plan = (
+            Plan.query
+            .options(
+                joinedload(Plan.template),
+                joinedload(Plan.transport_snapshots),
+                joinedload(Plan.stay_snapshots),
+                joinedload(Plan.checklists),
+            )
+            .filter_by(plan_id=plan_id)
+            .first()
+        )
+
+        if not plan:
+            return None
+
+        # -----------------------------------------
+        # 画面表示用に加工した値
+        # -----------------------------------------
+        template = plan.template
+
+        # 宿泊先リスト（StaySnapshot）
+        stay_locations = [
+            s.title for s in plan.stay_snapshots if s.title
+        ]
+
+        # 持ち物リスト（Checklist）
+        packing_details = [
+            {
+                "essential": item.essential,
+                "extra": item.extra,
+                "note": item.note,
+            }
+            for item in plan.checklists
+        ]
+
+        # メタ情報
+        meta = {
+            "created_on": plan.created_at.strftime("%Y-%m-%d"),
+            "price": PlanDBService._calc_plan_price(plan),
+            "items_total": len(plan.checklists),
+        }
+
+        return {
+            "plan": plan,
+            "template": template,
+            "stay_locations": stay_locations,
+            "packing_details": packing_details,
+            "meta": meta,
+        }
+
+    @staticmethod
+    def _calc_plan_price(plan):
+        """宿泊 + 交通費 の合計（仮）"""
+        price = 0
+        for t in plan.transport_snapshots:
+            if t.price:
+                price += t.price
+        for s in plan.stay_snapshots:
+            if s.price_range_text:
+                m = re.findall(r"\d+", s.price_range_text)
+                if m:
+                    price += int(m[0])
+        return price
