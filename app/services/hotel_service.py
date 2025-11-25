@@ -7,10 +7,9 @@ RAKUTEN_KEYWORD_SEARCH_URL = "https://app.rakuten.co.jp/services/api/Travel/Keyw
 def search_rakuten_hotels(keyword):
     
     # config.py からAPIキーを読み込む
-    app_id = current_app.config['RAKUTEN_APP_ID']
+    app_id = current_app.config.get('RAKUTEN_APP_ID')
     
     if not app_id:
-        # APIキーが設定されていない場合はエラー（または空）を返す
         current_app.logger.warning("RAKUTEN_APP_ID が設定されていません。")
         return []
 
@@ -19,11 +18,16 @@ def search_rakuten_hotels(keyword):
         "format": "json",
         "keyword": keyword, # 例: "福岡"
         "hits": 30, # 取得件数 (最大30)
-        "responseType": "medium", 
+        # "responseType": "medium", <-- このパラメータはキーワード検索APIには存在しないため削除します
     }
 
     try:
         response = requests.get(RAKUTEN_KEYWORD_SEARCH_URL, params=params)
+        
+        # エラー時に詳細なレスポンス（原因）をログ出力する
+        if response.status_code != 200:
+            current_app.logger.error(f"楽天APIエラー詳細 [Status: {response.status_code}]: {response.text}")
+
         response.raise_for_status() # HTTPエラーがあれば例外を発生
         data = response.json()
 
@@ -46,9 +50,7 @@ def search_rakuten_hotels(keyword):
             
         return simplified_hotels
 
-    except requests.exceptions.RequestException as e:
-        current_app.logger.error(f"楽天APIの呼び出しに失敗しました: {e}")
-        return [] # エラー時は空のリストを返す
     except Exception as e:
-        current_app.logger.error(f"楽天APIのデータ処理に失敗しました: {e}")
+        current_app.logger.error(f"楽天API処理でエラーが発生しました（プラン作成は続行します）: {e}")
+        # エラー時は空のリストを返し、プラン作成自体は止めないようにする
         return []

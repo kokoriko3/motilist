@@ -14,9 +14,9 @@ from wtforms.validators import DataRequired, Length, NumberRange, Optional
 class PlanCreateForm(FlaskForm):
     # 行先
     destination = StringField(
-        "行先",
+        "行きたい場所",
         validators=[
-            DataRequired(message="行先は必須です。"),
+            DataRequired(message="行きたい場所は必須です。"),
             Length(max=255),
         ],
     )
@@ -58,11 +58,7 @@ class PlanCreateForm(FlaskForm):
     options = SelectMultipleField(
         "オプション",
         choices=[
-            ("with_hotel",    "ホテルも一緒に押さえる"),
-            ("with_flight",   "飛行機付き"),
-            ("with_rental",   "レンタカー利用"),
-            ("early_morning", "早朝出発OK"),
-            ("late_return",   "遅めの帰宅OK"),
+            "節約重視","ちょっと贅沢","アクティブ","ゆったり","グルメ","ショッピング","歴史","自然","穴場スポット","定番スポット"
         ],
         option_widget=widgets.CheckboxInput(),
         widget=widgets.ListWidget(prefix_label=False),
