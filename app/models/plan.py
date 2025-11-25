@@ -14,6 +14,7 @@ class Plan(db.Model):
     departure = db.Column(db.String(255), nullable=False)
     start_date = db.Column(db.Date, nullable=False)
     days = db.Column(db.Integer, nullable=False)
+    companion_count = db.Column(db.Integer, nullable=False, default=1)
     purpose = db.Column(db.Text, nullable=True)
     options = db.Column(db.JSON, nullable=True)
     
@@ -40,12 +41,11 @@ class Template(db.Model):
     
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     user = db.relationship("User", back_populates="templates")
-    plan = db.relationship("Plan", back_populates="templates")
-    share_links = db.relationship(
-        "Share",  # クラス名を "ShareLink" -> "Share" に修正
-        back_populates="template",
-        cascade="all, delete-orphan",
-    )
+
+    publish_status = db.Column(db.String(50), default="private")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    shares = db.relationship("Share", back_populates="template", cascade="all, delete-orphan")
 
 class Share(db.Model):
     __tablename__ = "shares"
