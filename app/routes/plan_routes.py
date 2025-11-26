@@ -91,6 +91,7 @@ def stay_select():
         flash("プランが見つかりません。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
+    print("[DEBUG] method =", request.method)
     # ---------- POST: 選択確定 & リダイレクト ----------
     if request.method == "POST":
         # form から選択されたホテルIDを受け取る
@@ -174,8 +175,10 @@ def stay_confirm():
     hotel_json = plan.hotel or {}
     selected = hotel_json.get("selected")
 
+    print(selected)
     if not selected:
         flash("宿泊先が選択されていません。", "error")
+        print("宿泊先選択されていない（完了ver）")
         return redirect(url_for("plan.stay_select", plan_id=plan_id))
 
     return render_template(
