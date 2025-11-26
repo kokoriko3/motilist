@@ -1,7 +1,7 @@
 console.log('stay.js loaded');
 
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.querySelector('form[action*="stay_select"]');
+  const form = document.querySelector('form');
   const errorBox = document.querySelector('[data-stay-error]');
   const stayList = document.querySelector('[data-stay-list]');
   const confirmBtn = document.querySelector('[data-stay-confirm]');
