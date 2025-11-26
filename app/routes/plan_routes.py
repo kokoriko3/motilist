@@ -74,7 +74,7 @@ def plan_transit():
 def stay_select():
     # 共通：どのプランか決める
     # plan_id = request.args.get("plan_id", type=int)
-    plan_id = session.get("plan_id")
+    plan_id = 1
     if plan_id is None:
         flash("プランが指定されていません。", "error")
         return redirect(url_for("plan.plan_list"))
@@ -85,8 +85,7 @@ def stay_select():
     else:
         user_id = session.get("user_id")
 
-    # plan = db_service.PlanDBService.get_plan_by_id(plan_id, user_id)
-    plan = 1
+    plan = db_service.PlanDBService.get_plan_by_id(plan_id, user_id)
     print("[DEBUG] plan =", plan)
     print("[DEBUG] plan.hotel =", plan.hotel)
     if not plan:
