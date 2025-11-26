@@ -86,7 +86,8 @@ def stay_select():
         user_id = session.get("user_id")
 
     plan = db_service.PlanDBService.get_plan_by_id(plan_id, user_id)
-    print(plan)
+    print("[DEBUG] plan =", plan)
+    print("[DEBUG] plan.hotel =", plan.hotel)
     if not plan:
         flash("プランが見つかりません。", "warning")
         return redirect(url_for("plan.plan_create_form"))
