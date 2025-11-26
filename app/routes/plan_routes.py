@@ -117,14 +117,14 @@ def stay_select():
         if selected is None:
             flash("不正な宿泊先が指定されました。", "error")
             print("不正な宿泊先")
-            return redirect(url_for("plan.stay_select", plan_id=plan_id))
+            return redirect(url_for("plan.stay_select"))
 
         # Plan.hotel 側の JSON を更新（どれを選んだか覚えておく）
         hotel_json["selected_id"] = selected_id
         plan.hotel = hotel_json
 
         db.session.commit()
-        
+
         flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
         print("宿泊先の決定")
         # ★ ここで「選択完了後の処理」へ飛ぶ
