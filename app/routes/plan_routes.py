@@ -109,8 +109,13 @@ def stay_select():
                 selected = c
                 break
 
+        print("[DEBUG] request.form =", request.form)
+        print("[DEBUG] selected_id =", selected_id)
+        print("[DEBUG] candidates =", candidates)
+        print("[DEBUG] selected =", selected)
         if selected is None:
             flash("不正な宿泊先が指定されました。", "error")
+            print("不正な宿泊先")
             return redirect(url_for("plan.stay_select", plan_id=plan_id))
 
         # Plan.hotel 側の JSON を更新（どれを選んだか覚えておく）
@@ -118,25 +123,9 @@ def stay_select():
         hotel_json["selected"] = selected
         plan.hotel = hotel_json
 
-        # （任意）HotelSnapshot に確定版を1件だけ保存したい場合
-        HotelSnapshot.query.filter_by(plan_id=plan.id).delete()
-
-        snapshot = HotelSnapshot(
-            plan_id=plan.id,
-            hotel_no=selected.get("hotel_no"),
-            name=selected.get("name"),
-            url=selected.get("url"),
-            image_url=selected.get("image_url"),
-            price=selected.get("price"),
-            address=selected.get("address"),
-            review=str(selected.get("review")) if selected.get("review") is not None else None,
-            is_selected=True,
-        )
-        db.session.add(snapshot)
-
-        db.session.commit()
 
         flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
+        print("宿泊先の決定")
         # ★ ここで「選択完了後の処理」へ飛ぶ
         # 例: スケジュール編集画面
         return redirect(url_for("plan.stay_confirm"))
