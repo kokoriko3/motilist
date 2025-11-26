@@ -97,7 +97,9 @@ def stay_select():
     selected_id = hotel_json.get("selected_id")  # キー未定義対策
 
     # 宿泊先を確定している場合のルーティング
-    if request.method == "GET" and selected_id is not None:
+    # ★ reselect=1 が付いてない普通の GET のときだけ、自動で confirm に飛ばす
+    reselect = request.args.get("reselect")
+    if request.method == "GET" and selected_id is not None and reselect != "1":
         return redirect(url_for("plan.stay_confirm"))
     
     
