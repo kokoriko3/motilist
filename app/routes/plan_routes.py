@@ -85,7 +85,8 @@ def stay_select():
     else:
         user_id = session.get("user_id")
 
-    plan = db_service.PlanDBService.get_plan_by_id(plan_id, user_id)
+    # plan = db_service.PlanDBService.get_plan_by_id(plan_id, user_id)
+    plan = 1
     print("[DEBUG] plan =", plan)
     print("[DEBUG] plan.hotel =", plan.hotel)
     if not plan:
