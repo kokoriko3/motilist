@@ -70,8 +70,8 @@ def plan_transit():
         button_label="宿泊候補を見に行く",
     )
 
-@plan_bp.route("/stay", methods=["GET", "POST"])
-def stay_select():
+@plan_bp.route("/stay/<int:plan_id>", methods=["GET", "POST"])
+def stay_select(plan_id):
     # 共通：どのプランか決める
     # plan_id = request.args.get("plan_id", type=int)
     plan_id = 1
@@ -158,8 +158,8 @@ def stay_select():
         )
     return render_template("plan/hotel_select.html", plan=plan, stay_options=stay_options)
 
-@plan_bp.route("/stay/confirm", methods=["GET"])
-def stay_confirm():
+@plan_bp.route("/stay/<int:plan_id>/confirm", methods=["GET"])
+def stay_confirm(plan_id):
     plan_id = request.args.get("plan_id", type=int)
     if plan_id is None:
         flash("プランが指定されていません。", "error")

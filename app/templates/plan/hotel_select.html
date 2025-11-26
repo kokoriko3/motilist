@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <form method="post">
+    <form action = "{{ url_for('plan.stay_select', plan_id=plan.id) }}" method="post">
       <div class="stay-list" data-stay-list>
         {% for stay in stay_options %}
         <article class="stay-card {% if loop.first %}selected{% endif %}" data-stay-id="{{ stay.id }}">

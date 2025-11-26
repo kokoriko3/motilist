@@ -15,7 +15,7 @@
 
   <div class="plan-tabs">
     <a class="active">交通手段</a>
-    <a href="{{ url_for('plan.stay_select') }}">宿泊場所</a>
+    <a href="{{ url_for('plan.stay_select', plan_id=plan.id) }}">宿泊場所</a>
     <a href="{{ url_for('plan.schedule_list') }}">スケジュール</a>
     <a href="{{ url_for('plan.checklist_list') }}">持ち物</a>
   </div>
