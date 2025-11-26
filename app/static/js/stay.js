@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const form = document.querySelector('form[action*="stay_select"]');
   const errorBox = document.querySelector('[data-stay-error]')
   const stayList = document.querySelector('[data-stay-list]')
   const confirmBtn = document.querySelector('[data-stay-confirm]')
