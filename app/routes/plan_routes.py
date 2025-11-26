@@ -70,16 +70,25 @@ def plan_transit():
         button_label="宿泊候補を見に行く",
     )
 
-@plan_bp.route("/stay/<int:plan_id>", methods=["GET", "POST"])
+@plan_bp.route("/stay/", methods=["GET", "POST"])
 def stay_select(plan_id):
     # 共通：どのプランか決める
     # plan_id = request.args.get("plan_id", type=int)
-    plan_id = 1
+    plan_id = session.get("plan_id")
     if plan_id is None:
         flash("プランが指定されていません。", "error")
         return redirect(url_for("plan.plan_list"))
+    
+    # ユーザ判定（transit と同じロジックに揃える）
+    if current_user.is_authenticated:
+        user_id = current_user.id
+    else:
+        user_id = session.get("user_id")
 
-    plan = Plan.query.get_or_404(plan_id)
+    plan = Plan.query.filter_by(id=plan_id, user_id=user_id).first()
+    if not plan:
+        flash("プランが見つかりません。", "warning")
+        return redirect(url_for("plan.plan_create_form"))
 
     # ---------- POST: 選択確定 & リダイレクト ----------
     if request.method == "POST":
@@ -129,7 +138,7 @@ def stay_select(plan_id):
         flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
         # ★ ここで「選択完了後の処理」へ飛ぶ
         # 例: スケジュール編集画面
-        return redirect(url_for("plan.stay_confirm", plan_id=plan.id))
+        return redirect(url_for("plan.stay_confirm"))
 
     # ---------- GET: 一覧表示 ----------
     hotel_json = plan.hotel or {}
@@ -158,14 +167,19 @@ def stay_select(plan_id):
         )
     return render_template("plan/hotel_select.html", plan=plan, stay_options=stay_options)
 
-@plan_bp.route("/stay/<int:plan_id>/confirm", methods=["GET"])
+@plan_bp.route("/stay/confirm", methods=["GET"])
 def stay_confirm(plan_id):
-    plan_id = request.args.get("plan_id", type=int)
+    plan_id = session.get("plan_id")
     if plan_id is None:
         flash("プランが指定されていません。", "error")
         return redirect(url_for("plan.plan_list"))
 
-    plan = Plan.query.get_or_404(plan_id)
+    if current_user.is_authenticated:
+        user_id = current_user.id
+    else:
+        user_id = session.get("user_id")
+    plan = Plan.query.filter_by(id=plan_id, user_id=user_id).first_or_404()
+
 
     hotel_json = plan.hotel or {}
     selected = hotel_json.get("selected")
