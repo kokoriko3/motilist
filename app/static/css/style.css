@@ -1786,10 +1786,15 @@ body.split-body .page-content {
   border-collapse: collapse;
 }
 
+/* 795行目付近 */
 .schedule-header,
 .schedule-row {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  /* 変更前: grid-template-columns: 1fr 2fr 1fr; */
+  
+  /* 変更後: 最後に 40px 分の列を追加します */
+  grid-template-columns: 1fr 2fr 1fr 40px;
+  
   align-items: center;
   column-gap: 14px;
 }
@@ -1831,9 +1836,8 @@ body.split-body .page-content {
 }
 
 .schedule-row .icon-button {
-  justify-self: end;
+  justify-self: center;
 }
-
 .schedule-empty {
   padding: 30px 12px;
   font-size: 20px;

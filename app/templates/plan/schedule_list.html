@@ -27,32 +27,43 @@
     </div>
 
     <div class="schedule-grid">
+      <!-- 日付ナビゲーション -->
       <div class="day-nav" data-day-nav>
         {% for day in days %}
-        <button type="button" class="day-pill {% if loop.index == 2 %}active{% endif %}" data-day-target="{{ day.id }}">
+        <!-- loop.index == 1 を active に設定 (通常は1日目が初期表示) -->
+        <!-- 【変更】day.id -> day.day -->
+        <button type="button" class="day-pill {% if loop.index == 1 %}active{% endif %}" data-day-target="{{ day.day }}">
           {{ day.label }}
         </button>
         {% endfor %}
       </div>
 
+      <!-- スケジュール詳細 -->
       <div class="schedule-table" data-day-container>
         <div class="schedule-header">
           <div class="col-time">時間</div>
           <div class="col-place">場所</div>
           <div class="col-note">補足</div>
         </div>
+        
         {% for day in days %}
-        <div class="schedule-rows {% if loop.index != 2 %}hidden{% endif %}" data-day="{{ day.id }}">
-          {% if day.entries|length == 0 %}
+        <!-- 1日目以外は hidden クラスをつける -->
+        <div class="schedule-rows {% if loop.index != 1 %}hidden{% endif %}" data-day="{{ day.day }}">
+          
+          <!-- 【変更】entries -> activities -->
+          {% if day.activities|length == 0 %}
           <div class="schedule-empty">スケジュールが未登録です</div>
           {% else %}
-          {% for entry in day.entries %}
+          
+          {% for activity in day.activities %}
           <div class="schedule-row">
-            <div class="col-time">{{ entry.time }}</div>
-            <div class="col-place">{{ entry.place }}</div>
-            <div class="col-note">{{ entry.note }}</div>
+            <div class="col-time">{{ activity.time }}</div>
+            <!-- 【変更】place -> title -->
+            <div class="col-place">{{ activity.title }}</div>
+            <div class="col-note">{{ activity.note }}</div>
           </div>
           {% endfor %}
+          
           {% endif %}
         </div>
         {% endfor %}

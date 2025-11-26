@@ -4,7 +4,7 @@ import os
 from datetime import datetime, date
 
 # app/routes/plan_routes.py
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app, jsonify
 from app.services.db_service import PlanDBService
 from app.forms.plan_form import PlanCreateForm
 from flask_login import current_user
@@ -76,12 +76,101 @@ def stay_select():
 
 @plan_bp.route("/schedule", methods=["GET"])
 def schedule_list():
-    return render_template("plan/schedule_list.html", days=[])
+    plan_id = session["plan_id"]
+    user_id = session["user_id"]
+
+    schedule_obj = PlanDBService.get_schedule_by_id(plan_id,user_id)
+    format_days = []
+
+    data = schedule_obj.daily_plan_json
+
+    for day_data in data:
+        day_num = day_data.get("day")
+        details = day_data.get("details")
+
+        activities = []
+        for detail in details:
+            activities.append({
+                "time": detail.get("time"),
+                # 修正1: キーを 'activite' から HTMLが期待する 'title' に変更
+                "title": detail.get("activity"), 
+                "note": detail.get("transport_notes")
+            })
+        
+        format_days.append({
+            "day": day_num,
+            # 修正2: HTMLが期待する 'label' を追加 (例: "1日目")
+            "label": f"{day_num}日目", 
+            # 修正3: キーを 'detail' から HTMLが期待する 'activities' に変更
+            "activities": activities 
+        })
+        
+    # current_app.logger.info(format_days)
+    
+    return render_template("plan/schedule_list.html", days=format_days)
 
 @plan_bp.route("/schedule/edit", methods=["GET"])
 def schedule_edit():
-    return render_template("plan/schedule_edit.html", days=[])
+    plan_id = session.get("plan_id")
+    user_id = session.get("user_id")
 
+    # 1. 既存のデータを取得 (schedule_listと同じロジック)
+    schedule_obj = PlanDBService.get_schedule_by_id(plan_id, user_id)
+    
+    # データがない場合のガード
+    if not schedule_obj:
+        flash("スケジュールが見つかりません", "warning")
+        return redirect(url_for("plan.schedule_list"))
+
+    data = schedule_obj.daily_plan_json
+    format_days = []
+
+    # 2. テンプレート用に整形 (キー名をHTMLに合わせる)
+    for day_data in data:
+        day_num = day_data.get("day")
+        details = day_data.get("details", [])
+
+        activities = []
+        for detail in details:
+            activities.append({
+                "time": detail.get("time", ""),
+                "title": detail.get("activity", ""), # DBはactivity, 表示はtitle
+                "note": detail.get("transport_notes", "")
+            })
+        
+        format_days.append({
+            "day": day_num,
+            "label": f"{day_num}日目",
+            "activities": activities
+        })
+
+    return render_template("plan/schedule_edit.html", days=format_days)
+
+@plan_bp.route("/schedule/update", methods=["POST"])
+def schedule_update():
+    plan_id = session.get("plan_id")
+    # user_id = session.get("user_id") # 必要に応じて権限チェック
+
+    # 1. JavaScriptから送信されたJSONを受け取る
+    new_schedule_data = request.get_json()
+    
+    if not new_schedule_data:
+        return jsonify({"error": "データがありません"}), 400
+
+    try:
+        # 2. DB更新処理 (Serviceにメソッドを追加するか、ここで直接更新)
+        # ここでは既存のScheduleモデルを更新する例を書きます
+        schedule = Schedule.query.filter_by(plan_id=plan_id).first()
+        if schedule:
+            schedule.daily_plan_json = new_schedule_data
+            db.session.commit()
+            return jsonify({"status": "success", "redirect": url_for("plan.schedule_list")})
+        else:
+            return jsonify({"error": "スケジュールが見つかりません"}), 404
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 @plan_bp.route("/checklists", methods=["GET"])
 def checklist_list():
     return render_template("plan/checklist_list.html", categories=[])

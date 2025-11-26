@@ -42,6 +42,17 @@ class PlanDBService:
         return Plan.query.filter_by(id=plan_id, user_id=user_id).first()
     
     @staticmethod
+    def get_schedule_by_id(plan_id, user_id=None):
+        if user_id is None:
+            user_id = current_user.id
+        if not user_id:
+            return []
+        return Schedule.query.join(Plan).filter(
+            Schedule.plan_id == plan_id,
+            Plan.user_id == user_id
+        ).first()
+    
+    @staticmethod
     def get_transit_by_id(plan_id, user_id=None):
         if user_id is None:
             user_id = current_user.id
@@ -135,3 +146,4 @@ class PlanDBService:
             db.session.rollback()
             print(f"Error creating schedule: {e}")
             return False
+        
