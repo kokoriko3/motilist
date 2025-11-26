@@ -84,7 +84,38 @@ def stay_select():
     else:
         user_id = session.get("user_id")
 
+    # ---------- GET: 一覧表示 ----------
+    hotel_json = plan.hotel or {}
+    candidates = hotel_json.get("candidates", [])
+    selected_id = hotel_json.get("selected_id")
+
+    stay_options = []
+    for c in candidates:
+        raw_review = c.get("review")
+        try:
+            review_value = float(raw_review) if raw_review not in (None, "", "None") else None
+        except ValueError:
+            review_value = None
+
+        stay_options.append(
+            {
+                "id": c.get("id"),
+                "name": c.get("name"),
+                "price": c.get("price"),
+                "address": c.get("address"),
+                "url": c.get("url"),
+                "image_url": c.get("image_url"),
+                "review": review_value,
+                "is_selected": (c.get("id") == selected_id),
+            }
+        )
+
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+
+    # 宿泊先を確定している場合のルーティング
+    if plan.hotel["selected_id"] is not None:
+        return redirect(url_for("plan.stay_confirm"))
+    
     print("[DEBUG] plan =", plan)
     print("[DEBUG] plan.hotel =", plan.hotel)
     if not plan:
@@ -128,31 +159,7 @@ def stay_select():
         # 例: スケジュール編集画面
         return redirect(url_for("plan.stay_confirm"))
 
-    # ---------- GET: 一覧表示 ----------
-    hotel_json = plan.hotel or {}
-    candidates = hotel_json.get("candidates", [])
-    selected_id = hotel_json.get("selected_id")
-
-    stay_options = []
-    for c in candidates:
-        raw_review = c.get("review")
-        try:
-            review_value = float(raw_review) if raw_review not in (None, "", "None") else None
-        except ValueError:
-            review_value = None
-
-        stay_options.append(
-            {
-                "id": c.get("id"),
-                "name": c.get("name"),
-                "price": c.get("price"),
-                "address": c.get("address"),
-                "url": c.get("url"),
-                "image_url": c.get("image_url"),
-                "review": review_value,
-                "is_selected": (c.get("id") == selected_id),
-            }
-        )
+    
     return render_template("plan/hotel_select.html", plan=plan, stay_options=stay_options)
 
 @plan_bp.route("/stay/confirm", methods=["GET"])
