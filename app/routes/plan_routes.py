@@ -8,7 +8,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from app.services.db_service import PlanDBService
 from app.forms.plan_form import PlanCreateForm
 from flask_login import current_user
-from app.services import ai_service, hotel_service
+from app.services import ai_service, hotel_service, db_service
 from app.models.user import User
 from app.extensions import db
 from app.models.plan import Plan, TransportSnapshot, HotelSnapshot, Schedule
@@ -85,7 +85,7 @@ def stay_select():
     else:
         user_id = session.get("user_id")
 
-    plan = Plan.query.filter_by(id=plan_id, user_id=user_id).first()
+    plan = db_service.PlanDBService.get_plan_by_id(plan_id, user_id)
     if not plan:
         flash("プランが見つかりません。", "warning")
         return redirect(url_for("plan.plan_create_form"))

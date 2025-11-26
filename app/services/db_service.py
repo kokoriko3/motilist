@@ -36,7 +36,7 @@ class PlanDBService:
         return Template.query.filter_by(publish_status="public").all()
     
     @staticmethod
-    def get_plan_by_id(plan_id, user_id=None):
+    def get_plan_by_id(plan_id, user_id):
         if user_id is None:
             user_id = current_user.id
         return Plan.query.filter_by(id=plan_id, user_id=user_id).first()
