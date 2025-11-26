@@ -1,6 +1,7 @@
 # app/models/plan.py
 from datetime import datetime
 from app.extensions import db
+from sqlalchemy.ext.mutable import MutableDict
 
 class Plan(db.Model):
     __tablename__ = 'plans'
@@ -20,7 +21,7 @@ class Plan(db.Model):
     
     # AI生成結果の一時保存用
     transit = db.Column(db.JSON, nullable=True)
-    hotel = db.Column(db.JSON, nullable=True)
+    hotel = db.Column(MutableDict.as_mutable(db.JSON), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
