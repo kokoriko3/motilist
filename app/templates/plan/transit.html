@@ -26,17 +26,25 @@
     
     <!-- POST送信用フォーム -->
     <form id="transit-form" method="POST" action="{{ url_for('plan.plan_transit') }}">
-        <input type="hidden" name="transit_type" id="selected-transit-type">
+        <input type="hidden" name="transit_type" id="selected-transit-type" value="{{ selected_type or '' }}">
         
         {% set transport_options = options or [] %}
         {% if transport_options %}
           <div class="transport-options" data-transport-list>
             {% for option in transport_options %}
+              {% set is_current = selected_type and option.type == selected_type %}
+              {% set dimmed = selected_type and option.type != selected_type %}
+              {% set classes = 'transport-card' %}
+              {% if is_current %}
+                {% set classes = classes + ' selected' %}
+              {% elif dimmed %}
+                {% set classes = classes + ' dimmed' %}
+              {% endif %}
               <!-- 
                 DBのカラム名に合わせてプロパティを変更しています 
                 option.id -> option.type (選択時の識別子として利用)
               -->
-              <button type="button" class="transport-card" data-option="{{ option.type }}">
+              <button type="button" class="{{ classes }}" data-option="{{ option.type }}">
                 <div class="transport-card__header">
                   <!-- タイトル（例: price_重視, speed_重視） -->
                   <span class="transport-title">{{ option.type }}</span>
@@ -79,7 +87,7 @@
             JSでクリック時に #selected-transit-type に値をセットして
             #transit-form を submit する想定です
           -->
-          <button type="button" class="cta-primary" data-transport-confirm>{{ button_label or '次へ' }}</button>
+          <button type="button" class="cta-primary" data-transport-confirm>{{ button_label or '確定' }}</button>
         </div>
     </form>
   </div>
@@ -93,16 +101,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('transit-form');
     const errorMsg = document.querySelector('[data-transport-error]');
 
+    const applySelectionStyles = (value) => {
+        cards.forEach(c => {
+            const isSelected = c.dataset.option === value;
+            c.classList.toggle('selected', isSelected);
+            if (value) {
+                c.classList.toggle('dimmed', !isSelected);
+            } else {
+                c.classList.remove('dimmed');
+            }
+        });
+    };
+
+    // 初期表示で選択状態を反映
+    applySelectionStyles(hiddenInput.value);
+
     // カード選択ロジック
     cards.forEach(card => {
         card.addEventListener('click', () => {
-            // 他の選択を解除
-            cards.forEach(c => c.classList.remove('selected'));
-            // 自分を選択
-            card.classList.add('selected');
-            // 隠しフィールドに値をセット
-            hiddenInput.value = card.dataset.option;
-            // エラーを消す
+            const value = card.dataset.option;
+            hiddenInput.value = value;
+            applySelectionStyles(value);
             errorMsg.hidden = true;
         });
     });
@@ -123,6 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
 .transport-card.selected {
     border: 2px solid #007bff; /* メインカラーに合わせて調整 */
     background-color: #f0f8ff;
+}
+.transport-card.dimmed {
+    opacity: 0.45;
 }
 .error-inline {
     color: red;
