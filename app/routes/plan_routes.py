@@ -121,7 +121,7 @@ def stay_select():
         plan.hotel = hotel_json
 
         db.session.commit()
-        print(plan.hotel)
+        print(plan.hotel) # 追加
         flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
         print("宿泊先の決定")
         # ★ ここで「選択完了後の処理」へ飛ぶ
@@ -166,7 +166,7 @@ def stay_confirm():
         user_id = current_user.id
     else:
         user_id = session.get("user_id")
-    plan = Plan.query.filter_by(id=plan_id, user_id=user_id).first_or_404()
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
 
 
     hotel_json = plan.hotel or {}
