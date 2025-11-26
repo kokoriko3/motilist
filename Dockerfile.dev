@@ -1,10 +1,18 @@
 FROM python:3.12-slim
+
+# 環境変数の設定
+# PYTHONUNBUFFERED=1 : Pythonの出力バッファリングを無効化（ログが即座に出るようにする）
 ENV PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
+
 WORKDIR /app
+
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-# 開発ではコードは volume マウントするので COPY しない
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "wsgi:app"]
 
+# 開発ではコードは volume マウントするので COPY しない
+
+# 【修正】GunicornのログをDockerに出力するためのオプションを追加
+# "-" は「標準出力/標準エラー出力」を意味します
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "wsgi:app"]

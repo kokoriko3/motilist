@@ -32,31 +32,56 @@ class Plan(db.Model):
     schedules = db.relationship('Schedule', backref='plan', lazy=True, cascade="all, delete-orphan")
     hotel_candidates = db.relationship('HotelSnapshot', backref='plan', lazy=True, cascade="all, delete-orphan")
     
+    # Checklistモデルは checklist.py に定義されていますが、文字列参照でリレーション可能です
     checklists = db.relationship("Checklist", back_populates="plan", cascade="all, delete-orphan")
 
 class Template(db.Model):
     __tablename__ = 'templates'
 
+    # 定義書 No.1: templateId
     template_id = db.Column(db.Integer, primary_key=True)
     
-    plan_id = db.Column(db.Integer, db.ForeignKey('plans.id'), nullable=False)
-    
+    # 定義書 No.2: userID
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     user = db.relationship("User", back_populates="templates")
-    public_title = db.Column(db.String(255), nullable=False)
-    short_note = db.Column(db.String(255)) # または db.Text
-    itinerary_outline_json = db.Column(db.JSON, nullable=False)
-    checklist_summary_json = db.Column(db.JSON, nullable=False)
-    days = db.Column(db.Integer)
-    items_count = db.Column(db.Integer)
-    essential_ratio = db.Column(db.Integer) # 0-100想定
 
-    tags = db.Column(db.String(255)) # カンマ区切り等
+    # アプリ仕様上のリンク（プランからテンプレート化する場合用）
+    plan_id = db.Column(db.Integer, db.ForeignKey('plans.id'), nullable=False)
+
+    # 定義書 No.3: publicTitle
+    public_title = db.Column(db.String(255), nullable=False)
+
+    # 定義書 No.4: shortNote
+    short_note = db.Column(db.String(255))
+
+    # 定義書 No.5: itineraryOutlineJson (日程要約)
+    itinerary_outline_json = db.Column(db.JSON, nullable=False)
+
+    # 定義書 No.6: checklistSummaryJson (持ち物要約)
+    checklist_summary_json = db.Column(db.JSON, nullable=False)
+
+    # 定義書 No.7: days
+    days = db.Column(db.Integer)
+
+    # 定義書 No.8: itemsCount
+    items_count = db.Column(db.Integer)
+
+    # 定義書 No.9: essentialRatio
+    essential_ratio = db.Column(db.Integer) 
+
+    # 定義書 No.10: tags
+    tags = db.Column(db.String(255))
+
+    # 定義書 No.11: visibility (旧 publish_status)
     visibility = db.Column(db.String(50), default="private", nullable=False)
+
+    # 定義書 No.12: displayVersion
     display_version = db.Column(db.Integer, default=1, nullable=False)
 
+    # 定義書 No.13: createdAt
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
+    # 定義書 No.14: updateAt
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     shares = db.relationship("Share", back_populates="template", cascade="all, delete-orphan")
@@ -65,6 +90,7 @@ class Share(db.Model):
     __tablename__ = "shares"
     id = db.Column(db.Integer, primary_key=True)
     
+    # template_id を参照するように修正
     template_id = db.Column(db.Integer, db.ForeignKey('templates.template_id'), nullable=False)
     
     issuer_user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)

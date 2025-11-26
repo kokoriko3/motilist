@@ -1,12 +1,17 @@
 import re
+import json
+import os
+from datetime import datetime, date
 
 # app/routes/plan_routes.py
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app
 from app.services.db_service import PlanDBService
 from app.forms.plan_form import PlanCreateForm
 from flask_login import current_user
 from app.services import ai_service, hotel_service
 from app.models.user import User
+from app.extensions import db
+from app.models.plan import Plan, TransportSnapshot, HotelSnapshot, Schedule
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
@@ -138,6 +143,7 @@ def plan_create_form():
                 purpose_raw=purpose_raw,
                 travel_style=travel_style_str
             )
+            current_app.logger.info("aiからの返答：",ai_response)    
             
             plan_title, transit, schedule = format_json(ai_response=ai_response)
 
@@ -194,3 +200,120 @@ def _split_to_list(raw: str) -> list[str]:
         return []
     parts = re.split(r"[,、\n\r]+", raw)
     return [p.strip() for p in parts if p.strip()]
+
+@plan_bp.route("/create_dummy", methods=["POST"])
+def create_dummy_plan():
+    """
+    seed_data.json からダミーデータを読み込んでプランを作成する
+    （AI生成をスキップして開発をスムーズにするためのルート）
+    """
+    
+    # ログインチェック
+    user_id = None
+    if current_user.is_authenticated:
+        user_id = current_user.id
+    else:
+        user_id = session.get("user_id")
+    
+    valid_user = User.query.get(user_id) if user_id else None
+    if not valid_user:
+        session.clear()
+        flash("セッションが無効です。ログインしてください。", "danger")
+        return redirect(url_for("auth.login"))
+
+    try:
+        # seed_data.json のパス
+        seed_file = os.path.join(current_app.root_path, '..', 'seed_data.json')
+        
+        if not os.path.exists(seed_file):
+            flash("ダミーデータ(seed_data.json)が見つかりません。'python manage_data.py dump' で作成してください。", "warning")
+            return redirect(url_for("plan.plan_create_form"))
+
+        with open(seed_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # データ構造チェック
+        if not data.get("plans"):
+            flash("seed_data.json にプランデータが含まれていません。", "warning")
+            return redirect(url_for("plan.plan_create_form"))
+
+        # 最新の1件を取得（リストの最後にあると仮定、あるいは0番目）
+        # dumpの仕様に合わせて調整してください。今回は[0]を使います。
+        dummy_plan_data = data["plans"][0]
+
+        # 1. プランの保存（新規作成として扱うためIDは除外して作成）
+        # 日付文字列をオブジェクトに変換
+        start_date_val = dummy_plan_data["start_date"]
+        if isinstance(start_date_val, str):
+            start_date_val = date.fromisoformat(start_date_val)
+
+        plan_id = PlanDBService.create_plan(
+            user_id=user_id, # 現在のユーザーIDを使う
+            destination=dummy_plan_data["destination"],
+            departure=dummy_plan_data["departure"],
+            start_date=start_date_val,
+            days=dummy_plan_data["days"],
+            purpose=dummy_plan_data["purpose"],
+            options=dummy_plan_data["options"],
+            plan_title=f"[Dummy] {dummy_plan_data['title']}", # ダミーとわかるようにタイトル変更
+        )
+        session["plan_id"] = plan_id
+
+        # 2. 関連データの復元
+        # 元のプランIDに紐づいていたデータを取得して、新しいプランIDで保存し直す
+        original_plan_id = dummy_plan_data["id"]
+
+        # Transport
+        for t_data in data.get("transport_snapshots", []):
+            if t_data["plan_id"] == original_plan_id:
+                # 新しいプランIDで保存
+                snapshot = TransportSnapshot(
+                    plan_id=plan_id,
+                    type=t_data["type"],
+                    transport_method=t_data["transport_method"],
+                    cost=t_data["cost"],
+                    duration=t_data["duration"],
+                    transit_count=t_data["transit_count"],
+                    departure_time=t_data["departure_time"],
+                    arrival_time=t_data["arrival_time"],
+                    is_selected=t_data["is_selected"]
+                )
+                db.session.add(snapshot)
+
+        # Hotel
+        for h_data in data.get("hotel_snapshots", []):
+            if h_data["plan_id"] == original_plan_id:
+                snapshot = HotelSnapshot(
+                    plan_id=plan_id,
+                    hotel_no=h_data["hotel_no"],
+                    name=h_data["name"],
+                    url=h_data["url"],
+                    image_url=h_data["image_url"],
+                    price=h_data["price"],
+                    address=h_data["address"],
+                    review=h_data["review"],
+                    is_selected=h_data["is_selected"]
+                )
+                db.session.add(snapshot)
+
+        # Schedule
+        for s_data in data.get("schedules", []):
+            if s_data["plan_id"] == original_plan_id:
+                schedule = Schedule(
+                    plan_id=plan_id,
+                    daily_plan_json=s_data["daily_plan_json"]
+                )
+                db.session.add(schedule)
+
+        db.session.commit()
+        
+        flash("ダミーデータからプランを作成しました！", "success")
+        return redirect(url_for("plan.plan_transit"))
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Dummy creation error: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f"ダミー作成エラー: {e}", "danger")
+        return redirect(url_for("plan.plan_create_form"))

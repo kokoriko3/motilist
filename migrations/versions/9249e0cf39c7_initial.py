@@ -1,8 +1,8 @@
-"""empty message
+"""Initial
 
-Revision ID: 5b614e9faf90
-Revises: 82a3c29682a3
-Create Date: 2025-11-25 03:26:07.974791
+Revision ID: 9249e0cf39c7
+Revises: 
+Create Date: 2025-11-25 05:30:20.446598
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5b614e9faf90'
-down_revision = '82a3c29682a3'
+revision = '9249e0cf39c7'
+down_revision = None
 branch_labels = None
 depends_on = None
 
@@ -116,14 +116,24 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('templates',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('plan_id', sa.Integer(), nullable=False),
+    sa.Column('template_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('publish_status', sa.String(length=50), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('plan_id', sa.Integer(), nullable=False),
+    sa.Column('public_title', sa.String(length=255), nullable=False),
+    sa.Column('short_note', sa.String(length=255), nullable=True),
+    sa.Column('itinerary_outline_json', sa.JSON(), nullable=False),
+    sa.Column('checklist_summary_json', sa.JSON(), nullable=False),
+    sa.Column('days', sa.Integer(), nullable=True),
+    sa.Column('items_count', sa.Integer(), nullable=True),
+    sa.Column('essential_ratio', sa.Integer(), nullable=True),
+    sa.Column('tags', sa.String(length=255), nullable=True),
+    sa.Column('visibility', sa.String(length=50), nullable=False),
+    sa.Column('display_version', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['plan_id'], ['plans.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('template_id')
     )
     op.create_table('transport_snapshots',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -172,7 +182,7 @@ def upgrade():
     sa.Column('url_token', sa.String(length=100), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['issuer_user_id'], ['users.user_id'], ),
-    sa.ForeignKeyConstraint(['template_id'], ['templates.id'], ),
+    sa.ForeignKeyConstraint(['template_id'], ['templates.template_id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('url_token')
     )
