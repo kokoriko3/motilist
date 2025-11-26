@@ -84,7 +84,7 @@ def stay_select():
     else:
         user_id = session.get("user_id")
 
-    plan = db_service.PlanDBService.get_plan_by_id(plan_id, user_id)
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     print("[DEBUG] plan =", plan)
     print("[DEBUG] plan.hotel =", plan.hotel)
     if not plan:
@@ -98,17 +98,13 @@ def stay_select():
         selected_id = request.form.get("hotel_id", type=int)
         if selected_id is None:
             flash("宿泊先が選択されていません。", "error")
-            return redirect(url_for("plan.stay_select", plan_id=plan_id))
+            return redirect(url_for("plan.stay_select"))
 
         hotel_json = plan.hotel or {}
         candidates = hotel_json.get("candidates", [])
 
         # JSON の中から選ばれた候補を探す
-        selected = None
-        for c in candidates:
-            if c.get("id") == selected_id:
-                selected = c
-                break
+        selected = next((c for c in candidates if c.get("id") == selected_id), None)
 
         print("[DEBUG] request.form =", request.form)
         print("[DEBUG] selected_id =", selected_id)
@@ -121,10 +117,11 @@ def stay_select():
 
         # Plan.hotel 側の JSON を更新（どれを選んだか覚えておく）
         hotel_json["selected_id"] = selected_id
+        print(hotel_json)  # 追加
         plan.hotel = hotel_json
 
         db.session.commit()
-
+        print(plan.hotel)
         flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
         print("宿泊先の決定")
         # ★ ここで「選択完了後の処理」へ飛ぶ
