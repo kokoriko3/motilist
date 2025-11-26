@@ -73,7 +73,7 @@ def plan_transit():
 @plan_bp.route("/stay/", methods=["GET", "POST"])
 def stay_select():
     # 共通：どのプランか決める
-    plan_id = request.args.get("plan_id", type=int)
+    plan_id = session.get("plan_id")
     if plan_id is None:
         flash("プランが指定されていません。", "error")
         return redirect(url_for("plan.plan_list"))
