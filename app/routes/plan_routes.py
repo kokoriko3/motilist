@@ -175,6 +175,10 @@ def stay_confirm():
     candidates = hotel_json.get("candidates", [])
     selected_id = hotel_json.get("selected_id")
 
+    print("[DEBUG] request.form =", request.form)
+    print("[DEBUG] hotel_json =", hotel_json)
+    print("[DEBUG] candidates =", candidates)
+    print("[DEBUG] selected_id =", selected_id)
     if not selected_id:
         flash("宿泊先が選択されていません。", "error")
         return redirect(url_for("plan.stay_select"))
