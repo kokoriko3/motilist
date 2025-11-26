@@ -377,6 +377,7 @@ def create_dummy_plan():
             purpose=dummy_plan_data["purpose"],
             options=dummy_plan_data["options"],
             plan_title=f"[Dummy] {dummy_plan_data['title']}", # ダミーとわかるようにタイトル変更
+            hotel = dummy_plan_data.get("hotel"),
         )
         session["plan_id"] = plan_id
 
