@@ -72,7 +72,43 @@ def plan_transit():
 
 @plan_bp.route("/stay", methods=["GET"])
 def stay_select():
-    return render_template("plan/hotel_select.html", stay_options=[])
+    # どのプランのホテル一覧を出すか
+    # /stay?plan_id=10 みたいにクエリパラメータで受ける例
+    # plan_id = request.args.get("plan_id", type=int)
+
+    # plan_id で絞り込み（不要なら全件でもOK）
+    query = HotelSnapshot.query
+    # if plan_id is not None:
+    #     query = query.filter_by(plan_id=plan_id)
+    
+    query = query.filter_by(plan_id=10)
+
+    # 例: 安い順に並べる
+    snapshots = query.order_by(HotelSnapshot.price.asc()).all()
+
+    # テンプレに渡しやすい形に整形（そのまま渡してもいいけど、わかりやすく）
+    stay_options = []
+    for s in snapshots:
+        # review が "None" 文字列だったら None に変換しておくと扱いやすい
+        if s.review in (None, "", "None"):
+            review_value = None
+        else:
+            review_value = float(s.review)
+
+        stay_options.append(
+            {
+                "id": s.id,
+                "plan_id": s.plan_id,
+                "hotel_no": s.hotel_no,
+                "name": s.name,
+                "url": s.url,
+                "image_url": s.image_url,
+                "price": s.price,
+                "address": s.address,
+                "review": review_value,
+            }
+        )
+    return render_template("plan/hotel_select.html", stay_options=stay_options)
 
 @plan_bp.route("/schedule", methods=["GET"])
 def schedule_list():

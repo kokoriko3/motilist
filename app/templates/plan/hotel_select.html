@@ -45,10 +45,12 @@
           <p class="stay-address">{{ stay.address }}</p>
         </div>
         <div class="stay-card__meta">
-          <span class="stay-stars">{{ stay.stars }}</span>
-          <a class="stay-detail" href="#">{{ stay.detail }} ↗</a>
+          <span class="stay-stars">{{ stay.review }}</span>
+          <a class="stay-detail" href="{{ stay.url }}">詳細 ↗</a>
         </div>
-        <div class="stay-card__thumb">{{ stay.img }}</div>
+        <div class="stay-card__thumb">
+          <img src="{{ stay.image_url }}" alt="{{ stay.name }}">
+        </div>
       </article>
       {% endfor %}
     </div>
