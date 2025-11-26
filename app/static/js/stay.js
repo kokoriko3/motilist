@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     errorBox.hidden = false;
   };
 
-  // --- カードクリック時の処理 ---
+  // --- カードクリック時 ---
   if (stayList) {
     stayList.addEventListener('click', (event) => {
       const card = event.target.closest('[data-stay-id]');
@@ -35,14 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      // クリックされたカードだけ選択状態
+      // クリックされたカードだけ選択
       card.classList.add('selected');
       const selectedRadio = card.querySelector('input[name="hotel_id"]');
       if (selectedRadio) {
         selectedRadio.checked = true;
       }
 
-      // クリックされなかったカードは disabled にする
+      // 他のカードは disabled＋ラジオも無効化
       stayList.querySelectorAll('[data-stay-id]').forEach((c) => {
         if (c === card) return;
         c.classList.add('disabled');
@@ -54,9 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 確定ボタン ---
   if (confirmBtn && form) {
-    confirmBtn.addEventListener('click', (e) => {
-      // 2重submit防止したければこれ
-      // e.preventDefault();
+    confirmBtn.addEventListener('click', () => {
       hideError();
       const selected = form.querySelector('input[name="hotel_id"]:checked');
       if (!selected) {
@@ -73,11 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
     clearBtn.addEventListener('click', () => {
       hideError();
 
+      // radio解除＋有効化
       form.querySelectorAll('input[name="hotel_id"]').forEach((r) => {
         r.checked = false;
         r.disabled = false;
       });
 
+      // 見た目も全部解除
       stayList.querySelectorAll('[data-stay-id]').forEach((c) => {
         c.classList.remove('selected', 'disabled');
       });
