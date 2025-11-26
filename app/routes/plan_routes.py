@@ -121,7 +121,6 @@ def stay_select():
 
         # Plan.hotel 側の JSON を更新（どれを選んだか覚えておく）
         hotel_json["selected_id"] = selected_id
-        hotel_json["selected"] = selected
         plan.hotel = hotel_json
 
 
@@ -173,13 +172,20 @@ def stay_confirm():
 
 
     hotel_json = plan.hotel or {}
-    selected = hotel_json.get("selected")
+    candidates = hotel_json.get("candidates", [])
+    selected_id = hotel_json.get("selected_id")
 
-    print(selected)
-    if not selected:
+    if not selected_id:
         flash("宿泊先が選択されていません。", "error")
-        print("宿泊先選択されていない（完了ver）")
-        return redirect(url_for("plan.stay_select", plan_id=plan_id))
+        return redirect(url_for("plan.stay_select"))
+    
+    selected = next(
+        (c for c in candidates if c.get("id") == selected_id),
+        None
+    )
+    if not selected:
+        flash("宿泊先情報の取得に失敗しました。", "error")
+        return redirect(url_for("plan.stay_select"))
 
     return render_template(
         "plan/hotel_confirm.html",
