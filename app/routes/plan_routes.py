@@ -70,23 +70,61 @@ def plan_transit():
         button_label="宿泊候補を見に行く",
     )
 
-@plan_bp.route("/stay", methods=["GET"])
+@plan_bp.route("/stay", methods=["GET", "POST"])
 def stay_select():
     # どのプランのホテル一覧を出すか
     # /stay?plan_id=10 みたいにクエリパラメータで受ける例
     # plan_id = request.args.get("plan_id", type=int)
-
+    plan_id = 1
     # plan_id で絞り込み（不要なら全件でもOK）
     query = HotelSnapshot.query
-    # if plan_id is not None:
-    #     query = query.filter_by(plan_id=plan_id)
-    
-    query = query.filter_by(plan_id=1)
+    if plan_id is not None:
+        query = query.filter_by(plan_id=plan_id)
     print(f"[DEBUG] SQL: {str(query)}")
 
     # 例: 安い順に並べる
     snapshots = query.order_by(HotelSnapshot.price.asc()).all()
 
+
+    if request.method == "POST":
+        # 2. 選択された hotel_snapshot の id をフォームから受け取る
+        selected_hotel_id = request.form.get("hotel_id", type=int)
+        if selected_hotel_id is None:
+            flash("宿泊先が選択されていません。", "error")
+            return redirect(url_for("plan.stay_select", plan_id=plan_id))
+
+        # 3. そのホテルが本当にこの plan の候補かチェック（セキュリティ）
+        snapshot = HotelSnapshot.query.filter_by(
+            id=selected_hotel_id,
+            plan_id=plan_id
+        ).first()
+        if snapshot is None:
+            flash("不正な宿泊先が指定されました。", "error")
+            return redirect(url_for("plan.stay_select", plan_id=plan_id))
+
+        # 4. いったん全部 is_selected=False にしてから、選ばれたものだけ True
+        HotelSnapshot.query.filter_by(plan_id=plan_id).update(
+            {HotelSnapshot.is_selected: False}
+        )
+        snapshot.is_selected = True
+
+        # 5. Plan.hotel にも JSON で保存（後続画面で使いやすくする用）
+        plan.hotel = {
+            "id": snapshot.id,
+            "hotel_no": snapshot.hotel_no,
+            "name": snapshot.name,
+            "url": snapshot.url,
+            "image_url": snapshot.image_url,
+            "price": snapshot.price,
+            "address": snapshot.address,
+            "review": snapshot.review,
+        }
+
+        db.session.commit()
+
+        flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
+        return redirect(url_for("plan.schedule_list", plan_id=plan_id))
+    
     # テンプレに渡しやすい形に整形（そのまま渡してもいいけど、わかりやすく）
     stay_options = []
     for s in snapshots:
@@ -109,6 +147,7 @@ def stay_select():
                 "review": review_value,
             }
         )
+    
     return render_template("plan/hotel_select.html", stay_options=stay_options)
 
 @plan_bp.route("/schedule", methods=["GET"])
