@@ -69,6 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- 選択しないボタン ---
   if (clearBtn && form && stayList) {
     clearBtn.addEventListener('click', () => {
+      console.log('clear clicked'); // 動作確認用
+
       hideError();
 
       // radio解除＋有効化
