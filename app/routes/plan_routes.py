@@ -71,7 +71,7 @@ def plan_transit():
     )
 
 @plan_bp.route("/stay/", methods=["GET", "POST"])
-def stay_select(plan_id):
+def stay_select():
     # 共通：どのプランか決める
     # plan_id = request.args.get("plan_id", type=int)
     plan_id = session.get("plan_id")
@@ -168,7 +168,7 @@ def stay_select(plan_id):
     return render_template("plan/hotel_select.html", plan=plan, stay_options=stay_options)
 
 @plan_bp.route("/stay/confirm", methods=["GET"])
-def stay_confirm(plan_id):
+def stay_confirm():
     plan_id = session.get("plan_id")
     if plan_id is None:
         flash("プランが指定されていません。", "error")
