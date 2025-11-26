@@ -36,32 +36,42 @@
       </div>
     </div>
 
-    <div class="stay-list" data-stay-list>
-      {% for stay in stay_options %}
-      <article class="stay-card {% if loop.first %}selected{% endif %}" data-stay-id="{{ stay.id }}">
-        <div class="stay-card__main">
-          <p class="stay-name">{{ stay.name }}</p>
-          <p class="stay-price">{{ stay.price }}円～</p>
-          <p class="stay-address">{{ stay.address }}</p>
-        </div>
-        <div class="stay-card__meta">
-          <span class="stay-stars">{{ stay.review }}</span>
-          <a class="stay-detail" href="{{ stay.url }}">詳細 ↗</a>
-        </div>
-        <div class="stay-card__thumb">
-          <img src="{{ stay.image_url }}" alt="{{ stay.name }}">
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-
-    <div class="stay-footer">
-      <button type="button" class="pill-ghost" data-stay-clear>選択しない</button>
-      <div class="pager">
-        <a href="#">1</a> <a href="#">2</a> <a href="#">3</a> <a href="#">4</a> ... <a href="#">20</a>
+    <form method="post">
+      <div class="stay-list" data-stay-list>
+        {% for stay in stay_options %}
+        <article class="stay-card {% if loop.first %}selected{% endif %}" data-stay-id="{{ stay.id }}">
+          <label>
+            <input
+              type="radio"
+              name="hotel_id"
+              value="{{ stay.id }}"
+              {% if stay.is_selected or loop.first %}checked{% endif %}
+            >
+            <div class="stay-card__main">
+              <p class="stay-name">{{ stay.name }}</p>
+              <p class="stay-price">{{ stay.price }}円～</p>
+              <p class="stay-address">{{ stay.address }}</p>
+            </div>
+            <div class="stay-card__meta">
+              <span class="stay-stars">{{ stay.review }}</span>
+              <a class="stay-detail" href="{{ stay.url }}">詳細 ↗</a>
+            </div>
+            <div class="stay-card__thumb">
+              <img src="{{ stay.image_url }}" alt="{{ stay.name }}">
+            </div>
+          </label>
+        </article>
+        {% endfor %}
       </div>
-      <button type="button" class="cta-primary" data-stay-confirm>確定</button>
-    </div>
+
+      <div class="stay-footer">
+        <button type="button" class="pill-ghost" data-stay-clear>選択しない</button>
+        <div class="pager">
+          <a href="#">1</a> <a href="#">2</a> <a href="#">3</a> <a href="#">4</a> ... <a href="#">20</a>
+        </div>
+        <button type="button" class="cta-primary" data-stay-confirm>確定</button>
+      </div>
+    </form>
   </div>
 </section>
 <script defer src="{{ url_for('static', filename='js/stay.js') }}"></script>

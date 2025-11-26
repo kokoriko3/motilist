@@ -72,83 +72,113 @@ def plan_transit():
 
 @plan_bp.route("/stay", methods=["GET", "POST"])
 def stay_select():
-    # どのプランのホテル一覧を出すか
-    # /stay?plan_id=10 みたいにクエリパラメータで受ける例
+    # 共通：どのプランか決める
     # plan_id = request.args.get("plan_id", type=int)
     plan_id = 1
-    # plan_id で絞り込み（不要なら全件でもOK）
-    query = HotelSnapshot.query
-    if plan_id is not None:
-        query = query.filter_by(plan_id=plan_id)
-    print(f"[DEBUG] SQL: {str(query)}")
+    if plan_id is None:
+        flash("プランが指定されていません。", "error")
+        return redirect(url_for("plan.plan_list"))
 
-    # 例: 安い順に並べる
-    snapshots = query.order_by(HotelSnapshot.price.asc()).all()
+    plan = Plan.query.get_or_404(plan_id)
 
-
+    # ---------- POST: 選択確定 & リダイレクト ----------
     if request.method == "POST":
-        # 2. 選択された hotel_snapshot の id をフォームから受け取る
-        selected_hotel_id = request.form.get("hotel_id", type=int)
-        if selected_hotel_id is None:
+        # form から選択されたホテルIDを受け取る
+        selected_id = request.form.get("hotel_id", type=int)
+        if selected_id is None:
             flash("宿泊先が選択されていません。", "error")
             return redirect(url_for("plan.stay_select", plan_id=plan_id))
 
-        # 3. そのホテルが本当にこの plan の候補かチェック（セキュリティ）
-        snapshot = HotelSnapshot.query.filter_by(
-            id=selected_hotel_id,
-            plan_id=plan_id
-        ).first()
-        if snapshot is None:
+        hotel_json = plan.hotel or {}
+        candidates = hotel_json.get("candidates", [])
+
+        # JSON の中から選ばれた候補を探す
+        selected = None
+        for c in candidates:
+            if c.get("id") == selected_id:
+                selected = c
+                break
+
+        if selected is None:
             flash("不正な宿泊先が指定されました。", "error")
             return redirect(url_for("plan.stay_select", plan_id=plan_id))
 
-        # 4. いったん全部 is_selected=False にしてから、選ばれたものだけ True
-        HotelSnapshot.query.filter_by(plan_id=plan_id).update(
-            {HotelSnapshot.is_selected: False}
-        )
-        snapshot.is_selected = True
+        # Plan.hotel 側の JSON を更新（どれを選んだか覚えておく）
+        hotel_json["selected_id"] = selected_id
+        hotel_json["selected"] = selected
+        plan.hotel = hotel_json
 
-        # 5. Plan.hotel にも JSON で保存（後続画面で使いやすくする用）
-        plan.hotel = {
-            "id": snapshot.id,
-            "hotel_no": snapshot.hotel_no,
-            "name": snapshot.name,
-            "url": snapshot.url,
-            "image_url": snapshot.image_url,
-            "price": snapshot.price,
-            "address": snapshot.address,
-            "review": snapshot.review,
-        }
+        # （任意）HotelSnapshot に確定版を1件だけ保存したい場合
+        HotelSnapshot.query.filter_by(plan_id=plan.id).delete()
+
+        snapshot = HotelSnapshot(
+            plan_id=plan.id,
+            hotel_no=selected.get("hotel_no"),
+            name=selected.get("name"),
+            url=selected.get("url"),
+            image_url=selected.get("image_url"),
+            price=selected.get("price"),
+            address=selected.get("address"),
+            review=str(selected.get("review")) if selected.get("review") is not None else None,
+            is_selected=True,
+        )
+        db.session.add(snapshot)
 
         db.session.commit()
 
         flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
-        return redirect(url_for("plan.schedule_list", plan_id=plan_id))
-    
-    # テンプレに渡しやすい形に整形（そのまま渡してもいいけど、わかりやすく）
+        # ★ ここで「選択完了後の処理」へ飛ぶ
+        # 例: スケジュール編集画面
+        return redirect(url_for("plan.stay_confirm", plan_id=plan.id))
+
+    # ---------- GET: 一覧表示 ----------
+    hotel_json = plan.hotel or {}
+    candidates = hotel_json.get("candidates", [])
+    selected_id = hotel_json.get("selected_id")
+
     stay_options = []
-    for s in snapshots:
-        # review が "None" 文字列だったら None に変換しておくと扱いやすい
-        if s.review in (None, "", "None"):
+    for c in candidates:
+        raw_review = c.get("review")
+        try:
+            review_value = float(raw_review) if raw_review not in (None, "", "None") else None
+        except ValueError:
             review_value = None
-        else:
-            review_value = float(s.review)
 
         stay_options.append(
             {
-                "id": s.id,
-                "plan_id": s.plan_id,
-                "hotel_no": s.hotel_no,
-                "name": s.name,
-                "url": s.url,
-                "image_url": s.image_url,
-                "price": s.price,
-                "address": s.address,
+                "id": c.get("id"),
+                "name": c.get("name"),
+                "price": c.get("price"),
+                "address": c.get("address"),
+                "url": c.get("url"),
+                "image_url": c.get("image_url"),
                 "review": review_value,
+                "is_selected": (c.get("id") == selected_id),
             }
         )
-    
-    return render_template("plan/hotel_select.html", stay_options=stay_options)
+    return render_template("plan/hotel_select.html", plan=plan, stay_options=stay_options)
+
+@plan_bp.route("/stay/confirm", methods=["GET"])
+def stay_confirm():
+    plan_id = request.args.get("plan_id", type=int)
+    if plan_id is None:
+        flash("プランが指定されていません。", "error")
+        return redirect(url_for("plan.plan_list"))
+
+    plan = Plan.query.get_or_404(plan_id)
+
+    hotel_json = plan.hotel or {}
+    selected = hotel_json.get("selected")
+
+    if not selected:
+        flash("宿泊先が選択されていません。", "error")
+        return redirect(url_for("plan.stay_select", plan_id=plan_id))
+
+    return render_template(
+        "plan/hotel_confirm.html",
+        plan=plan,
+        hotel=selected
+    )
 
 @plan_bp.route("/schedule", methods=["GET"])
 def schedule_list():
