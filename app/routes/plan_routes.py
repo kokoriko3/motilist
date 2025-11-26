@@ -81,7 +81,8 @@ def stay_select():
     # if plan_id is not None:
     #     query = query.filter_by(plan_id=plan_id)
     
-    query = query.filter_by(plan_id=10)
+    query = query.filter_by(plan_id=1)
+    print(f"[DEBUG] SQL: {str(query)}")
 
     # 例: 安い順に並べる
     snapshots = query.order_by(HotelSnapshot.price.asc()).all()
