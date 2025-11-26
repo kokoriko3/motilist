@@ -23,14 +23,33 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = event.target.closest('[data-stay-id]');
       if (!card) return
       hideError();
+
+      // クリックされたカードのラジオをON
+      const selectedRadio = card.querySelector('input[name="hotel_id"]');
+      if (selectedRadio) {
+        selectedRadio.checked = true;
+      }
+
+      // まず全カードのselected/disabledと radio.disabled をリセット
       stayList.querySelectorAll('[data-stay-id]').forEach((c) => c.classList.remove('selected'));
-      card.classList.add('selected');
+      card.classList.add('selected', 'disabled');
 
       const radio = card.querySelector('input[name="hotel_id"]');
       if (radio) {
-        radio.checked = true;
+        radio.disabled = false;
       }
-    })
+    });
+
+    // クリックされたカードだけ selected
+      card.classList.add('selected');
+
+    // クリックされなかったカードは disabled にする
+      stayList.querySelectorAll('[data-stay-id]').forEach((c) => {
+        if (c === card) return;
+        c.classList.add('disabled');
+        const r = c.querySelector('input[name="hotel_id"]');
+        if (r) r.disabled = true;
+      });
   }
 
   if (confirmBtn && form) {
@@ -54,11 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // radio解除
       form.querySelectorAll('input[name="hotel_id"]').forEach((r) => {
         r.checked = false;
+        r.disabled = false;
       });
 
       // 見た目解除
       stayList.querySelectorAll('[data-stay-id]').forEach((c) => {
-        c.classList.remove('selected');
+        c.classList.remove('selected', 'disabled');
       });
     })
   }
