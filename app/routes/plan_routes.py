@@ -123,7 +123,8 @@ def stay_select():
         hotel_json["selected_id"] = selected_id
         plan.hotel = hotel_json
 
-
+        db.session.commit()
+        
         flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
         print("宿泊先の決定")
         # ★ ここで「選択完了後の処理」へ飛ぶ
