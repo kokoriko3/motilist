@@ -40,6 +40,10 @@ class PlanDBService:
         return Template.query.filter_by(visibility="public").all()
     
     @staticmethod
+    def get_private_templates(user_id):
+        return Template.query.filter_by(user_id=user_id, visibility="private").all()
+    
+    @staticmethod
     def get_all_templates_by_plan_id(plan_id):
         return Template.query.filter_by(plan_id=plan_id).first()
 
