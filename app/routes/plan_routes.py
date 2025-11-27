@@ -35,7 +35,7 @@ def plan_list():
         return render_template("plan/list.html", plans=plans, show_login_link=True)
 
     print("ユーザIDあり:", user_id)
-    plans = PlanDBService.get_all_templates_by_id(user_id=user_id)
+    plans = PlanDBService.get_all_templates_by_user_id(user_id=user_id)
 
     return render_template("plan/list.html", plans=plans, show_login_link=show_login_link)
 
@@ -236,17 +236,101 @@ def checklist_list():
 def checklist_edit():
     return render_template("plan/checklist_edit.html", categories=[])
 
-# ----------------------------------------
-#  プラン詳細ページ
-# ----------------------------------------
+# プラン詳細ページ
 @plan_bp.route("/<int:plan_id>", methods=["GET"])
 def plan_detail(plan_id):
-    plan = PlanDBService.get_plan_by_id(plan_id)
+    # --- ユーザー判定（他ルートと合わせる） ---
+    if current_user.is_authenticated:
+        user_id = current_user.id
+    else:
+        user_id = session.get("user_id")
+
+    # --- プラン取得 ---
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     if not plan:
-        flash("指定されたプランは存在しません。")
+        flash("指定されたプランは存在しません。", "error")
         return redirect(url_for("plan.plan_list"))
 
-    return render_template("plan/detail.html", plan=plan)
+    # --- Template 取得（plan_id に紐づくものを 1 件） ---
+    template = PlanDBService.get_all_templates_by_plan_id(plan_id=plan.id).first()
+
+    # 日数（Template 優先、なければ Plan.days）
+    if template:
+        template_days = template.days
+        template_note = template.short_note or "説明が設定されていません。"
+    else:
+        template_days = plan.days
+        template_note = "説明が設定されていません。"
+
+    # --- 交通手段一覧を itinerary_outline_json から抽出 ---
+    traffic_methods = []
+    if template and template.itinerary_outline_json:
+        days_data = template.itinerary_outline_json.get("days", [])
+        for d in days_data:
+            tm = d.get("traffic_method")
+            if tm:
+                traffic_methods.append(tm)
+
+    # 重複排除したいならこうしてもいい
+    traffic_methods = list(dict.fromkeys(traffic_methods))
+
+    # --- 宿泊先（Plan.hotel JSON から） ---
+    hotel_json = plan.hotel or {}
+    selected_id = hotel_json.get("selected_id")
+    candidates = hotel_json.get("candidates", [])
+
+    selected_hotel = None
+    if selected_id:
+        selected_hotel = next(
+            (c for c in candidates if c.get("id") == selected_id),
+            None
+        )
+
+    if selected_hotel:
+        accommodation_label = selected_hotel.get("name")
+        hotel_price = selected_hotel.get("price")
+    else:
+        accommodation_label = "選択中です"
+        hotel_price = None
+
+    # --- メタ情報（とりあえず最低限だけ整える） ---
+    created_on_str = (
+        plan.created_at.strftime("%Y-%m-%d %H:%M")
+        if getattr(plan, "created_at", None)
+        else ""
+    )
+    packing_details = template.checklist_summary_json
+
+    meta = {
+        "created_on": created_on_str,
+        "price": f"{hotel_price}円 / 泊" if hotel_price is not None else "",
+        "items_total": packing_details.get("items_total", 0),  # 持ち物周りをまだつながないなら 0 のままでOK
+    }
+
+    # --- 主な滞在場所（テンプレの日程から場所候補を抽出） ---
+    stay_locations = []
+    if template and template.itinerary_outline_json:
+        days_data = template.itinerary_outline_json.get("days", [])
+        for d in days_data:
+            for place in d.get("places", []):
+                stay_locations.append(place)
+    stay_locations = list(dict.fromkeys(stay_locations))
+
+    # 自分のプランかどうか（編集ボタンの表示切り替え用）
+    is_owned = (plan.user_id == user_id)
+
+    return render_template(
+        "plan/detail.html",
+        plan=plan,
+        template_days=template_days,
+        traffic_methods=traffic_methods,
+        accommodation_label=accommodation_label,
+        meta=meta,
+        stay_locations=stay_locations,
+        packing_details=packing_details,
+        is_owned=is_owned,
+        template_note=template_note,
+    )
 
 # ----------------------------------------
 #  プラン作成画面（AIに生成依頼）

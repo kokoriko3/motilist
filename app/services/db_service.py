@@ -32,14 +32,17 @@ class PlanDBService:
         )
     
     @staticmethod
-    def get_all_templates_by_id(user_id):
+    def get_all_templates_by_user_id(user_id):
         return Template.query.filter_by(user_id=user_id).all()
     
-
     @staticmethod
     def get_public_templates():
         return Template.query.filter_by(publish_status="public").all()
     
+    @staticmethod
+    def get_all_templates_by_plan_id(plan_id):
+        return Template.query.filter_by(plan_id=plan_id).all()
+
     @staticmethod
     def get_plan_by_id(plan_id, user_id):
         if user_id is None:

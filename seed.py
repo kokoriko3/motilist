@@ -244,13 +244,24 @@ def run_seed():
             ]
         }
 
+        checklist_summary = {
+            "essential": [
+                { "name": "Tシャツ", "quantity": 2, "unit": "枚" },
+                { "name": "ズボン",  "quantity": 1, "unit": "本" }
+            ],
+            "extra": [
+                { "name": "スマホ", "quantity": 1, "unit": "台" }
+            ],
+            "items_total": 3
+        }
+
         template = Template(
             user_id=user.user_id,
             plan_id=plan.id,
             public_title="大阪1泊2日テンプレ",
             short_note="seed.pyで投入したサンプルテンプレ", # Renamed from note
             itinerary_outline_json=itinerary_outline, # Renamed from schedule_summary_json
-            checklist_summary_json={"items": ["Tシャツ", "ズボン", "スマホ"]},
+            checklist_summary_json=checklist_summary,
             days=plan.days,
             items_count=3, # Renamed from total_items
             essential_ratio=100, # Renamed from required_ratio (Assuming Integer percentage)
