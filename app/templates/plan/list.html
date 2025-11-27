@@ -31,7 +31,7 @@
     {% if plans %}
       <div class="plan-tiles plan-tiles--wide">
         {% for plan in plans %}
-          {% with detail_url=url_for('plan.plan_detail', plan_id=plan.plan_id, source='own') %}
+          {% with detail_url=url_for('plan.plan_detail', template_id=plan.template_id, source='own') %}
             {% include 'components/_plan_card.html' %}
           {% endwith %}
         {% endfor %}

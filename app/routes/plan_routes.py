@@ -274,44 +274,42 @@ def checklist_edit():
     return render_template("plan/checklist_edit.html", categories=[])
 
 # プラン詳細ページ
-@plan_bp.route("/<int:plan_id>", methods=["GET"])
-def plan_detail(plan_id):
-    # --- ユーザー判定（他ルートと合わせる） ---
+@plan_bp.route("/<int:template_id>", methods=["GET"])
+def plan_detail(template_id):
+    # --- ユーザー判定 ---
     if current_user.is_authenticated:
         user_id = current_user.id
     else:
         user_id = session.get("user_id")
 
-    
-
-    # --- プラン取得 ---
-    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
-    if not plan:
-        print("指定されたプランが存在しない")
+    # --- Template を主役に取得 ---
+    template = Template.query.filter_by(template_id=template_id).first()
+    if not template:
+        print(f"指定されたテンプレートが存在しません: template_id={template_id}")
         flash("指定されたプランは存在しません。", "error")
         return redirect(url_for("plan.plan_list"))
 
-    # --- Template 取得（plan_id に紐づくものを 1 件） ---
-    template = PlanDBService.get_all_templates_by_plan_id(plan_id=plan_id)
+    # 紐づく Plan を取得
+    plan = PlanDBService.get_plan_by_id(template.plan_id, user_id)
+    if not plan:
+        print(f"紐づくプランが存在しません: plan_id={template.plan_id}, user_id={user_id}")
+        flash("指定されたプランは存在しません。", "error")
+        return redirect(url_for("plan.plan_list"))
 
     # 日数（Template 優先、なければ Plan.days）
-    if template:
-        template_days = template.days
-        template_note = template.short_note or "説明が設定されていません。"
-    else:
-        template_days = plan.days
-        template_note = "説明が設定されていません。"
+    template_days = template.days or plan.days
+    template_note = template.short_note or "説明が設定されていません。"
 
     # --- 交通手段一覧を itinerary_outline_json から抽出 ---
     traffic_methods = []
-    if template and template.itinerary_outline_json:
+    if template.itinerary_outline_json:
         days_data = template.itinerary_outline_json.get("days", [])
         for d in days_data:
             tm = d.get("traffic_method")
             if tm:
                 traffic_methods.append(tm)
 
-    # 重複排除したいならこうしてもいい
+    # 重複排除
     traffic_methods = list(dict.fromkeys(traffic_methods))
 
     # --- 宿泊先（Plan.hotel JSON から） ---
@@ -333,31 +331,45 @@ def plan_detail(plan_id):
         accommodation_label = "選択中です"
         hotel_price = None
 
-    # --- メタ情報（とりあえず最低限だけ整える） ---
+    # --- メタ情報 ---
     created_on_str = (
         plan.created_at.strftime("%Y-%m-%d %H:%M")
         if getattr(plan, "created_at", None)
         else ""
     )
-    packing_details = template.checklist_summary_json
 
+    packing_summary = template.checklist_summary_json or {}
     meta = {
         "created_on": created_on_str,
         "price": f"{hotel_price}円 / 泊" if hotel_price is not None else "",
-        "items_total": packing_details.get("items_total", 0),  # 持ち物周りをまだつながないなら 0 のままでOK
+        "items_total": packing_summary.get("items_total", 0),
     }
 
-    # --- 主な滞在場所（テンプレの日程から場所候補を抽出） ---
+    # --- 主な滞在場所 ---
     stay_locations = []
-    if template and template.itinerary_outline_json:
+    if template.itinerary_outline_json:
         days_data = template.itinerary_outline_json.get("days", [])
         for d in days_data:
             for place in d.get("places", []):
                 stay_locations.append(place)
     stay_locations = list(dict.fromkeys(stay_locations))
 
-    # 自分のプランかどうか（編集ボタンの表示切り替え用）
+    # 自分のプランかどうか
     is_owned = (plan.user_id == user_id)
+
+    # packing_details（テーブル用行データ）を Template から組み立てる
+    essential = packing_summary.get("essential", [])
+    extra = packing_summary.get("extra", [])
+
+    max_len = max(len(essential), len(extra))
+    packing_details = []
+    for i in range(max_len):
+        e = essential[i] if i < len(essential) else None
+        x = extra[i] if i < len(extra) else None
+        packing_details.append({
+            "essential": f"{e['name']}（{e['quantity']}{e['unit']}）" if e else "",
+            "extra": f"{x['name']}（{x['quantity']}{x['unit']}）" if x else "",
+        })
 
     return render_template(
         "plan/detail.html",
@@ -370,6 +382,7 @@ def plan_detail(plan_id):
         packing_details=packing_details,
         is_owned=is_owned,
         template_note=template_note,
+        template_id=template_id,  # 必要なら渡しておく
     )
 
 # ----------------------------------------
