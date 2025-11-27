@@ -283,7 +283,7 @@ def plan_detail(template_id):
         user_id = session.get("user_id")
 
     # --- Template を主役に取得 ---
-    template = Template.query.filter_by(template_id=template_id).first()
+    template = PlanDBService.get_all_templates_by_id(template_id=template_id)
     if not template:
         print(f"指定されたテンプレートが存在しません: template_id={template_id}")
         flash("指定されたプランは存在しません。", "error")
