@@ -4,7 +4,7 @@
 <section class="stay-shell">
   <div class="plan-header">
     <div>
-      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+      <p class="plan-title">福岡 2泊3日 <span class="icon-inline">✈</span></p>
     </div>
     <div class="plan-meta">
       <span class="plan-date">1月1日~1月3日</span>
@@ -25,15 +25,27 @@
 
     <article class="stay-card selected">
       <div class="stay-card__main">
-        <p class="stay-name">○○ホテル</p>
-        <p class="stay-price">10000円~</p>
-        <p class="stay-address">住所</p>
+        <p class="stay-name">{{ hotel.name }}</p>
+        <p class="stay-price">
+          {% if hotel.price %}
+            ¥{{ "{:,}".format(hotel.price) }}
+          {% else %}
+            -
+          {% endif %}
+        </p>
+        <p class="stay-address">{{ hotel.address or '' }}</p>
       </div>
       <div class="stay-card__meta">
-        <span class="stay-stars">★★★★★</span>
-        <a class="stay-detail" href="#">詳細 ↗</a>
+        <span class="stay-stars">{{ hotel.review or '' }}</span>
+        {% if hotel.url %}
+          <a class="stay-detail" href="{{ hotel.url }}" target="_blank" rel="noopener">詳細 ↗</a>
+        {% endif %}
       </div>
-      <div class="stay-card__thumb">画像</div>
+      {% if hotel.image_url %}
+      <div class="stay-card__thumb">
+        <img src="{{ hotel.image_url }}" alt="{{ hotel.name }}" loading="lazy">
+      </div>
+      {% endif %}
     </article>
 
     <div class="stay-actions">

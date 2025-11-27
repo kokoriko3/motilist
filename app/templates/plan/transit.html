@@ -2,86 +2,82 @@
 {% block title %}交通手段{% endblock %}
 {% block content %}
 <section class="transport-shell">
-  <div class="plan-header">
-    <div>
-      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+  <div class="transport-container">
+    <div class="plan-header">
+      <div class="plan-header-left">
+        <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+      </div>
+      <div class="plan-meta">
+        <span class="plan-date">1月1日~1月3日</span>
+        <button type="button" class="pill-button">共有</button>
+        <button type="button" class="pill-button">保存</button>
+      </div>
     </div>
-    <div class="plan-meta">
-      <span class="plan-date">1月1日~1月3日</span>
-      <button type="button" class="pill-button">共有</button>
-      <button type="button" class="pill-button">保存</button>
+
+    <div class="plan-tabs">
+      <a class="active">交通手段</a>
+      <a href="{{ url_for('plan.stay_select') }}">宿泊場所</a>
+      <a href="{{ url_for('plan.schedule_list') }}">スケジュール</a>
+      <a href="{{ url_for('plan.checklist_list') }}">持ち物</a>
     </div>
-  </div>
 
-  <div class="plan-tabs">
-    <a class="active">交通手段</a>
-    <a href="{{ url_for('plan.stay_select') }}">宿泊場所</a>
-    <a href="{{ url_for('plan.schedule_list') }}">スケジュール</a>
-    <a href="{{ url_for('plan.checklist_list') }}">持ち物</a>
-  </div>
+    <div class="transport-body">
+      <div class="error-inline" data-transport-error hidden>選択してください</div>
+      
+      <form id="transit-form" method="POST" action="{{ url_for('plan.plan_transit') }}">
+          <input type="hidden" name="transit_type" id="selected-transit-type" value="{{ selected_type or '' }}">
+          
+          {% set transport_options = options or [] %}
+          {% if transport_options %}
+            <div class="transport-options" data-transport-list>
+              {% for option in transport_options %}
+                {% set is_current = selected_type and option.type == selected_type %}
+                {% set dimmed = selected_type and option.type != selected_type %}
+                {% set classes = 'transport-card' %}
+                {% if is_current %}
+                  {% set classes = classes + ' selected' %}
+                {% elif dimmed %}
+                  {% set classes = classes + ' dimmed' %}
+                {% endif %}
+                <button type="button" class="{{ classes }}" data-option="{{ option.type }}">
+                  <div class="transport-card__header">
+                    <span class="transport-title">{{ option.type }}</span>
+                    <div class="transport-meta">
+                      <span class="transport-price">
+                        {% if option.cost %}
+                          ¥{{ "{:,}".format(option.cost) }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </span>
+                      <span class="transport-time">
+                        {% if option.duration %}
+                          移動時間{{ option.duration }}分
+                        {% else %}
+                          -
+                        {% endif %}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div class="transport-route">
+                      {{ option.transport_method }}
+                      {% if option.transit_count %}
+                      <div class="transport-sub">乗換: {{ option.transit_count }}回</div>
+                      {% endif %}
+                  </div>
+                </button>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="transport-empty">現在表示できる交通手段候補がありません。</p>
+          {% endif %}
 
-  <div class="transport-body">
-    <!-- エラーメッセージ表示エリア -->
-    <div class="error-inline" data-transport-error hidden>選択してください</div>
-    
-    <!-- POST送信用フォーム -->
-    <form id="transit-form" method="POST" action="{{ url_for('plan.plan_transit') }}">
-        <input type="hidden" name="transit_type" id="selected-transit-type">
-        
-        {% set transport_options = options or [] %}
-        {% if transport_options %}
-          <div class="transport-options" data-transport-list>
-            {% for option in transport_options %}
-              <!-- 
-                DBのカラム名に合わせてプロパティを変更しています 
-                option.id -> option.type (選択時の識別子として利用)
-              -->
-              <button type="button" class="transport-card" data-option="{{ option.type }}">
-                <div class="transport-card__header">
-                  <!-- タイトル（例: price_重視, speed_重視） -->
-                  <span class="transport-title">{{ option.type }}</span>
-                  
-                  <!-- 価格 -->
-                  <span class="transport-price">
-                    {% if option.cost %}
-                      ¥{{ "{:,}".format(option.cost) }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </span>
-                  
-                  <!-- 所要時間 -->
-                  <span class="transport-time">
-                    {% if option.duration %}
-                      {{ option.duration }}分
-                    {% else %}
-                      -
-                    {% endif %}
-                  </span>
-                </div>
-                
-                <!-- 経路/詳細 -->
-                <div class="transport-route">
-                    {{ option.transport_method }}
-                    {% if option.transit_count %}
-                    <br><small>乗換: {{ option.transit_count }}回</small>
-                    {% endif %}
-                </div>
-              </button>
-            {% endfor %}
+          <div class="cta-row transport-actions">
+            <button type="button" class="cta-primary" data-transport-confirm>{{ button_label or '確定' }}</button>
           </div>
-        {% else %}
-          <p class="transport-empty">現在表示できる交通手段候補がありません。</p>
-        {% endif %}
-
-        <div class="cta-row transport-actions">
-          <!-- 
-            JSでクリック時に #selected-transit-type に値をセットして
-            #transit-form を submit する想定です
-          -->
-          <button type="button" class="cta-primary" data-transport-confirm>{{ button_label or '次へ' }}</button>
-        </div>
-    </form>
+      </form>
+    </div>
   </div>
 </section>
 
@@ -93,16 +89,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('transit-form');
     const errorMsg = document.querySelector('[data-transport-error]');
 
+    const applySelectionStyles = (value) => {
+        cards.forEach(c => {
+            const isSelected = c.dataset.option === value;
+            c.classList.toggle('selected', isSelected);
+            if (value) {
+                c.classList.toggle('dimmed', !isSelected);
+            } else {
+                c.classList.remove('dimmed');
+            }
+        });
+    };
+
+    // 初期表示で選択状態を反映
+    applySelectionStyles(hiddenInput.value);
+
     // カード選択ロジック
     cards.forEach(card => {
         card.addEventListener('click', () => {
-            // 他の選択を解除
-            cards.forEach(c => c.classList.remove('selected'));
-            // 自分を選択
-            card.classList.add('selected');
-            // 隠しフィールドに値をセット
-            hiddenInput.value = card.dataset.option;
-            // エラーを消す
+            const value = card.dataset.option;
+            hiddenInput.value = value;
+            applySelectionStyles(value);
             errorMsg.hidden = true;
         });
     });
@@ -119,15 +126,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <style>
-/* 選択状態のスタイル（参考） */
-.transport-card.selected {
-    border: 2px solid #007bff; /* メインカラーに合わせて調整 */
-    background-color: #f0f8ff;
-}
-.error-inline {
-    color: red;
-    margin-bottom: 10px;
-    font-weight: bold;
-}
 </style>
 {% endblock %}
