@@ -21,10 +21,12 @@ plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 @plan_bp.route("/", methods=["GET"])
 def plan_list():
     if not current_user.is_authenticated:
+        print("ログインなし")
         plans = []
         return render_template("plan/list.html", plans=plans, show_login_link=True)
-
+    print("ログインあり")
     plans = PlanDBService.get_all_templates_by_id(user_id=current_user.id)
+    print(plans)
     return render_template("plan/list.html", plans=plans, show_login_link=False)
 
 # 公開プラン一覧
