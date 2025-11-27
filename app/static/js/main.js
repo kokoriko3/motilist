@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("main.js loaded");
     // ▼ プロフィールドロップダウン
     const dropdown = document.querySelector("[data-dropdown]");
     if (dropdown) {
@@ -9,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // アイコン押したら開閉
         toggleBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            dropdown.classList.toggle("is-open");
+            dropdown.classList.toggle("open");
         });
 
         // パネル内クリックは閉じない
@@ -19,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // それ以外をクリックしたら閉じる
         document.addEventListener("click", () => {
-            dropdown.classList.remove("is-open");
+            dropdown.classList.remove("open");
         });
         }
     }
