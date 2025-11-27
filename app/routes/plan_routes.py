@@ -31,26 +31,42 @@ def plan_list():
 
     if not user_id:
         print("ユーザIDなし（完全未ログイン＆ゲストも未作成）")
-        plans = []
-        return render_template("plan/list.html", plans=plans, show_login_link=True)
+        return render_template("plan/list.html", plans=[], show_login_link=True)
 
     print("ユーザIDあり:", user_id)
     templates = PlanDBService.get_all_templates_by_user_id(user_id=user_id)
 
-    # ★ここで Template ごとに交通手段の一覧を作る
+    # --------------------------
+    # ★ テンプレートごとに追加情報を付ける
+    # --------------------------
     for tpl in templates:
-        traffic_methods: list[str] = []
-
+        # ===== 交通手段（既存処理）=====
+        traffic_methods = []
         outline = tpl.itinerary_outline_json or {}
         days = outline.get("days", [])
-
         for d in days:
             tm = d.get("traffic_method")
             if tm and tm not in traffic_methods:
                 traffic_methods.append(tm)
-
-        # テンプレートに「表示用のプロパティ」を生やす
         tpl.transport_summary = " / ".join(traffic_methods) if traffic_methods else ""
+
+        # ===== ホテル名（新規追加）=====
+        # Plan を取得
+        plan = PlanDBService.get_plan_by_id(tpl.plan_id, user_id)
+        hotel_json = plan.hotel or {}
+
+        selected_id = hotel_json.get("selected_id")
+        candidates = hotel_json.get("candidates", [])
+
+        selected_hotel = None
+        if selected_id:
+            selected_hotel = next(
+                (c for c in candidates if c.get("id") == selected_id),
+                None
+            )
+
+        # list.html で使えるよう template 側に載せる
+        tpl.hotel_name = selected_hotel["name"] if selected_hotel else "選択中"
 
     return render_template(
         "plan/list.html",
