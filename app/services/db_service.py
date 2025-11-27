@@ -41,7 +41,7 @@ class PlanDBService:
     
     @staticmethod
     def get_all_templates_by_plan_id(plan_id):
-        return Template.query.filter_by(plan_id=plan_id).all()
+        return Template.query.filter_by(plan_id=plan_id).first()
 
     @staticmethod
     def get_plan_by_id(plan_id, user_id):
