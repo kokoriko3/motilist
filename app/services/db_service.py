@@ -2,6 +2,7 @@ from app.extensions import db, bcrypt
 from app.models.user import User
 from app.models.plan import Plan, Template, TransportSnapshot, Schedule, HotelSnapshot
 from flask_login import current_user
+from app.models.checklist import Checklist, ChecklistItem, Item, Category
 
 
 class UserDBService:
@@ -135,3 +136,51 @@ class PlanDBService:
             db.session.rollback()
             print(f"Error creating schedule: {e}")
             return False
+        
+    @staticmethod
+    def get_plan_detail(plan_id):
+        # --- 1. プラン本体 ---
+        plan = Plan.query.get(plan_id)
+        if not plan:
+            return None
+
+        # --- 2. 交通手段 ---
+        transports = TransportSnapshot.query.filter_by(plan_id=plan_id).all()
+        selected_transport = next((t for t in transports if t.is_selected), None)
+
+        if selected_transport:
+            transport_text = selected_transport.transport_method
+        elif transports:
+            transport_text = transports[0].transport_method
+        else:
+            transport_text = "未設定"
+
+        # --- 3. 宿泊情報 ---
+        hotels = HotelSnapshot.query.filter_by(plan_id=plan_id).all()
+        selected_hotel = next((h for h in hotels if h.is_selected), None)
+
+        accommodation = selected_hotel.name if selected_hotel else "未設定"
+        hotel_price = (
+            f"{selected_hotel.price}円〜"
+            if selected_hotel and selected_hotel.price
+            else ""
+        )
+
+        # --- 4. スケジュール ---
+        schedule = Schedule.query.filter_by(plan_id=plan_id).first()
+        stay_locations = []
+
+        if schedule and schedule.daily_plan_json:
+            for day in schedule.daily_plan_json:
+                area = day.get("area", "")
+                place = day.get("place", "")
+                stay_locations.append(f"{area}（{place}）")
+
+        # --- 5. 返却 ---
+        return {
+            "plan": plan,
+            "transport": transport_text,
+            "accommodation": accommodation,
+            "stay_locations": stay_locations,
+            "hotel_price": hotel_price,
+        }
