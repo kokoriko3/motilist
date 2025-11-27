@@ -78,6 +78,7 @@ def plan_list():
 @plan_bp.route("/public", methods=["GET"])
 def public_plan_list():
     q = request.args.get("q", "")
+
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
         print("Flask-Login ログインあり")
@@ -87,19 +88,58 @@ def public_plan_list():
         user_id = session.get("user_id")
         show_login_link = True  # ここは UI の好みに応じて
 
+    # 公開一覧は「ログインしてなくても見せる」仕様にしてもいいけど、
+    # 今の方針に合わせておく
     if not user_id:
         print("ユーザIDなし（完全未ログイン＆ゲストも未作成）")
-        plans = []
-        return render_template("plan/list.html", plans=plans, show_login_link=True)
+        return render_template(
+            "plan/public_list.html",
+            plans=[],
+            query=q,
+            result_count=0,
+            active_nav="public",
+            show_login_link=True,
+        )
 
     print("ユーザIDあり:", user_id)
-    plans = PlanDBService.get_public_templates()
+    templates = PlanDBService.get_public_templates()
+
+    # --------------------------
+    # ★ Template ごとに表示用フィールドを作る
+    # --------------------------
+    for tpl in templates:
+        # ===== 交通手段まとめ =====
+        traffic_methods = []
+        outline = tpl.itinerary_outline_json or {}
+        days = outline.get("days", [])
+        for d in days:
+            tm = d.get("traffic_method")
+            if tm and tm not in traffic_methods:
+                traffic_methods.append(tm)
+        tpl.transport_summary = " / ".join(traffic_methods) if traffic_methods else ""
+
+        # ===== ホテル名（Plan 経由で取得） =====
+        plan = Plan.query.get(tpl.plan_id)  # 公開なので user_id で絞らない
+        if plan and plan.hotel:
+            hotel_json = plan.hotel or {}
+            selected_id = hotel_json.get("selected_id")
+            candidates = hotel_json.get("candidates", []) or []
+
+            selected_hotel = None
+            if selected_id:
+                selected_hotel = next(
+                    (c for c in candidates if c.get("id") == selected_id),
+                    None
+                )
+            tpl.hotel_name = selected_hotel["name"] if selected_hotel else "選択中"
+        else:
+            tpl.hotel_name = "未設定"
 
     return render_template(
         "plan/public_list.html",
-        plans=plans,
+        plans=templates,
         query=q,
-        result_count=len(plans),
+        result_count=len(templates),
         active_nav="public",
         show_login_link=show_login_link,
     )
