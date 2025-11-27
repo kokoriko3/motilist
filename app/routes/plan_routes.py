@@ -27,7 +27,7 @@ def plan_list():
         show_login_link = False
     else:
         user_id = session.get("user_id")
-        show_login_link = True  # ここは UI の好みに応じて
+        show_login_link = True
 
     if not user_id:
         print("ユーザIDなし（完全未ログイン＆ゲストも未作成）")
@@ -35,9 +35,28 @@ def plan_list():
         return render_template("plan/list.html", plans=plans, show_login_link=True)
 
     print("ユーザIDあり:", user_id)
-    plans = PlanDBService.get_all_templates_by_user_id(user_id=user_id)
+    templates = PlanDBService.get_all_templates_by_user_id(user_id=user_id)
 
-    return render_template("plan/list.html", plans=plans, show_login_link=show_login_link)
+    # ★ここで Template ごとに交通手段の一覧を作る
+    for tpl in templates:
+        traffic_methods: list[str] = []
+
+        outline = tpl.itinerary_outline_json or {}
+        days = outline.get("days", [])
+
+        for d in days:
+            tm = d.get("traffic_method")
+            if tm and tm not in traffic_methods:
+                traffic_methods.append(tm)
+
+        # テンプレートに「表示用のプロパティ」を生やす
+        tpl.transport_summary = " / ".join(traffic_methods) if traffic_methods else ""
+
+    return render_template(
+        "plan/list.html",
+        plans=templates,
+        show_login_link=show_login_link,
+    )
 
 # 公開プラン一覧
 @plan_bp.route("/public", methods=["GET"])
