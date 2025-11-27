@@ -282,17 +282,17 @@ def plan_detail(plan_id):
     else:
         user_id = session.get("user_id")
 
-    # --- Template 取得（plan_id に紐づくものを 1 件） ---
-    template = PlanDBService.get_all_templates_by_id(plan_id=plan_id)
+    
 
     # --- プラン取得 ---
-    plan = PlanDBService.get_plan_by_id(template.plan_id, user_id)
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     if not plan:
         print("指定されたプランが存在しない")
         flash("指定されたプランは存在しません。", "error")
         return redirect(url_for("plan.plan_list"))
 
-    
+    # --- Template 取得（plan_id に紐づくものを 1 件） ---
+    template = PlanDBService.get_all_templates_by_plan_id(plan_id=plan_id)
 
     # 日数（Template 優先、なければ Plan.days）
     if template:
