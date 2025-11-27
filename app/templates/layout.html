@@ -33,13 +33,11 @@
           <div class="dropdown-panel">
             <div class="dropdown-header">
               <p class="dropdown-title">{{ config.get('BRAND_NAME', 'Mochi List') }}</p>
-              <p class="dropdown-subtitle">
-                {% if current_user.is_authenticated %}
-                  {{ current_user.display_name or current_user.email }}
-                {% else %}
-                  ゲスト
-                {% endif %}
-              </p>
+              {% if current_user.is_authenticated %}
+                <p class="dropdown-subtitle">{{ current_user.display_name or current_user.email }}</p>
+              {% else %}
+                <p class="dropdown-subtitle">ゲスト</p>
+              {% endif %}
               <a class="dropdown-link" href="#">アカウント情報</a>
             </div>
             <a class="dropdown-row profile-link" href="">
@@ -55,7 +53,6 @@
               class="dropdown-row logout-row"
               type="button"
               data-logout-trigger 
-              data-logout-url="{{ url_for('auth.logout') }}"
             >
               ログアウト
             </button>
@@ -78,7 +75,13 @@
         <p id="logout-title">ログアウトしますか</p>
         <div class="logout-modal__actions">
           <button type="button" class="secondary-button" data-logout-cancel>戻る</button>
-          <button type="button" class="cta-button" data-logout-confirm data-logout-url="{{ url_for('auth.logout') }}">ログアウト</button>
+          <a
+            href="{{ url_for('auth.logout') }}"
+            class="cta-button"
+            data-logout-confirm
+          >
+            ログアウト
+          </a>
         </div>
       </div>
     </section>
