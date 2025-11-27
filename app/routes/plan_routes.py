@@ -43,31 +43,48 @@ def public_plan_list():
 # ----------------------------------------
 #  交通手段選択画面
 # ----------------------------------------
+# ----------------------------------------
+#  ????????
+# ----------------------------------------
+# ----------------------------------------
+#  ????????
+# ----------------------------------------
 @plan_bp.route("/transit", methods=["GET", "POST"])
 def plan_transit():
     plan_id = session.get("plan_id")
     
     if not plan_id:
-        flash("プランが見つかりません。最初から作成してください。", "warning")
+        flash("プランが選択されていません。先にプランを作成してください。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
-    if current_user.is_authenticated:
-        user_id = current_user.id
-    else:
-        user_id = session.get("user_id")
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
 
     options = PlanDBService.get_transit_by_id(plan_id, user_id=user_id)
+    selected_transit = PlanDBService.get_selected_transit(plan_id, user_id=user_id)
+    selected_type = selected_transit.type if selected_transit else None
 
     if request.method == "POST":
-        selected_type = request.form.get("transit_type") 
-        flash("交通手段を決定しました！次は宿泊先を選びましょう。", "success")
-        return redirect(url_for("plan.stay_select"))
+        selected_type = request.form.get("transit_type")
+        if not selected_type:
+            flash("交通手段を選択してください。", "warning")
+        else:
+            saved = PlanDBService.select_transit(plan_id, selected_type, user_id=user_id)
+            if not saved:
+                flash("交通手段の保存に失敗しました。", "danger")
+            else:
+                flash("交通手段を確定しました。", "success")
+                options = PlanDBService.get_transit_by_id(plan_id, user_id=user_id)
+                selected_transit = PlanDBService.get_selected_transit(plan_id, user_id=user_id)
+                selected_type = selected_transit.type if selected_transit else selected_type
+
+    button_label = "変更" if selected_type else "確定"
 
     return render_template(
         "plan/transit.html",
         options=options,
+        selected_type=selected_type,
         confirm_target=url_for("plan.stay_select"),
-        button_label="宿泊候補を見に行く",
+        button_label=button_label
     )
 
 @plan_bp.route("/stay", methods=["GET"])
