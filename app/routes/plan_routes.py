@@ -20,14 +20,24 @@ plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 # ----------------------------------------
 @plan_bp.route("/", methods=["GET"])
 def plan_list():
-    if not current_user.is_authenticated:
-        print("ログインなし")
+    # アプリとしての「有効なユーザID」を決める
+    if current_user.is_authenticated:
+        print("Flask-Login ログインあり")
+        user_id = current_user.id
+        show_login_link = False
+    else:
+        user_id = session.get("user_id")
+        show_login_link = True  # ここは UI の好みに応じて
+
+    if not user_id:
+        print("ユーザIDなし（完全未ログイン＆ゲストも未作成）")
         plans = []
         return render_template("plan/list.html", plans=plans, show_login_link=True)
-    print("ログインあり")
-    plans = PlanDBService.get_all_templates_by_id(user_id=current_user.id)
-    print(plans)
-    return render_template("plan/list.html", plans=plans, show_login_link=False)
+
+    print("ユーザIDあり:", user_id)
+    plans = PlanDBService.get_all_templates_by_id(user_id=user_id)
+
+    return render_template("plan/list.html", plans=plans, show_login_link=show_login_link)
 
 # 公開プラン一覧
 @plan_bp.route("/public", methods=["GET"])
