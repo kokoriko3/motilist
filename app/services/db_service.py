@@ -37,7 +37,7 @@ class PlanDBService:
     
     @staticmethod
     def get_public_templates():
-        return Template.query.filter_by(publish_status="public").all()
+        return Template.query.filter_by(visibility="public").all()
     
     @staticmethod
     def get_all_templates_by_plan_id(plan_id):
