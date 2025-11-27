@@ -48,6 +48,7 @@ class Template(db.Model):
 
     # アプリ仕様上のリンク（プランからテンプレート化する場合用）
     plan_id = db.Column(db.Integer, db.ForeignKey('plans.id'), nullable=False)
+    plan = db.relationship("Plan", back_populates="templates")
 
     # 定義書 No.3: publicTitle
     public_title = db.Column(db.String(255), nullable=False)
