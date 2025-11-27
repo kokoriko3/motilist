@@ -67,7 +67,6 @@
               <tr>
                 <th>必需品</th>
                 <th>補足品</th>
-                <th>説明</th>
               </tr>
             </thead>
             <tbody>
@@ -90,10 +89,6 @@
                     {% if x %}
                       {{ x.name }}（{{ x.quantity }}{{ x.unit }}）
                     {% endif %}
-                  </td>
-
-                  <td>
-                    {# 説明：今は JSON に description が無いので空欄のまま #}
                   </td>
                 </tr>
               {% endfor %}
