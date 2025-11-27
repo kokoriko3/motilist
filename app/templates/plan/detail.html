@@ -71,32 +71,33 @@
               </tr>
             </thead>
             <tbody>
-              {# JSON から配列を取り出す #}
-              {% set essentials = packing_details.essential or [] %}
-              {% set extras = packing_details.extra or [] %}
-              {# 行数は essential / extra の長い方に合わせる #}
-              {% set row_count = [essentials|length, extras|length]|max %}
+              {% set essentials = packing_summary.essential or [] %}
+              {% set extras = packing_summary.extra or [] %}
+              {% set row_count = [essentials|length, extras|length] | max %}
 
               {% for i in range(row_count) %}
                 {% set e = essentials[i] if i < essentials|length else None %}
                 {% set x = extras[i] if i < extras|length else None %}
+
                 <tr>
                   <td>
                     {% if e %}
                       {{ e.name }}（{{ e.quantity }}{{ e.unit }}）
                     {% endif %}
                   </td>
+
                   <td>
                     {% if x %}
                       {{ x.name }}（{{ x.quantity }}{{ x.unit }}）
                     {% endif %}
                   </td>
+
                   <td>
-                    {# 説明は今の checklist_summary_json には入っていないので、
-                      将来的に ChecklistItem から埋めたいならここで差し込む #}
+                    {# 説明：今は JSON に description が無いので空欄のまま #}
                   </td>
                 </tr>
               {% endfor %}
+
             </tbody>
           </table>
         </section>

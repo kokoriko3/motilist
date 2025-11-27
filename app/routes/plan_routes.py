@@ -357,19 +357,6 @@ def plan_detail(template_id):
     # 自分のプランかどうか
     is_owned = (plan.user_id == user_id)
 
-    # packing_details（テーブル用行データ）を Template から組み立てる
-    essential = packing_summary.get("essential", [])
-    extra = packing_summary.get("extra", [])
-
-    max_len = max(len(essential), len(extra))
-    packing_details = []
-    for i in range(max_len):
-        e = essential[i] if i < len(essential) else None
-        x = extra[i] if i < len(extra) else None
-        packing_details.append({
-            "essential": f"{e['name']}（{e['quantity']}{e['unit']}）" if e else "",
-            "extra": f"{x['name']}（{x['quantity']}{x['unit']}）" if x else "",
-        })
 
     return render_template(
         "plan/detail.html",
@@ -379,7 +366,7 @@ def plan_detail(template_id):
         accommodation_label=accommodation_label,
         meta=meta,
         stay_locations=stay_locations,
-        packing_details=packing_details,
+        packing_summary=packing_summary,
         is_owned=is_owned,
         template_note=template_note,
         template_id=template_id,  # 必要なら渡しておく
