@@ -285,6 +285,7 @@ def plan_detail(plan_id):
     # --- プラン取得 ---
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     if not plan:
+        print("指定されたプランが存在しない")
         flash("指定されたプランは存在しません。", "error")
         return redirect(url_for("plan.plan_list"))
 
