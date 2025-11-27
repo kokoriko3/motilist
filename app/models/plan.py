@@ -28,6 +28,8 @@ class Plan(db.Model):
 
     # リレーション
     user = db.relationship("User", back_populates="plans")
+    # ★これを追加
+    templates = db.relationship("Template", back_populates="plan", cascade="all, delete-orphan")
     
     transport_candidates = db.relationship('TransportSnapshot', backref='plan', lazy=True, cascade="all, delete-orphan")
     schedules = db.relationship('Schedule', backref='plan', lazy=True, cascade="all, delete-orphan")
