@@ -10,8 +10,6 @@
       <span class="plan-date">1月1日~1月3日</span>
       <button type="button" class="pill-button">共有</button>
       <button type="button" class="pill-button">保存</button>
-      <div class="error-inline" data-schedule-error hidden>保存に失敗しました</div>
-      <a class="cta-primary small" href="#" data-schedule-save name="submit">確定</a>
     </div>
   </div>
 
@@ -23,10 +21,15 @@
   </div>
 
   <div class="schedule-body">
+    <div class="panel-header">
+       <div class="error-inline" data-schedule-error hidden></div>
+       <button class="cta-primary small" type="button" data-schedule-save>保存して完了</button>
+    </div>
+
     <div class="schedule-grid">
       <div class="day-nav" data-day-nav>
         {% for day in days %}
-        <button type="button" class="day-pill {% if loop.index == 2 %}active{% endif %}" data-day-target="{{ day.id }}">
+        <button type="button" class="day-pill {% if loop.index == 1 %}active{% endif %}" data-day-target="{{ day.day }}">
           {{ day.label }}
         </button>
         {% endfor %}
@@ -35,33 +38,32 @@
       <div class="schedule-table" data-day-container>
         <div class="schedule-header">
           <div class="col-time">時間</div>
-          <div class="col-place">場所</div>
+          <div class="col-place">場所・内容</div>
           <div class="col-note">補足</div>
-        </div>
+          <div style="width: 40px;"></div> </div>
+        
         {% for day in days %}
-        <div class="schedule-rows {% if loop.index != 2 %}hidden{% endif %}" data-day="{{ day.id }}">
-          {% if day.entries|length == 0 %}
-          <div class="schedule-empty">スケジュールが未登録です</div>
-          {% endif %}
-          {% for entry in day.entries %}
+        <div class="schedule-rows {% if loop.index != 1 %}hidden{% endif %}" data-day="{{ day.day }}">
+          
+          {% for activity in day.activities %}
           <div class="schedule-row editable" data-entry>
             <div class="col-time">
-              <input name="time" type="text" value="{{ entry.time }}" />
+              <input name="time" type="time" value="{{ activity.time }}" placeholder="10:00" />
             </div>
             <div class="col-place">
-              <input name="place" type="text" value="{{ entry.place }}" />
+              <input name="place" type="text" value="{{ activity.title }}" placeholder="場所を入力" />
             </div>
             <div class="col-note">
-              {% if entry.note %}
-              <input name="note" type="text" value="{{ entry.note }}" />
-              {% else %}
-              <input name="note" type="text" value="" placeholder="補足" />
-              {% endif %}
+              <input name="note" type="text" value="{{ activity.note }}" placeholder="移動手段など" />
             </div>
             <button type="button" class="icon-button" data-entry-delete aria-label="削除">🗑</button>
           </div>
           {% endfor %}
-          <button type="button" class="adder" data-entry-add>＋</button>
+
+          <div class="schedule-add-row">
+            <button type="button" class="text-button" data-entry-add>+ 予定を追加</button>
+          </div>
+
         </div>
         {% endfor %}
       </div>

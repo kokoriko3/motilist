@@ -4,18 +4,19 @@ This script spins up the Flask application context and inserts demo data
 via SQLAlchemy models so Postgres gains a minimal working dataset.
 """
 
+import json
 from datetime import date, datetime
 from uuid import uuid4
 
 from app import create_app
-from app.extensions import db,bcrypt
+from app.extensions import db, bcrypt
 from app.models.user import User
 from app.models.plan import (
     Plan,
     TransportSnapshot,
-    StaySnapshot,
+    HotelSnapshot, # Changed from StaySnapshot
     Schedule,
-    ScheduleDetail,
+    # ScheduleDetail, # Removed: Not in plan.py
     Template,
     Share,
 )
@@ -27,28 +28,36 @@ def run_seed():
     app = create_app()
 
     with app.app_context():
-        # Optional reset flow; keep the delete order child -> parent.
+        # Clean up existing data (Child -> Parent order to avoid FK errors)
+        Share.query.delete()
+        Template.query.delete()
+        
+        # Checklist related
         ChecklistItem.query.delete()
         Checklist.query.delete()
         Item.query.delete()
         Category.query.delete()
-        ScheduleDetail.query.delete()
+        
+        # Plan related
+        # Note: ScheduleDetail is likely JSON now, but if table exists in DB from old migration, might need raw SQL or ignore
         Schedule.query.delete()
         TransportSnapshot.query.delete()
-        StaySnapshot.query.delete()
-        Share.query.delete()
-        Template.query.delete()
+        HotelSnapshot.query.delete() # Changed from StaySnapshot
         Plan.query.delete()
+        
+        # User
         User.query.delete()
+        
         db.session.commit()
+        print("Existing data cleared.")
 
         # Users ----------------------------------------------------------------
         user = User(
             anonymous_id="anon-123",
             display_name="デモユーザー",
             email="demo@example.com",
-            # passwordHash="dummy-hash",
         )
+        # Assuming bcrypt is initialized in extensions
         user.passwordHash = bcrypt.generate_password_hash("password123").decode("utf-8")
         db.session.add(user)
         db.session.flush()
@@ -89,14 +98,17 @@ def run_seed():
         db.session.flush()
 
         # Plan ------------------------------------------------------------------
+        # plan.py: Plan model uses 'id', not 'plan_id'
         plan = Plan(
             user_id=user.user_id,
-            anonymous_id="anon-plan-1",
+            # anonymous_id="anon-plan-1", # Removed: Not in Plan model
+            title="大阪1泊2日プラン",
             departure="東京",
             destination="大阪",
             start_date=date(2025, 3, 1),
             days=2,
-            purpose={"type": "観光", "detail": "1泊2日の関西旅行"},
+            # purpose is Text, not JSON in model. Using string representation.
+            purpose="観光 (1泊2日の関西旅行)", 
             options={"budget": "normal"},
             companion_count=1,
         )
@@ -104,8 +116,9 @@ def run_seed():
         db.session.flush()
 
         # Checklist -------------------------------------------------------------
+        # checklist.py: Checklist model links to plans.id via plan_id
         checklist = Checklist(
-            plan_id=plan.plan_id,
+            plan_id=plan.id,
             title="大阪1泊2日 持ち物リスト",
             status="draft",
             memo="とりあえず最低限",
@@ -145,49 +158,45 @@ def run_seed():
         ]
         db.session.add_all(checklist_items)
 
-        # Schedule & details ----------------------------------------------------
+        # Schedule --------------------------------------------------------------
+        # plan.py: Schedule has 'daily_plan_json', no separate ScheduleDetail model
+        
+        daily_plan_data = {
+            "days": plan.days,
+            "details": [
+                {
+                    "day": 1,
+                    "slot_type": "activity",
+                    "title": "移動 & チェックイン",
+                    "place_name": "新大阪〜梅田周辺",
+                    "start_time": "09:00",
+                    "end_time": "12:00",
+                    "move_mode": "train",
+                    "note": "キャリーケースはホテルに預ける"
+                },
+                {
+                    "day": 1,
+                    "slot_type": "activity",
+                    "title": "道頓堀観光",
+                    "place_name": "道頓堀",
+                    "start_time": "13:00",
+                    "end_time": "18:00",
+                    "move_mode": "walk"
+                }
+            ]
+        }
+
         schedule = Schedule(
-            plan_id=plan.plan_id,
-            title="大阪1泊2日スケジュール",
-            daily_plan_json={"days": plan.days},
-            generated_by="seed",
-            version=1,
-            is_editable=True,
-            status="draft",
+            plan_id=plan.id,
+            daily_plan_json=daily_plan_data,
         )
         db.session.add(schedule)
         db.session.flush()
 
-        schedule_details = [
-            ScheduleDetail(
-                schedule_id=schedule.schedule_id,
-                date=1,
-                slot_type="activity",
-                title="移動 & チェックイン",
-                place_name="新大阪〜梅田周辺",
-                start_time=datetime.strptime("09:00", "%H:%M").time(),
-                end_time=datetime.strptime("12:00", "%H:%M").time(),
-                relative_time=180,
-                move_mode="train",
-                packing_note="キャリーケースはホテルに預ける",
-                sort_order=1,
-            ),
-            ScheduleDetail(
-                schedule_id=schedule.schedule_id,
-                date=1,
-                slot_type="activity",
-                title="道頓堀観光",
-                place_name="道頓堀",
-                start_time=datetime.strptime("13:00", "%H:%M").time(),
-                end_time=datetime.strptime("18:00", "%H:%M").time(),
-                relative_time=300,
-                move_mode="walk",
-                sort_order=2,
-            ),
-        ]
-        db.session.add_all(schedule_details)
-
-        schedule_summary_json={
+        # Template & Share ------------------------------------------------------
+        # Update fields to match plan.py Template model
+        
+        itinerary_outline = {
             "days": [
                 {
                     "day": 1,
@@ -208,19 +217,18 @@ def run_seed():
             ]
         }
 
-        # Template & share ------------------------------------------------------
         template = Template(
             user_id=user.user_id,
-            plan_id=plan.plan_id,
+            plan_id=plan.id,
             public_title="大阪1泊2日テンプレ",
-            note="seed.pyで投入したサンプルテンプレ",
-            schedule_summary_json=schedule_summary_json,
+            short_note="seed.pyで投入したサンプルテンプレ", # Renamed from note
+            itinerary_outline_json=itinerary_outline, # Renamed from schedule_summary_json
             checklist_summary_json={"items": ["Tシャツ", "ズボン", "スマホ"]},
             days=plan.days,
-            total_items=3,
-            required_ratio=1.0,
-            search_tags=["大阪", "1泊2日", "観光"],
-            publish_status="public",
+            items_count=3, # Renamed from total_items
+            essential_ratio=100, # Renamed from required_ratio (Assuming Integer percentage)
+            tags="大阪,1泊2日,観光", # String based on model
+            visibility="public", # Renamed from publish_status
             display_version=1,
         )
         db.session.add(template)
@@ -229,49 +237,42 @@ def run_seed():
         share = Share(
             template_id=template.template_id,
             url_token=str(uuid4()),
-            permission="read",
-            template_version=template.display_version,
-            expires_at=None,
-            is_expired=False,
-            access_count=0,
+            # permission, template_version, expires_at removed as they are not in Share model
             issuer_user_id=user.user_id,
         )
         db.session.add(share)
 
         # Snapshots -------------------------------------------------------------
+        # TransportSnapshot
         transport_snapshot = TransportSnapshot(
-            plan_id=plan.plan_id,
-            api_source="demo",
-            compare_key="tokyo-osaka-demo-1",
-            transport_mode="train",
-            title_and_section="東京→新大阪",
-            duration_minutes=160,
-            transfer_count=0,
-            price=14000,
-            currency="JPY",
-            departure_time=datetime.strptime("08:00", "%H:%M").time(),
-            arrival_time=datetime.strptime("10:40", "%H:%M").time(),
-            fetched_at=datetime.utcnow(),
-            note="seedデータ",
+            plan_id=plan.id,
+            type="train", # Renamed/Mapped from api_source logic
+            transport_method="新幹線（東京→新大阪）",
+            cost=14000, # Renamed from price
+            duration=160, # minutes
+            transit_count=0,
+            # Model defines these as String(50), not Time objects
+            departure_time="08:00", 
+            arrival_time="10:40",
+            is_selected=True,
         )
-        stay_snapshot = StaySnapshot(
-            plan_id=plan.plan_id,
-            api_source="demo",
-            fetched_at=datetime.utcnow(),
-            hotel_id="demo-hotel-1",
-            title="大阪デモホテル",
-            area="梅田",
+        
+        # HotelSnapshot (Renamed from StaySnapshot)
+        hotel_snapshot = HotelSnapshot(
+            plan_id=plan.id,
+            hotel_no="demo-hotel-1",
+            name="大阪デモホテル",
             address="大阪府大阪市北区1-1-1",
-            price_range_text="¥10,000〜¥15,000",
+            price=12000, # Integer
             image_url="https://example.com/hotel.jpg",
-            booking_url="https://example.com/booking",
-            features=["駅チカ", "朝食付き"],
-            review_score=85,
+            url="https://example.com/booking",
+            review="4.5", # String(10)
+            is_selected=True,
         )
-        db.session.add_all([transport_snapshot, stay_snapshot])
+        db.session.add_all([transport_snapshot, hotel_snapshot])
 
         db.session.commit()
-        print("Seed完了")
+        print("Seed data insertion completed successfully.")
 
 
 if __name__ == "__main__":
