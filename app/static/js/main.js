@@ -26,24 +26,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ▼ ログアウトモーダル
-    const logoutTrigger  = document.querySelector("[data-logout-trigger]");
-    const logoutModal    = document.querySelector("[data-logout-modal]");
-    const logoutConfirm  = document.querySelector("[data-logout-confirm]");
-    const logoutCancel   = document.querySelector("[data-logout-cancel]");
+    const logoutTrigger = document.querySelector("[data-logout-trigger]");
+    const logoutModal   = document.querySelector("[data-logout-modal]");
+    const logoutConfirm = document.querySelector("[data-logout-confirm]");
+    const logoutCancel  = document.querySelector("[data-logout-cancel]");
     const logoutBackdrop = document.querySelector("[data-logout-dismiss]");
 
-    if (logoutTrigger && logoutModal) {
+    if (logoutTrigger && logoutModal && logoutConfirm) {
+        const logoutUrl = logoutTrigger.dataset.logoutUrl;
+
         const openModal = () => {
         console.log("open logout modal");
-        logoutModal.hidden = false;
+        logoutModal.hidden = false; 
+        logoutModal.classList.add("is-open");
         };
 
         const closeModal = () => {
-        console.log("close logout modal");
-        logoutModal.hidden = true;
+        logoutModal.classList.remove("is-open");
+        logoutModal.hidden = true;  
         };
 
-        logoutTrigger.addEventListener("click", openModal);
+        logoutTrigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openModal();
+        });
 
         if (logoutCancel) {
         logoutCancel.addEventListener("click", closeModal);
@@ -52,12 +58,11 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutBackdrop.addEventListener("click", closeModal);
         }
 
-        // confirm はリンクなので、ここでは閉じるだけでも OK
-        if (logoutConfirm) {
         logoutConfirm.addEventListener("click", () => {
-            closeModal();
-            // そのまま a の href で /auth/logout に飛ぶ
-        });
+        const url = logoutConfirm.dataset.logoutUrl;
+        if (url) {
+            window.location.href = url;
         }
+        });
     }
 });

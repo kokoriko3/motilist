@@ -75,13 +75,14 @@
         <p id="logout-title">ログアウトしますか</p>
         <div class="logout-modal__actions">
           <button type="button" class="secondary-button" data-logout-cancel>戻る</button>
-          <a
-            href="{{ url_for('auth.logout') }}"
+          <button
+            type="button"
             class="cta-button"
             data-logout-confirm
+            data-logout-url="{{ url_for('auth.logout') }}"
           >
             ログアウト
-          </a>
+          </button>
         </div>
       </div>
     </section>
