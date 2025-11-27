@@ -62,71 +62,6 @@
     <footer class="site-footer">
       <small>© 2025 Mochi List. All rights reserved.</small>
     </footer>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-          // ▼ アカウントアイコンのドロップダウン
-          const dropdown = document.querySelector("[data-dropdown]");
-          if (dropdown) {
-            const toggleBtn = dropdown.querySelector(".icon-user");
-            const panel = dropdown.querySelector(".dropdown-panel");
-
-            if (toggleBtn && panel) {
-              // アイコン押したら開閉
-              toggleBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle("is-open");
-              });
-
-              // パネル内クリックは閉じない
-              panel.addEventListener("click", (e) => {
-                e.stopPropagation();
-              });
-
-              // 画面のどこか他をクリックしたら閉じる
-              document.addEventListener("click", () => {
-                dropdown.classList.remove("is-open");
-              });
-            }
-          }
-
-          // ▼ ログアウトモーダル周り
-          const logoutTrigger = document.querySelector("[data-logout-trigger]");
-          const logoutModal = document.querySelector("[data-logout-modal]");
-          const logoutConfirm = document.querySelector("[data-logout-confirm]");
-          const logoutCancel = document.querySelector("[data-logout-cancel]");
-          const logoutBackdrop = document.querySelector("[data-logout-dismiss]");
-
-          if (logoutTrigger && logoutModal && logoutConfirm) {
-            const logoutUrl = logoutTrigger.dataset.logoutUrl;
-
-            const openModal = () => {
-              logoutModal.hidden = false;
-              // confirm ボタンにも URL を渡す
-              logoutConfirm.dataset.logoutUrl = logoutUrl;
-            };
-
-            const closeModal = () => {
-              logoutModal.hidden = true;
-            };
-
-            logoutTrigger.addEventListener("click", openModal);
-
-            if (logoutCancel) {
-              logoutCancel.addEventListener("click", closeModal);
-            }
-            if (logoutBackdrop) {
-              logoutBackdrop.addEventListener("click", closeModal);
-            }
-
-            logoutConfirm.addEventListener("click", () => {
-              const url = logoutConfirm.dataset.logoutUrl;
-              if (url) {
-                window.location.href = url;
-              }
-            });
-          }
-        });
-      </script>
     <section class="logout-modal" data-logout-modal hidden>
       <div class="logout-modal__backdrop" data-logout-dismiss></div>
       <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
@@ -137,5 +72,6 @@
         </div>
       </div>
     </section>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>
