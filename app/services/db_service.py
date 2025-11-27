@@ -36,7 +36,7 @@ class PlanDBService:
         return Template.query.filter_by(publish_status="public").all()
     
     @staticmethod
-    def get_plan_by_id(plan_id, user_id=None):
+    def get_plan_by_id(plan_id, user_id):
         if user_id is None:
             user_id = current_user.id
         return Plan.query.filter_by(id=plan_id, user_id=user_id).first()
@@ -161,7 +161,7 @@ class PlanDBService:
             return False
     
     @staticmethod
-    def create_plan(user_id, destination, departure, start_date, days, purpose, options, plan_title):
+    def create_plan(user_id, destination, departure, start_date, days, purpose, options, plan_title, hotel = None):
         if user_id is None:
             user_id = current_user.id
         
@@ -173,7 +173,8 @@ class PlanDBService:
             days=days,
             purpose=purpose,
             options=options,
-            title = plan_title
+            title = plan_title or "無題のプラン",
+            hotel = hotel, # 追加
         )
         db.session.add(plan)
         db.session.commit()

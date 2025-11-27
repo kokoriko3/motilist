@@ -49,8 +49,8 @@
     </article>
 
     <div class="stay-actions">
-      <a class="pill-ghost" href="{{ url_for('plan.stay_select') }}">宿泊先を選び直す</a>
-      <button type="button" class="cta-primary" data-stay-save data-next-url="{{ next_url or url_for('plan.schedule_list') }}">この宿泊先で確定</button>
+      <a class="pill-ghost" href="{{ url_for('plan.stay_select', reselect=1) }}">宿泊先を選び直す</a>
+      <button type="button" class="cta-primary" data-stay-save>この宿泊先で確定</button>
     </div>
   </div>
 </section>

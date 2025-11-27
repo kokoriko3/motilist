@@ -97,6 +97,32 @@ def run_seed():
         db.session.add_all([tshirt, pants, smartphone])
         db.session.flush()
 
+        hotel = {
+            "candidates": [
+                {
+                    "id": 1,
+                    "hotel_no": "196705",
+                    "name": "コンフォートホテルＥＲＡ札幌北口",
+                    "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=196705",
+                    "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/196705/196705.jpg",
+                    "price": 7400,
+                    "address": "北海道札幌市北区北七条西5-17-1",
+                    "review": "4.2"
+                },
+                {
+                    "id": 2,
+                    "hotel_no": "762",
+                    "name": "札幌グランドホテル",
+                    "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=762",
+                    "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/762/762.jpg",
+                    "price": 5525,
+                    "address": "北海道札幌市中央区北1条西4丁目",
+                    "review": "4.41"
+                }
+            ],
+            "selected_id": None
+        }
+
         # Plan ------------------------------------------------------------------
         # plan.py: Plan model uses 'id', not 'plan_id'
         plan = Plan(
@@ -111,6 +137,7 @@ def run_seed():
             purpose="観光 (1泊2日の関西旅行)", 
             options={"budget": "normal"},
             companion_count=1,
+            hotel=hotel,
         )
         db.session.add(plan)
         db.session.flush()

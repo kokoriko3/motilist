@@ -8,7 +8,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from app.services.db_service import PlanDBService
 from app.forms.plan_form import PlanCreateForm
 from flask_login import current_user
-from app.services import ai_service, hotel_service
+from app.services import ai_service, hotel_service, db_service
 from app.models.user import User
 from app.extensions import db
 from app.models.plan import Plan, TransportSnapshot, HotelSnapshot, Schedule
@@ -87,9 +87,143 @@ def plan_transit():
         button_label=button_label
     )
 
-@plan_bp.route("/stay", methods=["GET"])
+@plan_bp.route("/stay/", methods=["GET", "POST"])
 def stay_select():
-    return render_template("plan/hotel_select.html", stay_options=[])
+    # 共通：どのプランか決める
+    plan_id = session.get("plan_id")
+    if plan_id is None:
+        flash("プランが指定されていません。", "error")
+        return redirect(url_for("plan.plan_list"))
+    
+    # ユーザ判定（transit と同じロジックに揃える）
+    if current_user.is_authenticated:
+        user_id = current_user.id
+    else:
+        user_id = session.get("user_id")
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+
+    print("[DEBUG] plan =", plan)
+    print("[DEBUG] plan.hotel =", plan.hotel)
+    if not plan:
+        flash("プランが見つかりません。", "warning")
+        return redirect(url_for("plan.plan_create_form"))
+    
+    # ここから hotel JSON を安全に扱う
+    hotel_json = plan.hotel or {}              # None 対策
+    selected_id = hotel_json.get("selected_id")  # キー未定義対策
+
+    # 宿泊先を確定している場合のルーティング
+    # ★ reselect=1 が付いてない普通の GET のときだけ、自動で confirm に飛ばす
+    reselect = request.args.get("reselect")
+    if request.method == "GET" and selected_id is not None and reselect != "1":
+        return redirect(url_for("plan.stay_confirm"))
+    
+    
+
+    print("[DEBUG] method =", request.method)
+    # ---------- POST: 選択確定 & リダイレクト ----------
+    if request.method == "POST":
+        # form から選択されたホテルIDを受け取る
+        selected_id = request.form.get("hotel_id", type=int)
+        if selected_id is None:
+            flash("宿泊先が選択されていません。", "error")
+            return redirect(url_for("plan.stay_select"))
+
+        hotel_json = plan.hotel or {}
+        candidates = hotel_json.get("candidates", [])
+
+        # JSON の中から選ばれた候補を探す
+        selected = next((c for c in candidates if c.get("id") == selected_id), None)
+
+        print("[DEBUG] request.form =", request.form)
+        print("[DEBUG] selected_id =", selected_id)
+        print("[DEBUG] candidates =", candidates)
+        print("[DEBUG] selected =", selected)
+        if selected is None:
+            flash("不正な宿泊先が指定されました。", "error")
+            print("不正な宿泊先")
+            return redirect(url_for("plan.stay_select"))
+
+        # Plan.hotel 側の JSON を更新（どれを選んだか覚えておく）
+        hotel_json["selected_id"] = selected_id
+        print(hotel_json)  # 追加
+        plan.hotel = hotel_json
+
+        db.session.commit()
+        print(plan.hotel) # 追加
+        flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
+        print("宿泊先の決定")
+        # ★ ここで「選択完了後の処理」へ飛ぶ
+        # 例: スケジュール編集画面
+        return redirect(url_for("plan.stay_confirm"))
+
+    # ---------- GET: 一覧表示 ----------
+    hotel_json = plan.hotel or {}
+    candidates = hotel_json.get("candidates", [])
+    selected_id = hotel_json.get("selected_id")
+
+    stay_options = []
+    for c in candidates:
+        raw_review = c.get("review")
+        try:
+            review_value = float(raw_review) if raw_review not in (None, "", "None") else None
+        except ValueError:
+            review_value = None
+
+        stay_options.append(
+            {
+                "id": c.get("id"),
+                "name": c.get("name"),
+                "price": c.get("price"),
+                "address": c.get("address"),
+                "url": c.get("url"),
+                "image_url": c.get("image_url"),
+                "review": review_value,
+                "is_selected": (c.get("id") == selected_id),
+            }
+        )
+    return render_template("plan/hotel_select.html", plan=plan, stay_options=stay_options)
+
+@plan_bp.route("/stay/confirm", methods=["GET"])
+def stay_confirm():
+    plan_id = session.get("plan_id")
+    if plan_id is None:
+        flash("プランが指定されていません。", "error")
+        return redirect(url_for("plan.plan_list"))
+
+    if current_user.is_authenticated:
+        user_id = current_user.id
+    else:
+        user_id = session.get("user_id")
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+
+
+    hotel_json = plan.hotel or {}
+    candidates = hotel_json.get("candidates", [])
+    selected_id = hotel_json.get("selected_id")
+
+    print("[DEBUG] request.form =", request.form)
+    print("[DEBUG] hotel_json =", hotel_json)
+    print("[DEBUG] candidates =", candidates)
+    print("[DEBUG] selected_id =", selected_id)
+    if not selected_id:
+        flash("宿泊先が選択されていません。", "error")
+        return redirect(url_for("plan.stay_select"))
+    
+    selected = next(
+        (c for c in candidates if c.get("id") == selected_id),
+        None
+    )
+    if not selected:
+        flash("宿泊先情報の取得に失敗しました。", "error")
+        return redirect(url_for("plan.stay_select"))
+
+    return render_template(
+        "plan/hotel_confirm.html",
+        plan=plan,
+        hotel=selected
+    )
 
 @plan_bp.route("/schedule", methods=["GET"])
 def schedule_list():
@@ -362,6 +496,7 @@ def create_dummy_plan():
             purpose=dummy_plan_data["purpose"],
             options=dummy_plan_data["options"],
             plan_title=f"[Dummy] {dummy_plan_data['title']}", # ダミーとわかるようにタイトル変更
+            hotel = dummy_plan_data.get("hotel"),
         )
         session["plan_id"] = plan_id
 

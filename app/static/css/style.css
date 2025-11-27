@@ -2161,6 +2161,11 @@ body.split-body .page-content {
   background: #eef0ff;
 }
 
+.stay-card.disabled {
+  opacity: 0.3;
+  pointer-events: none; /* カード自体もクリック不可にする */
+}
+
 .stay-name {
   font-size: 18px;
   margin: 0 0 6px;
