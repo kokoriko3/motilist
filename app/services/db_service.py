@@ -32,7 +32,12 @@ class PlanDBService:
         )
     
     @staticmethod
-    def get_public_plans():
+    def get_all_templates_by_id(user_id):
+        return Template.query.filter_by(user_id=user_id).all()
+    
+
+    @staticmethod
+    def get_public_templates():
         return Template.query.filter_by(publish_status="public").all()
     
     @staticmethod

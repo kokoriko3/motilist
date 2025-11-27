@@ -24,14 +24,14 @@ def plan_list():
         plans = []
         return render_template("plan/list.html", plans=plans, show_login_link=True)
 
-    plans = PlanDBService.get_all_plans(user_id=current_user.id)
+    plans = PlanDBService.get_all_templates_by_id(user_id=current_user.id)
     return render_template("plan/list.html", plans=plans, show_login_link=False)
 
 # 公開プラン一覧
 @plan_bp.route("/public", methods=["GET"])
 def public_plan_list():
     q = request.args.get("q", "")
-    plans = PlanDBService.get_public_plans()
+    plans = PlanDBService.get_public_templates()
     return render_template(
         "plan/public_list.html",
         plans=plans,
