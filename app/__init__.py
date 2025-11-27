@@ -1,7 +1,8 @@
-# app/__init__.py
+import logging
 from flask import Flask
+# configモジュールの場所がルートにある場合は 'config'、app内にある場合は 'app.config' としてください
+# 提示されたコードに従い 'config' からインポートします
 from config import Config
-# extensionsから作成済みのインスタンスをインポート
 from app.extensions import db, migrate, bcrypt, login_manager
 
 def create_app():
@@ -12,6 +13,14 @@ def create_app():
     
     # 設定の読み込み
     app.config.from_object(Config)
+
+    # ▼▼▼ 追加: ログ設定 ▼▼▼
+    # Gunicorn経由で起動した場合、標準出力にログが出るように設定を紐付けます
+    if __name__ != '__main__':
+        gunicorn_logger = logging.getLogger('gunicorn.error')
+        app.logger.handlers = gunicorn_logger.handlers
+        app.logger.setLevel(gunicorn_logger.level)
+    # ▲▲▲ 追加ここまで ▲▲▲
     
     # アプリと拡張機能を紐付け
     db.init_app(app)
@@ -23,7 +32,6 @@ def create_app():
     # --- 循環参照を防ぐため、ここ(関数内)でモデルとBlueprintをインポート ---
     
     # Userモデルのインポート (user_loaderのため)
-    # ※ import user ではなく、正しいパス(app.models.user)を指定します
     from app.models.user import User 
 
     @login_manager.user_loader

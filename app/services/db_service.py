@@ -37,10 +37,21 @@ class PlanDBService:
         return Template.query.filter_by(publish_status="public").all()
     
     @staticmethod
-    def get_plan_by_id(plan_id, user_id=None):
+    def get_plan_by_id(plan_id, user_id):
         if user_id is None:
             user_id = current_user.id
         return Plan.query.filter_by(id=plan_id, user_id=user_id).first()
+    
+    @staticmethod
+    def get_schedule_by_id(plan_id, user_id=None):
+        if user_id is None:
+            user_id = current_user.id
+        if not user_id:
+            return []
+        return Schedule.query.join(Plan).filter(
+            Schedule.plan_id == plan_id,
+            Plan.user_id == user_id
+        ).first()
     
     @staticmethod
     def get_transit_by_id(plan_id, user_id=None):
@@ -48,13 +59,110 @@ class PlanDBService:
             user_id = current_user.id
         if not user_id:
             return []
-        return TransportSnapshot.query.join(Plan).filter(
-            TransportSnapshot.plan_id == plan_id,
+        return (
+            TransportSnapshot.query.join(Plan)
+            .filter(
+                TransportSnapshot.plan_id == plan_id,
+                Plan.user_id == user_id,
+            )
+            .order_by(TransportSnapshot.id.asc())
+            .all()
+        )
+
+    @staticmethod
+    def get_hotels_by_id(plan_id, user_id=None):
+        if user_id is None:
+            user_id = current_user.id
+        if not user_id:
+            return []
+        return HotelSnapshot.query.join(Plan).filter(
+            HotelSnapshot.plan_id == plan_id,
             Plan.user_id == user_id
         ).all()
+
+    @staticmethod
+    def get_selected_transit(plan_id, user_id=None):
+        if user_id is None:
+            user_id = current_user.id
+        if not user_id:
+            return None
+        return TransportSnapshot.query.join(Plan).filter(
+            TransportSnapshot.plan_id == plan_id,
+            Plan.user_id == user_id,
+            TransportSnapshot.is_selected.is_(True)
+        ).first()
+
+    @staticmethod
+    def get_selected_hotel(plan_id, user_id=None):
+        if user_id is None:
+            user_id = current_user.id
+        if not user_id:
+            return None
+        return HotelSnapshot.query.join(Plan).filter(
+            HotelSnapshot.plan_id == plan_id,
+            Plan.user_id == user_id,
+            HotelSnapshot.is_selected.is_(True)
+        ).first()
+
+    @staticmethod
+    def select_hotel(plan_id, hotel_snapshot_id, user_id=None):
+        if user_id is None:
+            user_id = current_user.id
+        if not user_id:
+            return False
+        try:
+            hotel = (
+                HotelSnapshot.query.join(Plan)
+                .filter(
+                    HotelSnapshot.id == hotel_snapshot_id,
+                    HotelSnapshot.plan_id == plan_id,
+                    Plan.user_id == user_id,
+                )
+                .first()
+            )
+            if not hotel:
+                return False
+
+            HotelSnapshot.query.filter_by(plan_id=plan_id).update({"is_selected": False})
+            hotel.is_selected = True
+
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error selecting hotel: {e}")
+            return False
+
+    @staticmethod
+    def select_transit(plan_id, transit_type, user_id=None):
+        if user_id is None:
+            user_id = current_user.id
+        if not user_id:
+            return False
+        try:
+            snapshot = (
+                TransportSnapshot.query.join(Plan)
+                .filter(
+                    TransportSnapshot.plan_id == plan_id,
+                    TransportSnapshot.type == transit_type,
+                    Plan.user_id == user_id,
+                )
+                .first()
+            )
+            if not snapshot:
+                return False
+
+            TransportSnapshot.query.filter_by(plan_id=plan_id).update({"is_selected": False})
+            snapshot.is_selected = True
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error selecting transit: {e}")
+            return False
     
     @staticmethod
-    def create_plan(user_id, destination, departure, start_date, days, purpose, options, plan_title):
+    def create_plan(user_id, destination, departure, start_date, days, purpose, options, plan_title, hotel = None):
         if user_id is None:
             user_id = current_user.id
         
@@ -66,7 +174,8 @@ class PlanDBService:
             days=days,
             purpose=purpose,
             options=options,
-            title = plan_title
+            title = plan_title or "無題のプラン",
+            hotel = hotel, # 追加
         )
         db.session.add(plan)
         db.session.commit()

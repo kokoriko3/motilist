@@ -176,3 +176,7 @@ def generate_item_list_from_plan(plan):
     except Exception as e:
         current_app.logger.error(f"AIサービスでエラーが発生: {e}")
         raise Exception(f"AIプランの生成に失敗しました: {e}")
+    
+    # def dev_generate_plan_from_inputs():
+    #     plan = 
+    #     return 
