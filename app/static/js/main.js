@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (logoutTrigger && logoutModal && logoutConfirm) {
         const logoutUrl = logoutTrigger.dataset.logoutUrl;
 
+        
         const openModal = () => {
         console.log("open logout modal");
         logoutModal.hidden = false; 
