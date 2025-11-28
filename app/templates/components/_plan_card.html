@@ -1,11 +1,11 @@
 <article class="plan-tile">
   <div class="plan-tile__header">
     <div>
-      <p class="plan-tile__title">{{ plan.title }}</p>
+      <p class="plan-tile__title">{{ plan.public_title }}</p>
       <p class="plan-tile__date">
         <span>日程</span>
-        {{ plan.start_date }}
-        <span class="plan-tile__duration">{{ plan.duration }}</span>
+        {{ plan.plan.start_date }}～
+        <span class="plan-tile__duration">{{ plan.days }}日間</span>
       </p>
     </div>
     {% if can_delete | default(True) %}
@@ -27,16 +27,16 @@
   <dl class="plan-tile__list">
     <div>
       <dt>交通手段</dt>
-      <dd>{{ plan.transport }}</dd>
+      <dd>{{ plan.transport_summary }}</dd>
     </div>
     <div>
       <dt>宿泊場所</dt>
-      <dd>{{ plan.accommodation }}</dd>
+      <dd>{{ plan.hotel_name }}</dd>
     </div>
   </dl>
 
   <div class="plan-tile__footer">
     {% set detail_href = detail_url  %}
-    <a class="plan-tile__detail" href="{{ detail_href }}">詳細 へ</a>
+    <a class="plan-tile__detail" href="{{ detail_url }}">詳細 へ</a>
   </div>
 </article>

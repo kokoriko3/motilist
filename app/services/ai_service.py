@@ -109,7 +109,7 @@ def generate_plan_from_inputs(destination,start_point, days, purpose_raw, **kwar
         raise Exception(f"AIプランの生成に失敗しました: {e}")
     
 
-def generate_item_list_from_plan(plan):    
+def generate_item_list_from_plan(plan,schedule_json):    
     try:
         api_key = current_app.config['GEMINI_API_KEY']
         
@@ -125,7 +125,12 @@ def generate_item_list_from_plan(plan):
         厳密なJSON形式で出力してください。
         
         # 条件
-        - 旅行プラン:{plan}
+        - 出発地点:{plan.destination}
+        -日数:{plan.days}
+        -目的;{plan.purpose}
+        -オプション:{plan.options}
+
+        -スケジュール:{schedule_json}
         
         # 出力JSON形式
         {{

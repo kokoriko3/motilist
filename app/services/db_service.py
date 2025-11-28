@@ -1,6 +1,7 @@
 from app.extensions import db, bcrypt
 from app.models.user import User
 from app.models.plan import Plan, Template, TransportSnapshot, Schedule, HotelSnapshot, Share
+from app.models.checklist import Checklist,ChecklistItem,Item,Category
 from flask_login import current_user
 from uuid import uuid4
 
@@ -33,9 +34,21 @@ class PlanDBService:
         )
     
     @staticmethod
-    def get_public_plans():
-        return Template.query.filter_by(publish_status="public").all()
+    def get_all_templates_by_user_id(user_id):
+        return Template.query.filter_by(user_id=user_id).all()
     
+    @staticmethod
+    def get_public_templates():
+        return Template.query.filter_by(visibility="public").all()
+    
+    @staticmethod
+    def get_private_templates(user_id):
+        return Template.query.filter_by(user_id=user_id, visibility="private").all()
+    
+    @staticmethod
+    def get_all_templates_by_id(template_id):
+        return Template.query.filter_by(template_id=template_id).first()
+
     @staticmethod
     def get_plan_by_id(plan_id, user_id):
         if user_id is None:
@@ -324,3 +337,162 @@ class PlanDBService:
             return None
         return Share.query.filter_by(url_token=token).first()
         
+
+        
+    @staticmethod
+    def get_plan_detail(plan_id):
+        # --- 1. プラン本体 ---
+        plan = Plan.query.get(plan_id)
+        if not plan:
+            return None
+
+        # --- 2. 交通手段 ---
+        transports = TransportSnapshot.query.filter_by(plan_id=plan_id).all()
+        selected_transport = next((t for t in transports if t.is_selected), None)
+
+        if selected_transport:
+            transport_text = selected_transport.transport_method
+        elif transports:
+            transport_text = transports[0].transport_method
+        else:
+            transport_text = "未設定"
+
+        # --- 3. 宿泊情報 ---
+        hotels = HotelSnapshot.query.filter_by(plan_id=plan_id).all()
+        selected_hotel = next((h for h in hotels if h.is_selected), None)
+
+        accommodation = selected_hotel.name if selected_hotel else "未設定"
+        hotel_price = (
+            f"{selected_hotel.price}円〜"
+            if selected_hotel and selected_hotel.price
+            else ""
+        )
+
+        # --- 4. スケジュール ---
+        schedule = Schedule.query.filter_by(plan_id=plan_id).first()
+        stay_locations = []
+
+        if schedule and schedule.daily_plan_json:
+            for day in schedule.daily_plan_json:
+                area = day.get("area", "")
+                place = day.get("place", "")
+                stay_locations.append(f"{area}（{place}）")
+
+        # --- 5. 返却 ---
+        return {
+            "plan": plan,
+            "transport": transport_text,
+            "accommodation": accommodation,
+            "stay_locations": stay_locations,
+            "hotel_price": hotel_price,
+        }
+
+
+    @staticmethod
+    def get_checklist_by_id(plan_id,user_id):
+        if user_id is None:
+            user_id = current_user.id
+        if not user_id:
+            return None
+        return Checklist.query.join(Plan).filter(
+            Checklist.plan_id == plan_id,
+            Plan.user_id == user_id,
+        ).all()
+
+    @staticmethod
+    def get_or_create_category(category_name):
+        category = Category.query.filter_by(name=category_name).first()
+        if not category:
+            category = Category(name=category_name)
+            db.session.add(category)
+            db.session.flush()
+        return category
+
+    @staticmethod
+    def get_or_create_item(item_name, category_id):
+        item = Item.query.filter_by(name=item_name, category_id=category_id).first()
+        if not item:
+            item = Item(name=item_name, category_id=category_id)
+            db.session.add(item)
+            db.session.flush()
+        return item
+
+    @staticmethod
+    def create_checklist(plan_id, title="持ち物リスト", status="draft", memo=None):
+        checklist = Checklist(
+            plan_id=plan_id,
+            title=title,
+            status=status,
+            memo=memo
+        )
+        db.session.add(checklist)
+        db.session.commit()
+        return checklist
+
+    @staticmethod
+    def add_items_to_checklist(checklist_id, items_data):
+        try:
+            for category_data in items_data:
+                category_name = category_data.get("category")
+                if not category_name:
+                    continue
+
+                category = PlanDBService.get_or_create_category(category_name)
+                
+                # 必須アイテムの処理
+                for item_name in category_data.get("required_items", []):
+                    if not item_name: continue
+                    item = PlanDBService.get_or_create_item(item_name, category.category_id)
+                    checklist_item = ChecklistItem(
+                        checklist_id=checklist_id,
+                        item_id=item.item_id,
+                        category_id=category.category_id,
+                        quantity=1, # デフォルト値
+                        is_required=True,
+                    )
+                    db.session.add(checklist_item)
+
+                # 通常アイテムの処理
+                for item_name in category_data.get("items", []):
+                    if not item_name: continue
+                    item = PlanDBService.get_or_create_item(item_name, category.category_id)
+                    checklist_item = ChecklistItem(
+                        checklist_id=checklist_id,
+                        item_id=item.item_id,
+                        category_id=category.category_id,
+                        quantity=1, # デフォルト値
+                        is_required=False,
+                    )
+                    db.session.add(checklist_item)
+            
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error adding items to checklist: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+        
+    @staticmethod
+    def get_checklist_item_by_id(checklist_id):
+        checklistItem = ChecklistItem.query.filter_by(checklist_id=checklist_id).all()
+        return checklistItem
+    
+    @staticmethod
+    def get_or_create_category(category_name):
+        category = Category.query.filter_by(name=category_name).first()
+        if not category:
+            category = Category(name=category_name)
+            db.session.add(category)
+            db.session.flush()
+        return category
+
+    @staticmethod
+    def get_or_create_item(item_name, category_id):
+        item = Item.query.filter_by(name=item_name, category_id=category_id).first()
+        if not item:
+            item = Item(name=item_name, category_id=category_id)
+            db.session.add(item)
+            db.session.flush()
+        return item

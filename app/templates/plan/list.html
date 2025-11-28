@@ -10,7 +10,13 @@
         <form method="get" class="plan-search-form">
           <label class="plan-search">
             <span class="plan-search__icon">🔍</span>
-            <input type="search" name="q" placeholder="自分の旅行プランを検索" value="{{ query }}" />
+            {# ルートから query を渡していないので request から直接読む or 空文字 #}
+            <input
+              type="search"
+              name="q"
+              placeholder="自分の旅行プランを検索"
+              value="{{ request.args.get('q', '') }}"
+            />
           </label>
         </form>
         <a class="plan-index__create plan-index__create--ghost" href="{{ url_for('plan.plan_create_form') }}">＋旅行プランを作成する</a>
@@ -25,7 +31,7 @@
     {% if plans %}
       <div class="plan-tiles plan-tiles--wide">
         {% for plan in plans %}
-          {% with detail_url=url_for('plan_detail', plan_id=plan.id, source='own') %}
+          {% with detail_url=url_for('plan.plan_detail', template_id=plan.template_id, source='own') %}
             {% include 'components/_plan_card.html' %}
           {% endwith %}
         {% endfor %}
@@ -40,7 +46,7 @@
       </p>
     {% else %}
       <div class="plan-shelf__empty">
-        <p class="plan-shelf__empty-count">検索結果 {{ result_count }}件</p>
+        <p class="plan-shelf__empty-count">検索結果 {{ plans|length }}件</p>
         <p class="plan-shelf__empty-hint">条件を変えて再検索してください。</p>
       </div>
     {% endif %}
