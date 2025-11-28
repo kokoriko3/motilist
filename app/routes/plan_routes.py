@@ -502,15 +502,6 @@ def checklist_generate():
         import traceback
         traceback.print_exc()
         return jsonify({"error": "予期せぬエラーにより、持ち物リストの生成に失敗しました。"}), 500
-
-# ----------------------------------------
-#  プラン詳細ページ
-# ----------------------------------------
-@plan_bp.route("/<int:plan_id>", methods=["GET"])
-def plan_detail(plan_id):
-    detail = PlanDBService.get_plan_detail(plan_id)
-    if not detail:
-        flash("指定されたプランは存在しません。")
 # プラン詳細ページ
 @plan_bp.route("/<int:template_id>", methods=["GET"])
 def plan_detail(template_id):
