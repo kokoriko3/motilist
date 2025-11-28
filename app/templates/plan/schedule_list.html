@@ -2,35 +2,8 @@
 {% block title %}スケジュール一覧{% endblock %}
 {% block content %}
 <section class="schedule-shell">
-  <div class="plan-header">
-    <div>
-      <p class="plan-title" data-plan-title="{{ plan.title if plan and plan.title else (plan.destination if plan else 'プラン') }}">
-        {% if plan and plan.destination %}
-          {{ plan.destination }}
-        {% elif plan and plan.title %}
-          {{ plan.title }}
-        {% else %}
-          プラン
-        {% endif %}
-        {% if duration_label %}　{{ duration_label }}{% endif %}
-        <span class="icon-inline" aria-hidden="true">✎</span>
-      </p>
-    </div>
-    <div class="plan-meta">
-      {% if date_range_label %}
-      <span class="plan-date">{{ date_range_label }}</span>
-      {% endif %}
-      <button type="button" class="pill-button" data-plan-share-trigger>共有</button>
-      <button type="button" class="pill-button" data-plan-save-trigger>保存</button>
-    </div>
-  </div>
-
-  <div class="plan-tabs">
-    <a href="{{ url_for('plan.plan_transit') }}">交通手段</a>
-    <a href="{{ url_for('plan.stay_select') }}">宿泊場所</a>
-    <a class="active">スケジュール</a>
-    <a href="{{ url_for('plan.checklist_list') }}">持ち物</a>
-  </div>
+  {% set active_tab = 'schedule' %}
+  {% include 'plan/_plan_header_tabs.html' %}
 
   <div class="schedule-body">
     <div class="panel-header">

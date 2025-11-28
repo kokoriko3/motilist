@@ -397,7 +397,7 @@ class PlanDBService:
         return Checklist.query.join(Plan).filter(
             Checklist.plan_id == plan_id,
             Plan.user_id == user_id,
-        ).all()
+        ).first()
 
     @staticmethod
     def get_or_create_category(category_name):
