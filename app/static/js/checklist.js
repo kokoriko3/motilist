@@ -100,24 +100,80 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
+  // --- 保存（確定）ボタンの処理 ---
   const submitBtn = document.querySelector('[data-checklist-submit]')
   if (submitBtn) {
-    submitBtn.addEventListener('click', (event) => {
+    submitBtn.addEventListener('click', async (event) => {
       event.preventDefault()
       hideError()
 
-      const hasEmpty = Array.from(document.querySelectorAll("input[name='item_form']")).some(
-        (input) => !input.value.trim(),
-      )
-      if (hasEmpty) {
-        showError('アイテム名を入力してください')
-        return
-      }
+      // 1. 入力チェック（空欄があるか）
+      // ※すべて空欄でなければ許可するなど、要件に合わせて調整してください
+      // ここでは「名前が入力されているものだけ」を送信対象とするため、空欄チェックは必須としません。
+      
+      // 2. データの収集
+      const categoriesData = []
+      const categoryCards = document.querySelectorAll('.category-card')
 
+      categoryCards.forEach(card => {
+        const categoryTitle = card.querySelector('.category-title').innerText.trim()
+        const items = []
+        
+        const rows = card.querySelectorAll('[data-item-row]')
+        rows.forEach(row => {
+          const nameInput = row.querySelector('input[name="item_form"]')
+          const qtyInput = row.querySelector('input[name="num_from"]')
+          
+          const name = nameInput ? nameInput.value.trim() : ''
+          const quantity = qtyInput ? qtyInput.value.trim() : ''
+
+          if (name) {
+            items.push({
+              name: name,
+              quantity: quantity
+            })
+          }
+        })
+
+        // アイテムがある、もしくはカテゴリを残したい場合はリストに追加
+        if (items.length > 0) {
+          categoriesData.push({
+            category: categoryTitle,
+            items: items
+          })
+        }
+      })
+
+      // 3. 送信処理
       submitBtn.setAttribute('aria-busy', 'true')
-      setTimeout(() => {
-        window.location.href = '/checklist'
-      }, 500)
+      submitBtn.textContent = '保存中...'
+      submitBtn.disabled = true
+
+      try {
+        const response = await fetch('/plans/checklists/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ categories: categoriesData })
+        })
+
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.error || '保存に失敗しました')
+        }
+
+        // 成功したら一覧へリダイレクト
+        window.location.href = result.redirect_url || '/plans/checklists'
+
+      } catch (error) {
+        console.error(error)
+        showError(error.message)
+        submitBtn.removeAttribute('aria-busy')
+        submitBtn.textContent = '確定'
+        submitBtn.disabled = false
+      }
     })
   }
 })

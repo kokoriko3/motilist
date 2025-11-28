@@ -13,7 +13,9 @@ from flask_login import current_user
 from app.services import ai_service, hotel_service, db_service
 from app.models.user import User
 from app.extensions import db
+# 修正: Checklist関連のモデルをインポート
 from app.models.plan import Plan, TransportSnapshot, HotelSnapshot, Schedule, Template, Share
+from app.models.checklist import Checklist, ChecklistItem, Item, Category
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
@@ -153,12 +155,6 @@ def public_plan_list():
 
 # ----------------------------------------
 #  交通手段選択画面
-# ----------------------------------------
-# ----------------------------------------
-#  ????????
-# ----------------------------------------
-# ----------------------------------------
-#  ????????
 # ----------------------------------------
 @plan_bp.route("/transit", methods=["GET", "POST"])
 def plan_transit():
@@ -613,9 +609,9 @@ def checklist_list():
         flash("ユーザーが認証されていません。", "warning")
         return redirect(url_for("auth.login"))
 
-    # .first()を返すようになったので、単一オブジェクトかNoneが返る
+    # ★ 修正箇所: get_checklist_item_by_id ではなく get_checklist_by_id を使用
     checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
-    
+
     if not checklist_obj:
         # まだチェックリストが生成されていない
         return render_template("plan/checklist_create.html")
@@ -648,7 +644,110 @@ def checklist_list():
 
 @plan_bp.route("/checklists/edit", methods=["GET"])
 def checklist_edit():
-    return render_template("plan/checklist_edit.html", categories=[])
+    # 編集画面用にデータを取得して表示するロジックを追加
+    plan_id = session.get("plan_id")
+    if not plan_id:
+        flash("プランが選択されていません。", "warning")
+        return redirect(url_for("plan.plan_create_form"))
+
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    
+    checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
+    if not checklist_obj:
+        # データがない場合は一覧（作成画面）へ戻す
+        return redirect(url_for("plan.checklist_list"))
+
+    checklist_items = PlanDBService.get_checklist_item_by_id(checklist_obj.checklist_id)
+    
+    # カテゴリごとにアイテムをグループ化
+    # checklist_edit.html は category.title, category.id を期待しているためキーを合わせる
+    categories_dict = {}
+    for item in checklist_items:
+        category_name = item.category.name if item.category else "その他"
+        if category_name not in categories_dict:
+            categories_dict[category_name] = {
+                "id": item.category.category_id if item.category else 0,
+                "title": category_name,
+                "items": []
+            }
+        
+        categories_dict[category_name]["items"].append({
+            "name": item.item.name,
+            "quantity": item.quantity,
+            "is_checked": item.is_checked
+            # 必要に応じて他フィールドも
+        })
+    
+    categories_list = list(categories_dict.values())
+
+    return render_template("plan/checklist_edit.html", categories=categories_list)
+
+@plan_bp.route("/checklists/update", methods=["POST"])
+def checklist_update():
+    plan_id = session.get("plan_id")
+    if plan_id is None:
+        return jsonify({"error": "プランが指定されていません。"}), 400
+    
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
+
+    data = request.get_json()
+    if not data or 'categories' not in data:
+        return jsonify({"error": "送信データが不正です。"}), 400
+    
+    categories_data = data['categories']
+
+    try:
+        # 1. 既存のチェックリストを取得
+        checklist = PlanDBService.get_checklist_by_id(plan_id, user_id)
+        if not checklist:
+            # なければ作成（念のため）
+            plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+            if not plan: return jsonify({"error": "プランが見つかりません"}), 404
+            checklist = PlanDBService.create_checklist(plan_id, title=f"{plan.title}の持ち物リスト")
+        
+        # 2. 既存のアイテムを一度全て削除（シンプルに洗い替え戦略）
+        # ※DBServiceにメソッドがないため、ここで直接モデル操作を行います
+        #   本来はService層に delete_checklist_items のようなメソッドを作るのが望ましいです
+        ChecklistItem.query.filter_by(checklist_id=checklist.checklist_id).delete()
+        
+        # 3. 送信されたデータを登録
+        for cat_data in categories_data:
+            category_name = cat_data.get('category')
+            items = cat_data.get('items', [])
+            
+            if not category_name or not items:
+                continue
+
+            category = PlanDBService.get_or_create_category(category_name)
+            
+            for item_data in items:
+                name = item_data.get('name')
+                qty = item_data.get('quantity') or "1"
+                
+                if not name: continue
+
+                item_obj = PlanDBService.get_or_create_item(name, category.category_id)
+                
+                new_checklist_item = ChecklistItem(
+                    checklist_id=checklist.checklist_id,
+                    item_id=item_obj.item_id,
+                    category_id=category.category_id,
+                    quantity=qty,
+                    is_required=False, # 編集画面からの追加は一旦任意扱い
+                    is_checked=False   # 編集でリセットするか、保持するかは仕様次第（ここではリセット）
+                )
+                db.session.add(new_checklist_item)
+        
+        db.session.commit()
+        return jsonify({"status": "success", "redirect_url": url_for("plan.checklist_list")})
+
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"保存中にエラーが発生しました: {str(e)}"}), 500
 
 @plan_bp.route("/checklists/generate", methods=["POST"])
 def checklist_generate():

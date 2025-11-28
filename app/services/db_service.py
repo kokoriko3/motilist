@@ -268,7 +268,7 @@ class PlanDBService:
         if not plan or not title:
             return None
 
-        itinerary_outline = schedule.daily_plan_json if schedule else []
+        itinerary_outline = schedule.daily_plan_json if schedule else {}
         checklist_summary = {"items": []}
         tags = ", ".join(plan.options) if isinstance(plan.options, list) else (plan.options if plan.options else None)
 
@@ -410,11 +410,17 @@ class PlanDBService:
 
     @staticmethod
     def get_or_create_item(item_name, category_id):
-        item = Item.query.filter_by(name=item_name, category_id=category_id).first()
-        if not item:
-            item = Item(name=item_name, category_id=category_id)
-            db.session.add(item)
-            db.session.flush()
+        # ユニーク制約が name にかかっているため、まずは名前だけで検索する
+        item = Item.query.filter_by(name=item_name).first()
+        
+        # 存在すればそれを返す（カテゴリが違っても、Itemとしての実体は同一とする）
+        if item:
+            return item
+            
+        # 存在しなければ新規作成
+        item = Item(name=item_name, category_id=category_id)
+        db.session.add(item)
+        db.session.flush()
         return item
 
     @staticmethod
@@ -478,21 +484,3 @@ class PlanDBService:
     def get_checklist_item_by_id(checklist_id):
         checklistItem = ChecklistItem.query.filter_by(checklist_id=checklist_id).all()
         return checklistItem
-    
-    @staticmethod
-    def get_or_create_category(category_name):
-        category = Category.query.filter_by(name=category_name).first()
-        if not category:
-            category = Category(name=category_name)
-            db.session.add(category)
-            db.session.flush()
-        return category
-
-    @staticmethod
-    def get_or_create_item(item_name, category_id):
-        item = Item.query.filter_by(name=item_name, category_id=category_id).first()
-        if not item:
-            item = Item(name=item_name, category_id=category_id)
-            db.session.add(item)
-            db.session.flush()
-        return item
