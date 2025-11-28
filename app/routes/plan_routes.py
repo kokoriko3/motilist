@@ -44,7 +44,9 @@ def plan_list():
         # ===== 交通手段（既存処理）=====
         traffic_methods = []
         outline = tpl.itinerary_outline_json or {}
-        days = outline.get("days", [])
+        days = []
+        if isinstance(outline, dict):
+            days = outline.get("days", [])
         for d in days:
             tm = d.get("traffic_method")
             if tm and tm not in traffic_methods:
@@ -112,7 +114,9 @@ def public_plan_list():
         # ===== 交通手段まとめ =====
         traffic_methods = []
         outline = tpl.itinerary_outline_json or {}
-        days = outline.get("days", [])
+        days = []
+        if isinstance(outline, dict):
+            days = outline.get("days", [])
         for d in days:
             tm = d.get("traffic_method")
             if tm and tm not in traffic_methods:
@@ -549,21 +553,48 @@ def share_view(token):
 
 @plan_bp.route("/checklists", methods=["GET"])
 def checklist_list():
-    plan_id = session["plan_id"]
+    plan_id = session.get("plan_id")
     if not plan_id:
         flash("プランが選択されていません。先にプランを作成してください。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
-
     user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    if not user_id:
+        flash("ユーザーが認証されていません。", "warning")
+        return redirect(url_for("auth.login"))
 
-    checklist_obj = PlanDBService.get_checklist_by_id(plan_id,user_id)
-    print("[DEBUG]checklist_obj:",checklist_obj)
-    if checklist_obj == []:
+    # .first()を返すようになったので、単一オブジェクトかNoneが返る
+    checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
+    
+    if not checklist_obj:
+        # まだチェックリストが生成されていない
         return render_template("plan/checklist_create.html")
     
-    checklistItems = PlanDBService.get_checklist_item_by_id(checklist_obj.checklist_id)
-    return render_template("plan/checklist_list.html")
+    # チェックリストが存在する場合、そのアイテムを取得
+    checklist_items = PlanDBService.get_checklist_item_by_id(checklist_obj.checklist_id)
+    
+    # カテゴリごとにアイテムをグループ化する
+    categories_dict = {}
+    for item in checklist_items:
+        category_name = item.category.name if item.category else "その他"
+        if category_name not in categories_dict:
+            categories_dict[category_name] = {
+                "category_id": item.category.category_id if item.category else 0,
+                "items": []
+            }
+        
+        categories_dict[category_name]["items"].append({
+            "name": item.item.name,
+            "is_checked": item.is_checked,
+            "is_required": item.is_required,
+            "quantity": item.quantity,
+            "memo": item.memo
+        })
+    
+    # テンプレートに渡すために辞書のリストに変換
+    categories_list = [{"name": name, **data} for name, data in categories_dict.items()]
+
+    return render_template("plan/checklist_list.html", categories=categories_list)
 
 @plan_bp.route("/checklists/edit", methods=["GET"])
 def checklist_edit():
@@ -650,7 +681,10 @@ def plan_detail(template_id):
     # --- 交通手段一覧を itinerary_outline_json から抽出 ---
     traffic_methods = []
     if template.itinerary_outline_json:
-        days_data = template.itinerary_outline_json.get("days", [])
+        itinerary_outline = template.itinerary_outline_json
+        days_data = []
+        if isinstance(itinerary_outline, dict):
+            days_data = itinerary_outline.get("days", [])
         for d in days_data:
             tm = d.get("traffic_method")
             if tm:
@@ -695,7 +729,10 @@ def plan_detail(template_id):
     # --- 主な滞在場所 ---
     stay_locations = []
     if template.itinerary_outline_json:
-        days_data = template.itinerary_outline_json.get("days", [])
+        itinerary_outline = template.itinerary_outline_json
+        days_data = []
+        if isinstance(itinerary_outline, dict):
+            days_data = itinerary_outline.get("days", [])
         for d in days_data:
             for place in d.get("places", []):
                 stay_locations.append(place)
