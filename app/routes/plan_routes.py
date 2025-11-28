@@ -322,13 +322,81 @@ def schedule_update():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+    
+
 @plan_bp.route("/checklists", methods=["GET"])
 def checklist_list():
-    return render_template("plan/checklist_list.html", categories=[])
+    plan_id = session["plan_id"]
+    if not plan_id:
+        flash("プランが選択されていません。先にプランを作成してください。", "warning")
+        return redirect(url_for("plan.plan_create_form"))
+
+
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+
+    checklist_obj = PlanDBService.get_checklist_by_id(plan_id,user_id)
+    print("[DEBUG]checklist_obj:",checklist_obj)
+    if checklist_obj == []:
+        return render_template("plan/checklist_create.html")
+    
+    checklistItems = PlanDBService.get_checklist_item_by_id(checklist_obj.checklist_id)
+    return render_template("plan/checklist_list.html")
 
 @plan_bp.route("/checklists/edit", methods=["GET"])
 def checklist_edit():
     return render_template("plan/checklist_edit.html", categories=[])
+
+@plan_bp.route("/checklists/generate", methods=["POST"])
+def checklist_generate():
+    plan_id = session.get("plan_id")
+    if plan_id is None:
+        return jsonify({"error": "プランが指定されていません。"}), 400
+    
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
+
+    # 既存のチェックリストを確認
+    existing_checklist = PlanDBService.get_checklist_by_id(plan_id, user_id)
+    if existing_checklist:
+        return jsonify({"error": "チェックリストは既に存在します。", "redirect_url": url_for("plan.checklist_list")}), 409
+
+    try:
+        plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+        if not plan:
+            return jsonify({"error": "対象のプランが見つかりません。"}), 404
+
+        schedule_obj = PlanDBService.get_schedule_by_id(plan_id, user_id)
+        if not schedule_obj:
+            return jsonify({"error": "スケジュールの取得に失敗しました。"}), 404
+
+        # AIから持ち物リストを生成
+        response_data = ai_service.generate_item_list_from_plan(plan, schedule_obj.daily_plan_json)
+        
+        if not response_data or 'checklist' not in response_data:
+            return jsonify({"error": "AIによる持ち物リストの生成に失敗しました。"}), 500
+
+        item_list = response_data.get('checklist', [])
+
+        # チェックリストをDBに保存
+        checklist = PlanDBService.create_checklist(plan_id=plan.id, title=f"{plan.title}の持ち物リスト")
+        if not checklist:
+            return jsonify({"error": "チェックリストの作成に失敗しました。"}), 500
+
+        # アイテムをDBに保存
+        success = PlanDBService.add_items_to_checklist(checklist.checklist_id, item_list)
+        
+        if success:
+            flash("AIが持ち物リストを生成しました！", "success") # flashメッセージはリダイレクト先で表示される
+            return jsonify({"status": "success", "redirect_url": url_for("plan.checklist_list")})
+        else:
+            return jsonify({"error": "持ち物リストの保存中にエラーが発生しました。"}), 500
+
+    except Exception as e:
+        current_app.logger.error(f"Checklist generation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "予期せぬエラーにより、持ち物リストの生成に失敗しました。"}), 500
 
 # ----------------------------------------
 #  プラン詳細ページ
