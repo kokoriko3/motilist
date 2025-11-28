@@ -14,14 +14,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const generateBtn = document.querySelector('[data-checklist-generate]')
   if (generateBtn) {
-    generateBtn.addEventListener('click', () => {
+    generateBtn.addEventListener('click', async () => {
       hideError()
       generateBtn.setAttribute('aria-busy', 'true')
       generateBtn.textContent = '作成中…'
-      setTimeout(() => {
-        window.location.href = '/checklist'
-      }, 800)
-    })
+      generateBtn.disabled = true;
+      const originalText = generateBtn.textContent;
+
+      try {
+        const response = await fetch('/plans/checklists/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          // 既に存在する場合(409)はメッセージを表示してリダイレクト
+          if (response.status === 409 && data.redirect_url) {
+            alert(data.error || 'チェックリストは既に存在します。');
+            window.location.href = data.redirect_url;
+            return;
+          }
+          throw new Error(data.error || '生成に失敗しました');
+        }
+
+        // 成功したらサーバーから指定されたURLにリダイレクト
+        if (data.redirect_url) {
+          window.location.href = data.redirect_url;
+        } else {
+          // フォールバックとしてリロード
+          window.location.reload();
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        showError(error.message || '生成に失敗しました。もう一度お試しください。');
+        
+        // ボタンを元に戻す
+        generateBtn.textContent = originalText;
+        generateBtn.disabled = false;
+        generateBtn.removeAttribute('aria-busy');
+      }
+    });
   }
 
   const addRow = (stackEl) => {
