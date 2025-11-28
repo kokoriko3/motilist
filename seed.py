@@ -244,13 +244,24 @@ def run_seed():
             ]
         }
 
-        template = Template(
+        checklist_summary = {
+            "essential": [
+                { "name": "Tシャツ", "quantity": 2, "unit": "枚" },
+                { "name": "ズボン",  "quantity": 1, "unit": "本" }
+            ],
+            "extra": [
+                { "name": "スマホ", "quantity": 1, "unit": "台" }
+            ],
+            "items_total": 3
+        }
+
+        template1 = Template(
             user_id=user.user_id,
             plan_id=plan.id,
-            public_title="大阪1泊2日テンプレ",
+            public_title="大阪1泊2日テンプレ（公開）",
             short_note="seed.pyで投入したサンプルテンプレ", # Renamed from note
             itinerary_outline_json=itinerary_outline, # Renamed from schedule_summary_json
-            checklist_summary_json={"items": ["Tシャツ", "ズボン", "スマホ"]},
+            checklist_summary_json=checklist_summary,
             days=plan.days,
             items_count=3, # Renamed from total_items
             essential_ratio=100, # Renamed from required_ratio (Assuming Integer percentage)
@@ -258,11 +269,45 @@ def run_seed():
             visibility="public", # Renamed from publish_status
             display_version=1,
         )
-        db.session.add(template)
+        db.session.add(template1)
+        template2 = Template(
+            user_id=user.user_id,
+            plan_id=plan.id,
+            public_title="大阪グルメ中心テンプレ（非公開）",
+            short_note="食べ歩き中心の仮データテンプレ",
+            itinerary_outline_json={
+                "days": [
+                    {
+                        "day": 1,
+                        "title": "なんば食べ歩き",
+                        "traffic_method": "徒歩",
+                        "places": ["難波", "道頓堀"],
+                        "start": "11:00",
+                        "end": "18:00"
+                    }
+                ]
+            },
+            checklist_summary_json={
+                "essential": [
+                    {"name": "ハンカチ", "quantity": 1, "unit": "枚"}
+                ],
+                "extra": [
+                    {"name": "スマホ充電器", "quantity": 1, "unit": "個"}
+                ],
+                "items_total": 2
+            },
+            days=plan.days,
+            items_count=2,
+            essential_ratio=50,
+            tags="大阪,食べ歩き",
+            visibility="private",
+            display_version=1,
+        )
+        db.session.add(template2)
         db.session.flush()
 
         share = Share(
-            template_id=template.template_id,
+            template_id=template1.template_id,
             url_token=str(uuid4()),
             # permission, template_version, expires_at removed as they are not in Share model
             issuer_user_id=user.user_id,
