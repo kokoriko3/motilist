@@ -1499,13 +1499,15 @@ body.split-body .page-content {
   gap: 20px;
 }
 
-.save-plan-card .modal-back {
+.save-plan-card .modal-back,
+.share-plan-card .modal-back {
   background: none;
   border: none;
   padding: 0;
   font: inherit;
   cursor: pointer;
   color: #1d4ed8;
+  outline: none;
 }
 
 .save-plan-card input,
@@ -1580,6 +1582,82 @@ body.split-body .page-content {
 
 .save-plan-actions {
   padding-top: 6px;
+  align-items: center;
+}
+
+.save-plan-actions__left {
+  flex: 1;
+}
+
+.save-plan-actions__right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.share-plan-modal .modal-card {
+  width: min(720px, 100%);
+  max-width: 760px;
+}
+
+.share-plan-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  background: rgba(0, 0, 0, 0.55);
+  margin: 0;
+  border-radius: 0;
+  z-index: 95;
+}
+
+.share-plan-modal[hidden] {
+  display: none;
+}
+
+.share-plan-card {
+  width: min(720px, 100%);
+  max-width: 760px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.18);
+  padding: 28px;
+  border-radius: 22px;
+}
+
+.share-plan-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.share-url-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.share-url-row input {
+  height: 52px;
+  padding: 0 16px;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+}
+
+.share-url-row .cta-button.ghost {
+  height: 52px;
+  padding: 0 20px;
+  border-radius: 14px;
+}
+
+.share-plan-hint {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
 .logout-modal {

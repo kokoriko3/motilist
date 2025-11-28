@@ -2,6 +2,7 @@ import re
 import json
 import os
 from datetime import datetime, date, timedelta
+from uuid import uuid4
 
 # app/routes/plan_routes.py
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app, jsonify
@@ -11,7 +12,7 @@ from flask_login import current_user
 from app.services import ai_service, hotel_service, db_service
 from app.models.user import User
 from app.extensions import db
-from app.models.plan import Plan, TransportSnapshot, HotelSnapshot, Schedule
+from app.models.plan import Plan, TransportSnapshot, HotelSnapshot, Schedule, Template, Share
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
@@ -394,6 +395,52 @@ def save_plan_template():
             "redirect": url_for("plan.plan_list"),
         }
     )
+
+@plan_bp.route("/share", methods=["POST"])
+def share_plan():
+    plan_id = session.get("plan_id")
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+
+    if not plan_id or not user_id:
+        return jsonify({"status": "error", "message": "プランが選択されていません。"}), 400
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    schedule = PlanDBService.get_schedule_by_id(plan_id, user_id)
+
+    if not plan or not schedule:
+        return jsonify({"status": "error", "message": "プラン情報の取得に失敗しました。"}), 404
+
+    # テンプレートを生成/更新して公開にする
+    template = PlanDBService.save_template(
+        plan=plan,
+        schedule=schedule,
+        title=plan.title or (plan.destination or "無題のプラン"),
+        short_note=plan.purpose or "",
+        visibility="public",
+    )
+    if not template:
+        return jsonify({"status": "error", "message": "共有URLの生成に失敗しました。"}), 500
+
+    # 共有レコード生成
+    share = PlanDBService.create_share(template)
+    if not share:
+        return jsonify({"status": "error", "message": "共有URLの生成に失敗しました。"}), 500
+
+    share_url = f"{request.host_url.rstrip('/')}{url_for('plan.share_view', token=share.url_token)}"
+
+    return jsonify({"status": "success", "url": share_url})
+
+@plan_bp.route("/share/<token>", methods=["GET"])
+def share_view(token):
+    share = PlanDBService.get_share_by_token(token)
+    if not share:
+        flash("共有リンクが無効です。", "warning")
+        return redirect(url_for("plan.plan_list"))
+
+    template = share.template
+    plan = Plan.query.get(template.plan_id) if template else None
+
+    return render_template("plan/share_view.html", template=template, plan=plan, share_url=request.url)
 
 @plan_bp.route("/checklists", methods=["GET"])
 def checklist_list():

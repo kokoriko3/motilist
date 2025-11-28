@@ -1,7 +1,8 @@
 from app.extensions import db, bcrypt
 from app.models.user import User
-from app.models.plan import Plan, Template, TransportSnapshot, Schedule, HotelSnapshot
+from app.models.plan import Plan, Template, TransportSnapshot, Schedule, HotelSnapshot, Share
 from flask_login import current_user
+from uuid import uuid4
 
 
 class UserDBService:
@@ -293,4 +294,33 @@ class PlanDBService:
             db.session.rollback()
             print(f"Error saving template: {e}")
             return None
+
+    @staticmethod
+    def create_share(template: Template):
+        if not template:
+            return None
+        try:
+            # 既存の共有があればそれを使う
+            share = Share.query.filter_by(template_id=template.template_id).first()
+            if share:
+                return share
+
+            share = Share(
+                template_id=template.template_id,
+                issuer_user_id=template.user_id,
+                url_token=str(uuid4()),
+            )
+            db.session.add(share)
+            db.session.commit()
+            return share
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating share: {e}")
+            return None
+
+    @staticmethod
+    def get_share_by_token(token: str):
+        if not token:
+            return None
+        return Share.query.filter_by(url_token=token).first()
         
