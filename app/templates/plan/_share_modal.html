@@ -1,0 +1,68 @@
+<section class="modal-overlay save-plan-modal" data-plan-save-modal hidden>
+  <article class="modal-card save-plan-card" role="dialog" aria-modal="true" aria-label="プランを保存">
+    <header class="save-plan-header">
+      <button type="button" class="modal-back" data-plan-save-close aria-label="閉じる">← 戻る</button>
+    </header>
+
+    <div class="save-plan-fields">
+      <label class="save-plan-field">
+        <span>タイトル</span>
+        <input
+          type="text"
+          name="template_title"
+          placeholder="プランタイトル"
+          value="{{ plan.title if plan and plan.title else (plan.destination if plan else '') }}"
+        />
+      </label>
+
+      <label class="save-plan-field">
+        <span>説明</span>
+        <textarea
+          name="template_note"
+          rows="3"
+          placeholder="どんな旅か、こだわりポイントなどを記載"
+        >{{ plan.purpose or '' if plan else '' }}</textarea>
+      </label>
+
+      <div class="save-plan-field">
+        <span>公開設定</span>
+        <div class="radio-pill-options stretched">
+          <label class="radio-pill is-active">
+            <input type="radio" name="template_visibility" value="private" checked />
+            <span>非公開</span>
+          </label>
+          <label class="radio-pill">
+            <input type="radio" name="template_visibility" value="public" />
+            <span>公開</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <p class="form-error" data-plan-save-error hidden></p>
+
+    <div class="modal-card__actions save-plan-actions">
+      <div class="save-plan-actions__right">
+        <button type="button" class="cta-large small" data-plan-save-submit>保存</button>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="modal-overlay share-plan-modal" data-plan-share-modal hidden>
+  <article class="modal-card share-plan-card" role="dialog" aria-modal="true" aria-label="共有URLを発行">
+    <header class="save-plan-header">
+      <button type="button" class="modal-back" data-plan-share-close aria-label="閉じる">← 戻る</button>
+    </header>
+
+    <div class="share-plan-body">
+      <span>共有URL</span>
+      <div class="share-url-row">
+        <input type="text" readonly data-share-url-input value="発行中…" />
+        <button type="button" class="cta-button ghost" data-share-copy>コピー</button>
+      </div>
+      <p class="form-error" data-plan-share-error hidden></p>
+      <p class="share-plan-hint">URLは誰でも閲覧できるようになります。</p>
+    </div>
+  </article>
+</section>

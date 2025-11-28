@@ -4,12 +4,24 @@
 <section class="transport-shell">
   <div class="plan-header">
     <div>
-      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+      <p class="plan-title" data-plan-title="{{ plan.title if plan and plan.title else (plan.destination if plan else 'プラン') }}">
+        {% if plan and plan.destination %}
+          {{ plan.destination }}
+        {% elif plan and plan.title %}
+          {{ plan.title }}
+        {% else %}
+          プラン
+        {% endif %}
+        {% if plan and plan.days %}　{{ (plan.days - 1) if plan.days > 0 else 0 }}泊{{ plan.days }}日{% endif %}
+        <span class="icon-inline" aria-hidden="true">✎</span>
+      </p>
     </div>
     <div class="plan-meta">
-      <span class="plan-date">1月1日~1月3日</span>
-      <button type="button" class="pill-button">共有</button>
-      <button type="button" class="pill-button">保存</button>
+      {% if plan and plan.start_date %}
+      <span class="plan-date">{{ plan.start_date }}</span>
+      {% endif %}
+      <button type="button" class="pill-button" data-plan-share-trigger>共有</button>
+      <button type="button" class="pill-button" data-plan-save-trigger>保存</button>
     </div>
   </div>
 

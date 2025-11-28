@@ -1,9 +1,9 @@
 from app.extensions import db, bcrypt
 from app.models.user import User
-from app.models.plan import Plan, Template, TransportSnapshot, Schedule, HotelSnapshot
+from app.models.plan import Plan, Template, TransportSnapshot, Schedule, HotelSnapshot, Share
 from app.models.checklist import Checklist,ChecklistItem,Item,Category
 from flask_login import current_user
-from app.models.checklist import Checklist, ChecklistItem, Item, Category
+from uuid import uuid4
 
 
 class UserDBService:
@@ -258,6 +258,86 @@ class PlanDBService:
             db.session.rollback()
             print(f"Error creating schedule: {e}")
             return False
+
+    @staticmethod
+    def save_template(plan, schedule, title, short_note="", visibility="private"):
+        """
+        プランをテンプレートとして保存・更新する。
+        既に同じプランのテンプレートがある場合は上書きする。
+        """
+        if not plan or not title:
+            return None
+
+        itinerary_outline = schedule.daily_plan_json if schedule else []
+        checklist_summary = {"items": []}
+        tags = ", ".join(plan.options) if isinstance(plan.options, list) else (plan.options if plan.options else None)
+
+        try:
+            template = Template.query.filter_by(plan_id=plan.id, user_id=plan.user_id).first()
+
+            if template:
+                template.public_title = title
+                template.short_note = short_note
+                template.itinerary_outline_json = itinerary_outline
+                template.checklist_summary_json = checklist_summary
+                template.days = plan.days
+                template.items_count = len(checklist_summary.get("items", [])) if isinstance(checklist_summary, dict) else 0
+                template.tags = tags
+                template.visibility = visibility or "private"
+            else:
+                template = Template(
+                    user_id=plan.user_id,
+                    plan_id=plan.id,
+                    public_title=title,
+                    short_note=short_note,
+                    itinerary_outline_json=itinerary_outline,
+                    checklist_summary_json=checklist_summary,
+                    days=plan.days,
+                    items_count=len(checklist_summary.get("items", [])) if isinstance(checklist_summary, dict) else 0,
+                    essential_ratio=None,
+                    tags=tags,
+                    visibility=visibility or "private",
+                    display_version=1,
+                )
+                db.session.add(template)
+
+            db.session.commit()
+            return template
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error saving template: {e}")
+            return None
+
+    @staticmethod
+    def create_share(template: Template):
+        if not template:
+            return None
+        try:
+            # 既存の共有があればそれを使う
+            share = Share.query.filter_by(template_id=template.template_id).first()
+            if share:
+                return share
+
+            share = Share(
+                template_id=template.template_id,
+                issuer_user_id=template.user_id,
+                url_token=str(uuid4()),
+            )
+            db.session.add(share)
+            db.session.commit()
+            return share
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating share: {e}")
+            return None
+
+    @staticmethod
+    def get_share_by_token(token: str):
+        if not token:
+            return None
+        return Share.query.filter_by(url_token=token).first()
+        
+
         
     @staticmethod
     def get_plan_detail(plan_id):

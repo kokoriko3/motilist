@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block title %}共有プラン{% endblock %}
+{% block content %}
+<section class="page-section plan-detail">
+  <article class="plan-detail-card">
+    <div class="plan-detail-card__header">
+      <div>
+        <h1>{{ template.public_title or plan.title if template and plan else 'プラン' }}</h1>
+        {% if plan %}
+        <dl class="plan-detail-summary">
+          <div>
+            <dt>日程</dt>
+            <dd>{{ plan.start_date }}　　{{ plan.days }}日</dd>
+          </div>
+          <div>
+            <dt>交通手段</dt>
+            <dd>{{ plan.transport or '-' }}</dd>
+          </div>
+          <div>
+            <dt>宿泊先</dt>
+            <dd>{{ plan.accommodation or '-' }}</dd>
+          </div>
+        </dl>
+        {% endif %}
+      </div>
+    </div>
+
+    <section class="plan-detail-body">
+      <div class="info-columns">
+        <div>
+          <p class="section-label">説明</p>
+          <p>{{ template.short_note or plan.purpose if template and plan else '-' }}</p>
+        </div>
+        <div>
+          <p class="section-label">共有URL</p>
+          <p>{{ share_url }}</p>
+        </div>
+      </div>
+    </section>
+  </article>
+</section>
+{% endblock %}
