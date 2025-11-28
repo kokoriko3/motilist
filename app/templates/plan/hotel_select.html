@@ -2,38 +2,11 @@
 {% block title %}宿泊先選択{% endblock %}
 {% block content %}
 <section class="stay-shell">
-  <div class="plan-header">
-    <div>
-      <p class="plan-title" data-plan-title="{{ plan.title if plan and plan.title else (plan.destination if plan else 'プラン') }}">
-        {% if plan and plan.destination %}
-          {{ plan.destination }}
-        {% elif plan and plan.title %}
-          {{ plan.title }}
-        {% else %}
-          プラン
-        {% endif %}
-        {% if plan and plan.days %}　{{ (plan.days - 1) if plan.days > 0 else 0 }}泊{{ plan.days }}日{% endif %}
-        <span class="icon-inline" aria-hidden="true">✎</span>
-      </p>
-    </div>
-    <div class="plan-meta">
-      {% if plan and plan.start_date %}
-      <span class="plan-date">{{ plan.start_date }}</span>
-      {% endif %}
-      <button type="button" class="pill-button" data-plan-share-trigger>共有</button>
-      <button type="button" class="pill-button" data-plan-save-trigger>保存</button>
-    </div>
-  </div>
-
-  <div class="plan-tabs">
-    <a href="{{ url_for('plan.plan_transit') }}">交通手段</a>
-    <a class="active">宿泊場所</a>
-    <a href="{{ url_for('plan.schedule_list') }}">スケジュール</a>
-    <a href="{{ url_for('plan.checklist_list') }}">持ち物</a>
-  </div>
+  {% set active_tab = 'stay' %}
+  {% include 'plan/_plan_header_tabs.html' %}
 
   <div class="stay-body">
-    <div class="banner error-banner" data-stay-error hidden>エラーが起きました　時間をおいて再度実行してください</div>
+    <div class="banner error-banner" data-stay-error hidden>エラーが起きました 時間をおいて再度実行してください</div>
 
     <div class="stay-toolbar">
       <div class="support-label">Supported by <span class="rkt">Rakuten Developers</span></div>
@@ -41,35 +14,58 @@
         <span class="sort-icon">📶</span>
         <button type="button" class="sort-button" data-sort-toggle>並び替え</button>
         <div class="sort-menu" data-sort-menu hidden>
-          <button type="button">金額順(昇順)</button>
-          <button type="button">金額順(降順)</button>
-          <button type="button">レビュー順</button>
+          <button type="button" data-sort="price-asc" {% if sort_key == 'price-asc' %}aria-current="true"{% endif %}>金額 昇順</button>
+          <button type="button" data-sort="price-desc" {% if sort_key == 'price-desc' %}aria-current="true"{% endif %}>金額 降順</button>
+          <button type="button" data-sort="review-desc" {% if sort_key == 'review-desc' %}aria-current="true"{% endif %}>レビュー順</button>
         </div>
       </div>
     </div>
 
-    <form action = "{{ url_for('plan.stay_select') }}" method="post">
+    <form action="{{ url_for('plan.stay_select') }}" method="post">
       <div class="stay-list" data-stay-list>
         {% for stay in stay_options %}
-        <article class="stay-card {% if loop.first %}selected{% endif %}" data-stay-id="{{ stay.id }}">
+        <article
+          class="stay-card {% if stay.is_selected %}selected{% endif %}"
+          data-stay-id="{{ stay.id }}"
+          data-price="{{ stay.price if stay.price is not none else "" }}"
+          data-review="{{ stay.review if stay.review is not none else "" }}"
+        >
           <label>
             <input
               type="radio"
               name="hotel_id"
               value="{{ stay.id }}"
-              {% if stay.is_selected or loop.first %}checked{% endif %}
+              {% if stay.is_selected %}checked{% endif %}
             >
             <div class="stay-card__main">
               <p class="stay-name">{{ stay.name }}</p>
-              <p class="stay-price">{{ stay.price }}円～</p>
+              <p class="stay-price">
+                {% if stay.price is not none %}
+                  {{ "{:,}".format(stay.price) }}円〜
+                {% else %}
+                  -
+                {% endif %}
+              </p>
               <p class="stay-address">{{ stay.address }}</p>
             </div>
             <div class="stay-card__meta">
-              <span class="stay-stars">{{ stay.review }}</span>
-              <a class="stay-detail" href="{{ stay.url }}">詳細 ↗</a>
+              <span class="stay-stars">
+                {% if stay.review is not none %}
+                  {{ stay.review }}
+                {% else %}
+                  -
+                {% endif %}
+              </span>
+              {% if stay.url %}
+                <a class="stay-detail" href="{{ stay.url }}" target="_blank" rel="noopener">詳細 ↗</a>
+              {% endif %}
             </div>
             <div class="stay-card__thumb">
-              <img src="{{ stay.image_url }}" alt="{{ stay.name }}">
+              {% if stay.image_url %}
+                <img src="{{ stay.image_url }}" alt="{{ stay.name }}">
+              {% else %}
+                <div class="stay-card__thumb--placeholder">No image</div>
+              {% endif %}
             </div>
           </label>
         </article>
@@ -78,8 +74,12 @@
 
       <div class="stay-footer">
         <button type="button" class="pill-ghost" data-stay-clear>選択しない</button>
-        <div class="pager">
-          <a href="#">1</a> <a href="#">2</a> <a href="#">3</a> <a href="#">4</a> ... <a href="#">20</a>
+        <div class="pager" data-stay-pager>
+          {% if total_pages > 1 %}
+            {% for p in range(1, total_pages + 1) %}
+              <button type="button" class="pager-btn {% if p == page %}pager-current{% endif %}" data-page="{{ p }}">{{ p }}</button>
+            {% endfor %}
+          {% endif %}
         </div>
         <button type="submit" class="cta-primary" data-stay-confirm>確定</button>
       </div>
