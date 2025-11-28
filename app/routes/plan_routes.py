@@ -1,6 +1,7 @@
 import re
 import json
 import os
+import math
 from datetime import datetime, date, timedelta
 from uuid import uuid4
 
@@ -92,93 +93,111 @@ def plan_transit():
 
 @plan_bp.route("/stay/", methods=["GET", "POST"])
 def stay_select():
-    # 共通：どのプランか決める
+    """??????Plan.hotel ???? HotelSnapshot ??????????"""
     plan_id = session.get("plan_id")
     if plan_id is None:
-        flash("プランが指定されていません。", "error")
+        flash("??????????????", "error")
         return redirect(url_for("plan.plan_list"))
-    
-    # ユーザ判定（transit と同じロジックに揃える）
-    if current_user.is_authenticated:
-        user_id = current_user.id
-    else:
-        user_id = session.get("user_id")
 
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
-
-    print("[DEBUG] plan =", plan)
-    print("[DEBUG] plan.hotel =", plan.hotel)
     if not plan:
-        flash("プランが見つかりません。", "warning")
+        flash("????????????", "warning")
         return redirect(url_for("plan.plan_create_form"))
-    
-    # ここから hotel JSON を安全に扱う
-    hotel_json = plan.hotel or {}              # None 対策
-    selected_id = hotel_json.get("selected_id")  # キー未定義対策
 
-    # 宿泊先を確定している場合のルーティング
-    # ★ reselect=1 が付いてない普通の GET のときだけ、自動で confirm に飛ばす
+    hotel_json = plan.hotel or {}
+    selected_id = hotel_json.get("selected_id")
+
+    # ????????????reselect=1 ??????
     reselect = request.args.get("reselect")
+    sort_key = request.args.get("sort")
+    page = request.args.get("page", 1, type=int)
     if request.method == "GET" and selected_id is not None and reselect != "1":
         return redirect(url_for("plan.stay_confirm"))
-    
-    
 
-    print("[DEBUG] method =", request.method)
-    # ---------- POST: 選択確定 & リダイレクト ----------
+    # ---------- POST: ???? ----------
     if request.method == "POST":
-        # form から選択されたホテルIDを受け取る
         selected_id = request.form.get("hotel_id", type=int)
         if selected_id is None:
-            flash("宿泊先が選択されていません。", "error")
+            flash("??????????????", "error")
             return redirect(url_for("plan.stay_select"))
 
         hotel_json = plan.hotel or {}
         candidates = hotel_json.get("candidates", [])
-
-        # JSON の中から選ばれた候補を探す
         selected = next((c for c in candidates if c.get("id") == selected_id), None)
-
-        print("[DEBUG] request.form =", request.form)
-        print("[DEBUG] selected_id =", selected_id)
-        print("[DEBUG] candidates =", candidates)
-        print("[DEBUG] selected =", selected)
         if selected is None:
-            flash("不正な宿泊先が指定されました。", "error")
-            print("不正な宿泊先")
+            flash("???????????????", "error")
             return redirect(url_for("plan.stay_select"))
 
-        # Plan.hotel 側の JSON を更新（どれを選んだか覚えておく）
         hotel_json["selected_id"] = selected_id
-        print(hotel_json)  # 追加
         plan.hotel = hotel_json
-
         db.session.commit()
-        print(plan.hotel) # 追加
-        flash("宿泊先を決定しました！次は日程を確認しましょう。", "success")
-        print("宿泊先の決定")
-        # ★ ここで「選択完了後の処理」へ飛ぶ
-        # 例: スケジュール編集画面
+        flash("????????????????????????", "success")
         return redirect(url_for("plan.stay_confirm"))
 
-    # ---------- GET: 一覧表示 ----------
-    hotel_json = plan.hotel or {}
+    # ---------- GET: ???? ----------
     candidates = hotel_json.get("candidates", [])
-    selected_id = hotel_json.get("selected_id")
+
+    # Plan.hotel ?????????????????????????????
+    if not candidates:
+        snapshots = PlanDBService.get_hotels_by_id(plan_id, user_id=user_id)
+        candidates = []
+        selected_snapshot_id = None
+        for snap in snapshots:
+            try:
+                price_val = int(snap.price) if snap.price not in (None, "", "None") else None
+            except (TypeError, ValueError):
+                price_val = None
+
+            try:
+                review_val = float(snap.review) if snap.review not in (None, "", "None") else None
+            except (TypeError, ValueError):
+                review_val = None
+
+            candidates.append(
+                {
+                    "id": snap.id,  # ????????ID??????
+                    "hotel_no": snap.hotel_no,
+                    "name": snap.name,
+                    "url": snap.url,
+                    "image_url": snap.image_url,
+                    "price": price_val,
+                    "address": snap.address,
+                    "review": review_val,
+                    "is_selected": snap.is_selected,
+                }
+            )
+            if snap.is_selected:
+                selected_snapshot_id = snap.id
+
+        if candidates:
+            hotel_json = {
+                "candidates": candidates,
+                "selected_id": selected_snapshot_id or selected_id,
+            }
+            plan.hotel = hotel_json
+            db.session.commit()
+            selected_id = hotel_json.get("selected_id")
 
     stay_options = []
     for c in candidates:
+        raw_price = c.get("price")
+        try:
+            price_value = int(raw_price) if raw_price not in (None, "", "None") else None
+        except (TypeError, ValueError):
+            price_value = None
+
         raw_review = c.get("review")
         try:
             review_value = float(raw_review) if raw_review not in (None, "", "None") else None
-        except ValueError:
+        except (TypeError, ValueError):
             review_value = None
 
         stay_options.append(
             {
                 "id": c.get("id"),
                 "name": c.get("name"),
-                "price": c.get("price"),
+                "price": price_value,
                 "address": c.get("address"),
                 "url": c.get("url"),
                 "image_url": c.get("image_url"),
@@ -186,7 +205,38 @@ def stay_select():
                 "is_selected": (c.get("id") == selected_id),
             }
         )
-    return render_template("plan/hotel_select.html", plan=plan, stay_options=stay_options)
+
+    # ??????????
+    def safe_price(val, default):
+        return val if val is not None else default
+
+    def safe_review(val):
+        return val if val is not None else float("-inf")
+
+    if sort_key == "price-asc":
+        stay_options.sort(key=lambda s: (safe_price(s["price"], float("inf")), s["id"] or 0))
+    elif sort_key == "price-desc":
+        stay_options.sort(key=lambda s: (safe_price(s["price"], float("-inf")), s["id"] or 0), reverse=True)
+    elif sort_key == "review-desc":
+        stay_options.sort(key=lambda s: (safe_review(s["review"]), s["id"] or 0), reverse=True)
+
+    # ??????5?/????
+    page_size = 5
+    total_pages = max(1, math.ceil(len(stay_options) / page_size)) if stay_options else 1
+    page = max(1, min(page or 1, total_pages))
+    start = (page - 1) * page_size
+    end = start + page_size
+    stay_options_page = stay_options[start:end]
+
+    return render_template(
+        "plan/hotel_select.html",
+        plan=plan,
+        stay_options=stay_options_page,
+        page=page,
+        total_pages=total_pages,
+        sort_key=sort_key,
+    )
+
 
 @plan_bp.route("/stay/confirm", methods=["GET"])
 def stay_confirm():

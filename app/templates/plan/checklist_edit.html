@@ -2,39 +2,15 @@
 {% block title %}持ち物リスト編集{% endblock %}
 {% block content %}
 <section class="plan-shell">
-  <div class="plan-header">
-    <div>
-      <p class="plan-title" data-plan-title="{{ plan.title if plan and plan.title else (plan.destination if plan else 'プラン') }}">
-        {% if plan and plan.destination %}
-          {{ plan.destination }}
-        {% elif plan and plan.title %}
-          {{ plan.title }}
-        {% else %}
-          プラン
-        {% endif %}
-        {% if plan and plan.days %}　{{ (plan.days - 1) if plan.days > 0 else 0 }}泊{{ plan.days }}日{% endif %}
-        <span class="icon-inline" aria-hidden="true">✎</span>
-      </p>
-    </div>
-    <div class="plan-meta">
-      {% if plan and plan.start_date %}
-      <span class="plan-date">{{ plan.start_date }}</span>
-      {% endif %}
-      <button type="button" class="pill-button" data-plan-share-trigger>共有</button>
-      <button type="button" class="pill-button" data-plan-save-trigger>保存</button>
+  {% set active_tab = 'checklist' %}
+  {% include 'plan/_plan_header_tabs.html' %}
+
+  <div class="checklist-body">
+    <div class="panel-header">
       <div class="error-inline" data-checklist-error hidden>保存に失敗しました</div>
       <a class="cta-primary small" href="#" data-checklist-submit name="submit">確定</a>
     </div>
-  </div>
 
-  <div class="plan-tabs">
-    <a href="{{ url_for('plan.plan_transit') }}">交通手段</a>
-    <a href="{{ url_for('plan.stay_select') }}">宿泊場所</a>
-    <a href="{{ url_for('plan.schedule_list') }}">スケジュール</a>
-    <a class="active">持ち物</a>
-  </div>
-
-  <div class="checklist-body">
     <div class="category-grid" data-checklist-list>
       {% for category in categories %}
       <article class="category-card" data-category-id="{{ category.id }}">
