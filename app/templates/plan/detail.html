@@ -7,28 +7,28 @@
     <article class="plan-detail-card">
       <div class="plan-detail-card__header">
         <div>
-          <h1>{{ template.title }}</h1>
+          <h1>{{ plan.title }}</h1>
           <dl class="plan-detail-summary">
             <div>
               <dt>日程</dt>
-              <dd>{{ template.plan.start_date }}　　{{ template.plan.days }}</dd>
+              <dd>{{ plan.start_date }}～　　{{ template_days }}日間</dd>
             </div>
             <div>
               <dt>交通手段</dt>
-              <dd>{{ plan.transport }}</dd>
+              <dd>{{ traffic_methods | join(' / ') }}</dd>
             </div>
             <div>
               <dt>宿泊先</dt>
-              <dd>{{ plan.accommodation }}</dd>
+              <dd>{{ accommodation_label }}</dd>
             </div>
           </dl>
         </div>
         <div class="plan-detail-card__meta">
           <p>{{ meta.created_on }}</p>
           {% if is_owned %}
-            <a class="save-plan-button" href="{{ url_for('plan_edit', plan_id=plan.id) }}">プランを編集</a>
+            <a class="save-plan-button" href="#">プランを編集</a>
           {% else %}
-            <a class="save-plan-button" href="{{ url_for('plan_modals') }}">自分のプランとして保存する</a>
+            <a class="save-plan-button" href="{{ url_for('plan.plan_modals') }}">自分のプランとして保存する</a>
           {% endif %}
         </div>
       </div>
@@ -37,7 +37,7 @@
         <div class="info-columns">
           <div>
             <p class="section-label">宿泊場所</p>
-            <p class="info-bold">{{ plan.accommodation }}</p>
+            <p class="info-bold">{{ accommodation_label }}</p>
             <p>{{ meta.price }}</p>
           </div>
           <div>
@@ -55,29 +55,56 @@
             <p class="section-label">主な持ち物</p>
             <span>アイテム総数{{ meta.items_total }}</span>
           </header>
+
+          {# short_note を全体の説明として出す #}
+          {% if template_note %}
+            <p class="packing-note">
+              {{ template_note }}
+            </p>
+          {% endif %}
           <table class="packing-table">
             <thead>
               <tr>
                 <th>必需品</th>
                 <th>補足品</th>
-                <th>説明</th>
               </tr>
             </thead>
             <tbody>
-              {% for item in packing_details %}
+              {% set essentials = packing_summary.essential or [] %}
+              {% set extras = packing_summary.extra or [] %}
+              {% set row_count = [essentials|length, extras|length] | max %}
+
+              {% for i in range(row_count) %}
+                {% set e = essentials[i] if i < essentials|length else None %}
+                {% set x = extras[i] if i < extras|length else None %}
+
                 <tr>
-                  <td>{{ item.essential }}</td>
-                  <td>{{ item.extra }}</td>
-                  <td>{{ item.note }}</td>
+                  <td>
+                    {% if e %}
+                      {{ e.name }}（{{ e.quantity }}{{ e.unit }}）
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if x %}
+                      {{ x.name }}（{{ x.quantity }}{{ x.unit }}）
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
+
             </tbody>
           </table>
         </section>
       </section>
 
       <div class="detail-card__footer">
-        <button class="cta-button ghost" type="button" onclick="window.location.href='{{ url_for('plan_list') }}'">戻る</button>
+        <button class="cta-button ghost"
+          type="button"
+          data-href="{{ url_for('plan.plan_list') }}"
+          onclick="window.location.href=this.dataset.href">
+          戻る
+        </button>
       </div>
     </article>
   </section>
