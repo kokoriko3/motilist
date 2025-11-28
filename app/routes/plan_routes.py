@@ -1,7 +1,8 @@
 import re
 import json
 import os
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+from uuid import uuid4
 
 # app/routes/plan_routes.py
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app, jsonify
@@ -11,7 +12,7 @@ from flask_login import current_user
 from app.services import ai_service, hotel_service, db_service
 from app.models.user import User
 from app.extensions import db
-from app.models.plan import Plan, TransportSnapshot, HotelSnapshot, Schedule
+from app.models.plan import Plan, TransportSnapshot, HotelSnapshot, Schedule, Template, Share
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
@@ -164,6 +165,7 @@ def plan_transit():
 
     user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
 
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     options = PlanDBService.get_transit_by_id(plan_id, user_id=user_id)
     selected_transit = PlanDBService.get_selected_transit(plan_id, user_id=user_id)
     selected_type = selected_transit.type if selected_transit else None
@@ -186,6 +188,7 @@ def plan_transit():
 
     return render_template(
         "plan/transit.html",
+        plan=plan,
         options=options,
         selected_type=selected_type,
         confirm_target=url_for("plan.stay_select"),
@@ -332,17 +335,27 @@ def stay_confirm():
 
 @plan_bp.route("/schedule", methods=["GET"])
 def schedule_list():
-    plan_id = session["plan_id"]
-    user_id = session["user_id"]
+    plan_id = session.get("plan_id")
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
 
+    if not plan_id or not user_id:
+        flash("プランが指定されていません。最初からやり直してください。", "warning")
+        return redirect(url_for("plan.plan_list"))
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     schedule_obj = PlanDBService.get_schedule_by_id(plan_id,user_id)
+
+    if not plan or not schedule_obj:
+        flash("プラン情報の取得に失敗しました。", "warning")
+        return redirect(url_for("plan.plan_list"))
+
     format_days = []
 
-    data = schedule_obj.daily_plan_json
+    data = schedule_obj.daily_plan_json or []
 
     for day_data in data:
         day_num = day_data.get("day")
-        details = day_data.get("details")
+        details = day_data.get("details", [])
 
         activities = []
         for detail in details:
@@ -361,14 +374,29 @@ def schedule_list():
             "activities": activities 
         })
         
-    # current_app.logger.info(format_days)
-    
-    return render_template("plan/schedule_list.html", days=format_days)
+    duration_label = ""
+    date_range_label = ""
+    try:
+        nights = max(plan.days - 1, 0) if plan.days else 0
+        duration_label = f"{nights}泊{plan.days}日" if plan.days else ""
+        if plan.start_date:
+            end_date = plan.start_date + timedelta(days=max(plan.days - 1, 0) if plan.days else 0)
+            date_range_label = f"{plan.start_date.month}月{plan.start_date.day}日~{end_date.month}月{end_date.day}日"
+    except Exception:
+        pass
+
+    return render_template(
+        "plan/schedule_list.html",
+        days=format_days,
+        plan=plan,
+        duration_label=duration_label,
+        date_range_label=date_range_label
+    )
 
 @plan_bp.route("/schedule/edit", methods=["GET"])
 def schedule_edit():
     plan_id = session.get("plan_id")
-    user_id = session.get("user_id")
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
 
     # 1. 既存のデータを取得 (schedule_listと同じロジック)
     schedule_obj = PlanDBService.get_schedule_by_id(plan_id, user_id)
@@ -377,6 +405,8 @@ def schedule_edit():
     if not schedule_obj:
         flash("スケジュールが見つかりません", "warning")
         return redirect(url_for("plan.schedule_list"))
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
 
     data = schedule_obj.daily_plan_json
     format_days = []
@@ -400,7 +430,7 @@ def schedule_edit():
             "activities": activities
         })
 
-    return render_template("plan/schedule_edit.html", days=format_days)
+    return render_template("plan/schedule_edit.html", days=format_days, plan=plan)
 
 @plan_bp.route("/schedule/update", methods=["POST"])
 def schedule_update():
@@ -427,7 +457,95 @@ def schedule_update():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
-    
+
+@plan_bp.route("/save", methods=["POST"])
+def save_plan_template():
+    plan_id = session.get("plan_id")
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+
+    payload = request.get_json() or {}
+    title = (payload.get("title") or "").strip()
+    description = (payload.get("description") or "").strip()
+    visibility = (payload.get("visibility") or "private").strip() or "private"
+
+    if visibility not in ("public", "private"):
+        visibility = "private"
+
+    if not plan_id or not user_id:
+        return jsonify({"status": "error", "message": "プランが選択されていません。"}), 400
+
+    if not title:
+        return jsonify({"status": "error", "message": "タイトルを入力してください。"}), 400
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    schedule = PlanDBService.get_schedule_by_id(plan_id, user_id)
+
+    if not plan or not schedule:
+        return jsonify({"status": "error", "message": "プラン情報の取得に失敗しました。"}), 404
+
+    template = PlanDBService.save_template(
+        plan=plan,
+        schedule=schedule,
+        title=title,
+        short_note=description,
+        visibility=visibility,
+    )
+
+    if not template:
+        return jsonify({"status": "error", "message": "保存に失敗しました。"}), 500
+
+    return jsonify(
+        {
+            "status": "success",
+            "redirect": url_for("plan.plan_list"),
+        }
+    )
+
+@plan_bp.route("/share", methods=["POST"])
+def share_plan():
+    plan_id = session.get("plan_id")
+    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+
+    if not plan_id or not user_id:
+        return jsonify({"status": "error", "message": "プランが選択されていません。"}), 400
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    schedule = PlanDBService.get_schedule_by_id(plan_id, user_id)
+
+    if not plan or not schedule:
+        return jsonify({"status": "error", "message": "プラン情報の取得に失敗しました。"}), 404
+
+    # テンプレートを生成/更新して公開にする
+    template = PlanDBService.save_template(
+        plan=plan,
+        schedule=schedule,
+        title=plan.title or (plan.destination or "無題のプラン"),
+        short_note=plan.purpose or "",
+        visibility="public",
+    )
+    if not template:
+        return jsonify({"status": "error", "message": "共有URLの生成に失敗しました。"}), 500
+
+    # 共有レコード生成
+    share = PlanDBService.create_share(template)
+    if not share:
+        return jsonify({"status": "error", "message": "共有URLの生成に失敗しました。"}), 500
+
+    share_url = f"{request.host_url.rstrip('/')}{url_for('plan.share_view', token=share.url_token)}"
+
+    return jsonify({"status": "success", "url": share_url})
+
+@plan_bp.route("/share/<token>", methods=["GET"])
+def share_view(token):
+    share = PlanDBService.get_share_by_token(token)
+    if not share:
+        flash("共有リンクが無効です。", "warning")
+        return redirect(url_for("plan.plan_list"))
+
+    template = share.template
+    plan = Plan.query.get(template.plan_id) if template else None
+
+    return render_template("plan/share_view.html", template=template, plan=plan, share_url=request.url)
 
 @plan_bp.route("/checklists", methods=["GET"])
 def checklist_list():
