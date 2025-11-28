@@ -61,6 +61,7 @@
     <footer class="site-footer">
       <small>© 2025 Mochi List. All rights reserved.</small>
     </footer>
+    {% include "plan/_share_modal.html" %}
     <section class="logout-modal" data-logout-modal hidden>
       <div class="logout-modal__backdrop" data-logout-dismiss></div>
       <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
@@ -71,5 +72,6 @@
         </div>
       </div>
     </section>
+    <script defer src="{{ url_for('static', filename='js/plan_save.js') }}"></script>
   </body>
 </html>

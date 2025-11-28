@@ -4,12 +4,24 @@
 <section class="schedule-shell">
   <div class="plan-header">
     <div>
-      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+      <p class="plan-title" data-plan-title="{{ plan.title if plan and plan.title else (plan.destination if plan else 'プラン') }}">
+        {% if plan and plan.destination %}
+          {{ plan.destination }}
+        {% elif plan and plan.title %}
+          {{ plan.title }}
+        {% else %}
+          プラン
+        {% endif %}
+        {% if duration_label %}　{{ duration_label }}{% endif %}
+        <span class="icon-inline" aria-hidden="true">✎</span>
+      </p>
     </div>
     <div class="plan-meta">
-      <span class="plan-date">1月1日~1月3日</span>
+      {% if date_range_label %}
+      <span class="plan-date">{{ date_range_label }}</span>
+      {% endif %}
       <button type="button" class="pill-button">共有</button>
-      <button type="button" class="pill-button">保存</button>
+      <button type="button" class="pill-button" data-plan-save-trigger>保存</button>
     </div>
   </div>
 
@@ -27,18 +39,14 @@
     </div>
 
     <div class="schedule-grid">
-      <!-- 日付ナビゲーション -->
       <div class="day-nav" data-day-nav>
         {% for day in days %}
-        <!-- loop.index == 1 を active に設定 (通常は1日目が初期表示) -->
-        <!-- 【変更】day.id -> day.day -->
         <button type="button" class="day-pill {% if loop.index == 1 %}active{% endif %}" data-day-target="{{ day.day }}">
           {{ day.label }}
         </button>
         {% endfor %}
       </div>
 
-      <!-- スケジュール詳細 -->
       <div class="schedule-table" data-day-container>
         <div class="schedule-header">
           <div class="col-time">時間</div>
@@ -47,10 +55,8 @@
         </div>
         
         {% for day in days %}
-        <!-- 1日目以外は hidden クラスをつける -->
         <div class="schedule-rows {% if loop.index != 1 %}hidden{% endif %}" data-day="{{ day.day }}">
           
-          <!-- 【変更】entries -> activities -->
           {% if day.activities|length == 0 %}
           <div class="schedule-empty">スケジュールが未登録です</div>
           {% else %}
@@ -58,7 +64,6 @@
           {% for activity in day.activities %}
           <div class="schedule-row">
             <div class="col-time">{{ activity.time }}</div>
-            <!-- 【変更】place -> title -->
             <div class="col-place">{{ activity.title }}</div>
             <div class="col-note">{{ activity.note }}</div>
           </div>

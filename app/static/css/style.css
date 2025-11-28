@@ -1436,18 +1436,26 @@ body.split-body .page-content {
 .radio-pill {
   border: 1px solid #999;
   border-radius: 999px;
-  padding: 8px 18px;
+  padding: 12px 18px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 10px;
+  min-width: 140px;
+  line-height: 1.2;
 }
 
 .radio-pill input {
   accent-color: #4c1d95;
+  margin: 0;
 }
 
 .radio-pill.is-active {
   border-color: #4c1d95;
+}
+
+.radio-pill span {
+  white-space: nowrap;
 }
 
 .modal-card__actions {
@@ -1461,6 +1469,117 @@ body.split-body .page-content {
 
 .modal-overlay--message {
   background: rgba(64, 64, 64, 0.8);
+}
+
+.save-plan-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  background: rgba(0, 0, 0, 0.55);
+  margin: 0;
+  border-radius: 0;
+  z-index: 90;
+}
+
+.save-plan-modal[hidden] {
+  display: none;
+}
+
+.save-plan-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-width: 780px;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.18);
+  background: #fff;
+  border: 1px solid #f1f1f1;
+  padding: 28px;
+  gap: 20px;
+}
+
+.save-plan-card .modal-back {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: #1d4ed8;
+}
+
+.save-plan-card input,
+.save-plan-card textarea {
+  width: 100%;
+}
+
+.save-plan-card .modal-card__actions {
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.save-plan-card h2 {
+  margin: 0;
+}
+
+.save-plan-card textarea {
+  min-height: 92px;
+}
+
+.save-plan-card .radio-pill-options {
+  gap: 16px;
+}
+
+.save-plan-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 10px 14px;
+}
+
+.save-plan-eyebrow {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.save-plan-title {
+  margin: 2px 0 6px;
+}
+
+.save-plan-sub {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.save-plan-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.save-plan-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.save-plan-field > span {
+  font-weight: 600;
+}
+
+.radio-pill-options.stretched {
+  width: 100%;
+}
+
+.radio-pill-options.stretched .radio-pill {
+  flex: 1;
+  justify-content: center;
+}
+
+.save-plan-actions {
+  padding-top: 6px;
 }
 
 .logout-modal {

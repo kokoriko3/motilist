@@ -4,12 +4,24 @@
 <section class="plan-shell">
   <div class="plan-header">
     <div>
-      <p class="plan-title">福岡　2泊3日 <span class="icon-inline">✎</span></p>
+      <p class="plan-title" data-plan-title="{{ plan.title if plan and plan.title else (plan.destination if plan else 'プラン') }}">
+        {% if plan and plan.destination %}
+          {{ plan.destination }}
+        {% elif plan and plan.title %}
+          {{ plan.title }}
+        {% else %}
+          プラン
+        {% endif %}
+        {% if plan and plan.days %}　{{ (plan.days - 1) if plan.days > 0 else 0 }}泊{{ plan.days }}日{% endif %}
+        <span class="icon-inline" aria-hidden="true">✎</span>
+      </p>
     </div>
     <div class="plan-meta">
-      <span class="plan-date">1月1日~1月3日</span>
+      {% if plan and plan.start_date %}
+      <span class="plan-date">{{ plan.start_date }}</span>
+      {% endif %}
       <button type="button" class="pill-button">共有</button>
-      <button type="button" class="pill-button">保存</button>
+      <button type="button" class="pill-button" data-plan-save-trigger>保存</button>
       <div class="error-inline" data-checklist-error hidden>保存に失敗しました</div>
       <a class="cta-primary small" href="#" data-checklist-submit name="submit">確定</a>
     </div>
@@ -32,7 +44,7 @@
           <div class="edit-row" data-item-row>
             <input name="item_form" type="text" value="{{ item.name }}" placeholder="追加..." />
             <div class="row-right">
-              <input name="num_from" type="text" value="{{ item.quantity }}" placeholder="数量:入力" />
+              <input name="num_from" type="text" value="{{ item.quantity }}" placeholder="数量を入力" />
               <button type="button" name="delete" class="icon-button" data-item-delete aria-label="削除">🗑</button>
             </div>
           </div>
@@ -43,7 +55,7 @@
       {% endfor %}
     </div>
     <div class="footer-actions">
-      <button type="button" name="item_append" class="secondary-button" data-item-add-global>アイテム追加</button>
+      <button type="button" name="item_append" class="secondary-button" data-item-add-global>アイテムを追加</button>
     </div>
   </div>
 </section>
