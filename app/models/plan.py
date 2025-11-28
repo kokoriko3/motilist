@@ -28,6 +28,8 @@ class Plan(db.Model):
 
     # リレーション
     user = db.relationship("User", back_populates="plans")
+    # ★これを追加
+    templates = db.relationship("Template", back_populates="plan", cascade="all, delete-orphan")
     
     transport_candidates = db.relationship('TransportSnapshot', backref='plan', lazy=True, cascade="all, delete-orphan")
     schedules = db.relationship('Schedule', backref='plan', lazy=True, cascade="all, delete-orphan")
@@ -48,6 +50,7 @@ class Template(db.Model):
 
     # アプリ仕様上のリンク（プランからテンプレート化する場合用）
     plan_id = db.Column(db.Integer, db.ForeignKey('plans.id'), nullable=False)
+    plan = db.relationship("Plan", back_populates="templates")
 
     # 定義書 No.3: publicTitle
     public_title = db.Column(db.String(255), nullable=False)
