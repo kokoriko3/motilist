@@ -85,7 +85,7 @@ def register_complete():
     return render_template("auth/register_complete.html")
 
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=["GET"])
 def logout():
     """
     ログアウト処理
