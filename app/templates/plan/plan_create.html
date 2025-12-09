@@ -32,7 +32,6 @@
             <label class="pill-radio">
               <input type="radio" name="departure_mode" value="current" checked>
               <span class="radio-visual"></span>
-              <span>現在地</span>
             </label>
             <label class="pill-radio">
               <input type="radio" name="departure_mode" value="custom">
@@ -118,13 +117,22 @@
   </div>
 </div>
 
+<!-- ローディングオーバーレイ -->
+<div id="loading-overlay" class="loading-overlay" hidden>
+  <div class="spinner-container">
+    <div class="spinner"></div>
+    <p class="loading-text">最高のプランを考えています...<br><span class="sub-text">※最大30秒ほどかかる場合があります☕️</span></p>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // --- 既存のJS処理 ---
   const input = document.querySelector('[data-purpose-input]');
   const list = document.querySelector('[data-purpose-list]');
   const hidden = document.querySelector('[data-purpose-hidden]');
   const departureInput = document.querySelector('[data-departure-input]');
-  const departureRadios = document.querySelectorAll('input[name=\"departure_mode\"]');
+  const departureRadios = document.querySelectorAll('input[name="departure_mode"]');
 
   let values = hidden.value ? hidden.value.split(',').map(s => s.trim()).filter(s => s) : [];
 
@@ -192,218 +200,316 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!departureInput) return 'current';
     return departureInput.value && departureInput.value !== '現在地' ? 'custom' : 'current';
   })();
-  const initialRadio = document.querySelector(`input[name=\"departure_mode\"][value=\"${initialMode}\"]`);
+  const initialRadio = document.querySelector(`input[name="departure_mode"][value="${initialMode}"]`);
   if (initialRadio) {
     initialRadio.checked = true;
   }
 
   updateDepartureMode(initialMode, true);
   render();
+
+  // --- ローディング処理の追加 ---
+  const form = document.querySelector('.modern-plan-form');
+  const loadingOverlay = document.getElementById('loading-overlay');
+  const submitBtn = document.querySelector('.submit-btn');
+
+  if (form && loadingOverlay) {
+    form.addEventListener('submit', (e) => {
+      // バリデーションチェック（required属性などが満たされているか）
+      if (!form.checkValidity()) {
+        // バリデーションエラー時はローディングを出さない（ブラウザのデフォルト挙動に任せる）
+        return;
+      }
+      
+      // 送信ボタンを無効化して二重送信防止
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+
+      // ローディング画面を表示
+      loadingOverlay.hidden = false;
+      
+      // アニメーション用クラス付与
+      setTimeout(() => {
+        loadingOverlay.classList.add('active');
+      }, 10);
+    });
+
+    // ページ遷移して戻ってきた場合（bfcache対策）などに備えて表示をリセット
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) {
+        loadingOverlay.hidden = true;
+        loadingOverlay.classList.remove('active');
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
 });
 </script>
 
 <style>
+/* 既存スタイル */
 .plan-create-shell {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 36px 28px 78px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 28px 78px;
 }
 .plan-create-card {
-    width: 100%;
-    max-width: 980px;
-    margin: 0 auto;
-    background: transparent;
-    padding: 0;
-    border: none;
-    box-shadow: none;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 .page-top {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    margin-bottom: 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 .page-top h1 {
-    font-size: 22px;
-    font-weight: 700;
-    margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
 }
 .required-note {
-    color: #d32f2f;
-    font-size: 14px;
+  color: #d32f2f;
+  font-size: 14px;
 }
 .modern-plan-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 980px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 980px;
 }
 .field-block {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .field-block.required .field-label::before {
-    content: '※';
-    color: #d32f2f;
-    margin-right: 6px;
+  content: '※';
+  color: #d32f2f;
+  margin-right: 6px;
 }
 .field-label {
-    font-weight: 600;
-    font-size: 15px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .form-input {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1.4px solid #3d3d3d;
-    border-radius: 14px;
-    font-size: 15px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.4px solid #3d3d3d;
+  border-radius: 14px;
+  font-size: 15px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .form-input:focus {
-    outline: none;
-    border-color: #7068f8;
-    box-shadow: 0 0 0 3px rgba(112, 104, 248, 0.15);
+  outline: none;
+  border-color: #7068f8;
+  box-shadow: 0 0 0 3px rgba(112, 104, 248, 0.15);
 }
 .form-input.readonly {
-    background: #fafafa;
-    color: #555;
+  background: #fafafa;
+  color: #555;
 }
 .origin-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 .pill-radio {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border: 1.4px solid #3d3d3d;
-    border-radius: 18px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1.4px solid #3d3d3d;
+  border-radius: 18px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
 }
 .pill-radio input {
-    display: none;
+  display: none;
 }
 .departure-row {
-    display: grid;
-    gap: 10px;
+  display: grid;
+  gap: 10px;
 }
 .departure-input-wrap {
-    width: 100%;
+  width: 100%;
 }
 @media (min-width: 720px) {
-    .departure-row {
-        grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1fr);
-        align-items: center;
-        gap: 16px;
-    }
-    .origin-row {
-        flex-wrap: nowrap;
-    }
+  .departure-row {
+    grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1fr);
+    align-items: center;
+    gap: 16px;
+  }
+  .origin-row {
+    flex-wrap: nowrap;
+  }
 }
 .radio-visual {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1.4px solid #3d3d3d;
-    display: inline-block;
-    position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.4px solid #3d3d3d;
+  display: inline-block;
+  position: relative;
 }
 .pill-radio input:checked + .radio-visual {
-    border-color: #7068f8;
-    box-shadow: inset 0 0 0 6px #7068f8;
+  border-color: #7068f8;
+  box-shadow: inset 0 0 0 6px #7068f8;
 }
 .two-col {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
 }
 .purpose-input {
-    margin-bottom: 4px;
+  margin-bottom: 4px;
 }
 .chip-list {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 16px;
-    background: #dfe0e6;
-    color: #333;
-    font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: #dfe0e6;
+  color: #333;
+  font-size: 14px;
 }
 .chip-remove {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1;
-    color: #333;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: #333;
 }
 .option-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
 }
 .option-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border: 1.4px solid #3d3d3d;
-    border-radius: 14px;
-    font-size: 14px;
-    cursor: pointer;
-    user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1.4px solid #3d3d3d;
+  border-radius: 14px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
 }
 .option-chip input[type="checkbox"] {
-    accent-color: #7068f8;
-    width: 16px;
-    height: 16px;
+  accent-color: #7068f8;
+  width: 16px;
+  height: 16px;
 }
 .option-text {
-    line-height: 1.3;
+  line-height: 1.3;
 }
 .form-actions {
-    margin-top: 14px;
+  margin-top: 14px;
 }
 .submit-btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 16px;
-    background: linear-gradient(90deg, #7068f8, #7a8bff);
-    color: #fff;
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 6px 14px rgba(112, 104, 248, 0.25);
-    transition: transform 0.1s ease, box-shadow 0.15s ease;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #7068f8, #7a8bff);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(112, 104, 248, 0.25);
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
 }
 .submit-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(112, 104, 248, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(112, 104, 248, 0.35);
 }
 .submit-btn:active {
-    transform: translateY(0);
+  transform: translateY(0);
+}
+.submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 .error-messages {
-    list-style: none;
-    padding: 0;
-    margin: 4px 0 0;
-    color: #d32f2f;
-    font-size: 13px;
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  color: #d32f2f;
+  font-size: 13px;
+}
+
+/* --- ローディングオーバーレイのスタイル --- */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.loading-overlay:not([hidden]) {
+  opacity: 1;
+  pointer-events: auto;
+}
+.spinner-container {
+  text-align: center;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.spinner {
+  width: 64px;
+  height: 64px;
+  border: 6px solid #f0f0f0;
+  border-top: 6px solid #7068f8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+.loading-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+  line-height: 1.5;
+}
+.sub-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: normal;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
 {% endblock %}
