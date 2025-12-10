@@ -816,11 +816,33 @@ def plan_detail(template_id):
         flash("指定されたプランは存在しません。", "error")
         return redirect(url_for("plan.plan_list"))
 
-    # 紐づく Plan を取得
-    plan = PlanDBService.get_plan_by_id(template.plan_id, user_id)
+    # --- 可視性に応じて Plan の取得方法を切り替える ---
+    is_owned = False  # デフォルトは他人所有
+    plan = None
+
+    if template.visibility == "public":
+        plan = Plan.query.get(template.plan_id)
+        if user_id and plan:
+             is_owned = (plan.user_id == user_id)
+    
+    # public でない場合、または public だが上記で plan が取れなかった場合
     if not plan:
-        print(f"紐づくプランが存在しません: plan_id={template.plan_id}, user_id={user_id}")
-        flash("指定されたプランは存在しません。", "error")
+        # ログイン済み or ゲストセッションがあるかチェック
+        if not user_id:
+            # ログインを促すページにリダイレクト
+            flash("このプランを閲覧するにはログインが必要です。", "info")
+            # sessionに遷移先を保存
+            session['next_url'] = url_for('plan.plan_detail', template_id=template_id)
+            return redirect(url_for("auth.login_form"))
+        
+        # 自分自身のプランとして取得を試みる
+        plan = PlanDBService.get_plan_by_id(template.plan_id, user_id)
+        if plan:
+            is_owned = True
+
+    if not plan:
+        print(f"権限がないか、紐づくプランが存在しません: plan_id={template.plan_id}, user_id={user_id}")
+        flash("指定されたプランを閲覧する権限がありません。", "error")
         return redirect(url_for("plan.plan_list"))
 
     # 日数（Template 優先、なければ Plan.days）
@@ -887,10 +909,6 @@ def plan_detail(template_id):
                 stay_locations.append(place)
     stay_locations = list(dict.fromkeys(stay_locations))
 
-    # 自分のプランかどうか
-    is_owned = (plan.user_id == user_id)
-
-
     return render_template(
         "plan/detail.html",
         plan=plan,
@@ -905,6 +923,46 @@ def plan_detail(template_id):
         template_id=template_id,  # 必要なら渡しておく
     )
 
+# ----------------------------------------
+# 他人のプランをコピーして保存するルート
+# ----------------------------------------
+# HTMLのリンク(<a>)から呼ばれるため、GETメソッドを許可する必要があります
+@plan_bp.route("/plan_modals/<int:plan_id>", methods=["GET", "POST"])
+def plan_modals(plan_id):
+    # ユーザーIDの取得
+    if current_user.is_authenticated:
+        user_id = current_user.id
+    else:
+        user_id = session.get("user_id")
+    
+    if not user_id:
+        flash("ユーザー認証が切れています。再度ログインしてください。", "warning")
+        return redirect(url_for("auth.login"))
+
+    # サービス層の copy_plan を呼び出す
+    new_plan_id = PlanDBService.copy_plan(plan_id, user_id)
+
+    if new_plan_id:
+        flash("プランを自分のプランとして保存しました！", "success")
+        # 新しく作ったプランを操作対象にするためセッションを更新
+        session["plan_id"] = new_plan_id
+    else:
+        flash("プランの保存に失敗しました。", "danger")
+
+    return redirect(url_for("plan.plan_list"))
+
+
+# ----------------------------------------
+# 自分のプランを編集モードで開くルート
+# ----------------------------------------
+# HTMLのリンク(<a>)から呼ばれるため、GETメソッドに変更します
+@plan_bp.route("/plan/edit/<int:plan_id>", methods=["GET"])
+def plan_edit(plan_id):
+    # 編集対象のプランIDをセッションにセット
+    session["plan_id"] = plan_id
+    
+    # 交通手段選択画面（編集フローの最初）へリダイレクト
+    return redirect(url_for("plan.plan_transit"))
 # ----------------------------------------
 #  プラン作成画面（AIに生成依頼）
 # ----------------------------------------
@@ -1121,3 +1179,4 @@ def create_dummy_plan():
         traceback.print_exc()
         flash(f"ダミー作成エラー: {e}", "danger")
         return redirect(url_for("plan.plan_create_form"))
+    

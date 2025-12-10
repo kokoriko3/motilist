@@ -72,6 +72,8 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
+        session["user_id"] = form.email.data
+
         # 完了画面へリダイレクト
         return redirect(url_for("auth.register_complete"))
 

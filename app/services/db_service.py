@@ -52,13 +52,13 @@ class PlanDBService:
     @staticmethod
     def get_plan_by_id(plan_id, user_id):
         if user_id is None:
-            user_id = current_user.id
+            return Plan.query.filter_by(id=plan_id).first()
         return Plan.query.filter_by(id=plan_id, user_id=user_id).first()
     
     @staticmethod
     def get_schedule_by_id(plan_id, user_id=None):
         if user_id is None:
-            user_id = current_user.id
+            return Schedule.query.filter(Schedule.plan_id == plan_id).first()
         if not user_id:
             return []
         return Schedule.query.join(Plan).filter(
@@ -484,3 +484,137 @@ class PlanDBService:
     def get_checklist_item_by_id(checklist_id):
         checklistItem = ChecklistItem.query.filter_by(checklist_id=checklist_id).all()
         return checklistItem
+    @staticmethod
+    def copy_plan(plan_id, user_id):
+        # 1. 元のプランを取得
+        source_plan = Plan.query.get(plan_id)
+        if not source_plan:
+            return None
+
+        try:
+            # 2. プラン本体の複製
+            new_title = f"{source_plan.title} のコピー"
+            
+            new_plan = Plan(
+                user_id=user_id,
+                destination=source_plan.destination,
+                departure=source_plan.departure,
+                start_date=source_plan.start_date,
+                days=source_plan.days,
+                purpose=source_plan.purpose,
+                options=source_plan.options,
+                title=new_title,
+                hotel=source_plan.hotel,     # JSONデータもコピー
+                transit=source_plan.transit  # JSONデータもコピー
+            )
+            db.session.add(new_plan)
+            db.session.flush() # new_plan.id を確定させる
+
+            # 3. スケジュールの複製
+            source_schedule = Schedule.query.filter_by(plan_id=plan_id).first()
+            if source_schedule:
+                new_schedule = Schedule(
+                    plan_id=new_plan.id,
+                    daily_plan_json=source_schedule.daily_plan_json
+                )
+                db.session.add(new_schedule)
+
+            # 4. 交通手段候補の複製
+            source_transports = TransportSnapshot.query.filter_by(plan_id=plan_id).all()
+            for t in source_transports:
+                new_transport = TransportSnapshot(
+                    plan_id=new_plan.id,
+                    type=t.type,
+                    transport_method=t.transport_method,
+                    cost=t.cost,
+                    duration=t.duration,
+                    transit_count=t.transit_count,
+                    departure_time=t.departure_time,
+                    arrival_time=t.arrival_time,
+                    is_selected=t.is_selected
+                )
+                db.session.add(new_transport)
+
+            # 5. 宿泊先候補の複製
+            source_hotels = HotelSnapshot.query.filter_by(plan_id=plan_id).all()
+            for h in source_hotels:
+                new_hotel = HotelSnapshot(
+                    plan_id=new_plan.id,
+                    hotel_no=h.hotel_no,
+                    name=h.name,
+                    url=h.url,
+                    image_url=h.image_url,
+                    price=h.price,
+                    address=h.address,
+                    review=h.review,
+                    is_selected=h.is_selected
+                )
+                db.session.add(new_hotel)
+
+            # 6. チェックリストの複製
+            source_checklist = Checklist.query.filter_by(plan_id=plan_id).first()
+            
+            if source_checklist:
+                # チェックリスト本体
+                new_checklist = Checklist(
+                    plan_id=new_plan.id,
+                    title=source_checklist.title,
+                    status="draft",
+                    memo=source_checklist.memo
+                )
+                db.session.add(new_checklist)
+                db.session.flush() # ID確定
+
+                # アイテム詳細
+                source_items = ChecklistItem.query.filter_by(
+                    checklist_id=source_checklist.checklist_id, 
+                    is_deleted=False
+                ).all()
+
+                for item in source_items:
+                    new_item = ChecklistItem(
+                        checklist_id=new_checklist.checklist_id,
+                        item_id=item.item_id,
+                        category_id=item.category_id,
+                        quantity=item.quantity,
+                        is_required=item.is_required,
+                        reason_list_json=item.reason_list_json,
+                        memo=item.memo,
+                        is_checked=False, # チェック状態はリセット
+                        is_crowned=item.is_crowned,
+                        sort_order=item.sort_order,
+                        is_deleted=False
+                    )
+                    db.session.add(new_item)
+
+            # 7. テンプレートの複製（★追加部分）
+            source_template = Template.query.filter_by(plan_id=plan_id).first()
+            if source_template:
+                new_template_title = f"{source_template.public_title} のコピー"
+                
+                new_template = Template(
+                    user_id=user_id,
+                    plan_id=new_plan.id,
+                    public_title=new_template_title,
+                    short_note=source_template.short_note,
+                    itinerary_outline_json=source_template.itinerary_outline_json,
+                    checklist_summary_json=source_template.checklist_summary_json,
+                    days=source_template.days,
+                    items_count=source_template.items_count,
+                    essential_ratio=source_template.essential_ratio,
+                    tags=source_template.tags,
+                    visibility="private", # コピー後は非公開に戻す
+                    display_version=1     # バージョンリセット
+                )
+                db.session.add(new_template)
+                # Share（共有URL）はコピーしません（新規発行が必要なため）
+
+            db.session.commit()
+            return new_plan.id
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error copying plan: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
