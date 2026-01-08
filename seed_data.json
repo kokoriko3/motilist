@@ -1,624 +1,359 @@
 {
   "users": [
     {
-      "user_id": 1,
-      "anonymous_id": null,
-      "display_name": "たろう",
-      "email": "9011.pikun@gmail.com",
-      "passwordHash": "$2b$12$FiCGrWfX5IKTBp78wbMrWerHwMNan4v0fYkylFJ.RVLQezRnkWuqC",
-      "created_at": "2025-11-25T05:32:35.940924",
-      "updated_at": "2025-11-25T05:32:35.940924"
+      "user_id": 3,
+      "anonymous_id": "anon-123",
+      "display_name": "デモユーザー",
+      "email": "demo@example.com",
+      "passwordHash": "$2b$12$BEaSJCrHxghOT.o./nJYnOGPSfxNTKD6PQDohSzi4U7Rr4hZicBMu",
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
     }
   ],
   "plans": [
     {
-      "id": 10,
-      "user_id": 1,
-      "title": "札幌 4日間 贅沢アクティブ探訪：美食と雄大な自然を満喫する旅",
-      "destination": "札幌",
-      "departure": "横浜",
-      "start_date": "2025-11-25",
-      "days": 4,
+      "id": 4,
+      "user_id": 3,
+      "title": "大阪1泊2日プラン",
+      "destination": "大阪",
+      "departure": "東京",
+      "start_date": "2025-03-01",
+      "days": 2,
       "companion_count": 1,
-      "purpose": "観光,レジャー",
-      "options": [
-        "ちょっと贅沢",
-        "アクティブ"
-      ],
+      "purpose": "観光 (1泊2日の関西旅行)",
+      "options": {
+        "budget": "normal"
+      },
       "transit": null,
       "hotel": {
-            "candidates": [
-                {
-                    "id": 1,
-                    "hotel_no": "196705",
-                    "name": "コンフォートホテルＥＲＡ札幌北口",
-                    "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=196705",
-                    "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/196705/196705.jpg",
-                    "price": 7400,
-                    "address": "北海道札幌市北区北七条西5-17-1",
-                    "review": "4.2"
-                },
-                {
-                    "id": 2,
-                    "hotel_no": "762",
-                    "name": "札幌グランドホテル",
-                    "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=762",
-                    "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/762/762.jpg",
-                    "price": 5525,
-                    "address": "北海道札幌市中央区北1条西4丁目",
-                    "review": "4.41"
-                }
-            ],
-            "selected_id": null
-        },
-      "created_at": "2025-11-25T07:40:30.530746",
-      "updated_at": "2025-11-25T07:40:30.530758"
+        "candidates": [
+          {
+            "id": 1,
+            "hotel_no": "196705",
+            "name": "コンフォートホテルＥＲＡ札幌北口",
+            "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=196705",
+            "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/196705/196705.jpg",
+            "price": 7400,
+            "address": "北海道札幌市北区北七条西5-17-1",
+            "review": "4.2"
+          },
+          {
+            "id": 2,
+            "hotel_no": "762",
+            "name": "札幌グランドホテル",
+            "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=762",
+            "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/762/762.jpg",
+            "price": 5525,
+            "address": "北海道札幌市中央区北1条西4丁目",
+            "review": "4.41"
+          }
+        ],
+        "selected_id": null
+      },
+      "created_at": "2026-01-08T00:51:15.577776",
+      "updated_at": "2026-01-08T00:51:15.577789"
     }
   ],
   "transport_snapshots": [
     {
-      "id": 37,
-      "plan_id": 10,
-      "type": "価格重視",
-      "transport_method": "LCC（成田/羽田-新千歳）+ 電車",
-      "cost": 15000,
-      "duration": 360,
-      "transit_count": 3,
-      "departure_time": "07:00",
-      "arrival_time": "13:00",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.561331"
-    },
-    {
-      "id": 38,
-      "plan_id": 10,
-      "type": "速度重視",
-      "transport_method": "ANA/JAL（羽田-新千歳）+ 電車",
-      "cost": 35000,
-      "duration": 210,
-      "transit_count": 3,
+      "id": 13,
+      "plan_id": 4,
+      "type": "train",
+      "transport_method": "新幹線（東京→新大阪）",
+      "cost": 14000,
+      "duration": 160,
+      "transit_count": 0,
       "departure_time": "08:00",
-      "arrival_time": "11:30",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.561341"
-    },
-    {
-      "id": 39,
-      "plan_id": 10,
-      "type": "おすすめ",
-      "transport_method": "ANA/JAL 割引運賃（羽田-新千歳）+ 電車",
-      "cost": 25000,
-      "duration": 240,
-      "transit_count": 3,
-      "departure_time": "09:00",
-      "arrival_time": "13:00",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.561344"
-    },
-    {
-      "id": 40,
-      "plan_id": 10,
-      "type": "車利用",
-      "transport_method": "自家用車 (横浜-苫小牧フェリー利用)",
-      "cost": 40000,
-      "duration": 1200,
-      "transit_count": null,
-      "departure_time": null,
-      "arrival_time": null,
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.561346"
+      "arrival_time": "10:40",
+      "is_selected": true,
+      "created_at": "2026-01-08T00:51:15.657719"
     }
   ],
   "hotel_snapshots": [
     {
-      "id": 61,
-      "plan_id": 10,
-      "hotel_no": "196705",
-      "name": "コンフォートホテルＥＲＡ札幌北口（２０２５年１２月１８日開業）",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=196705",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/196705/196705.jpg",
-      "price": 7400,
-      "address": "北海道札幌市北区北七条西5-17-1",
-      "review": "None",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822706"
-    },
-    {
-      "id": 62,
-      "plan_id": 10,
-      "hotel_no": "762",
-      "name": "札幌グランドホテル",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=762",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/762/762.jpg",
-      "price": 5525,
-      "address": "北海道札幌市中央区北1条西4丁目",
-      "review": "4.41",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822717"
-    },
-    {
-      "id": 63,
-      "plan_id": 10,
-      "hotel_no": "67259",
-      "name": "クロスホテル札幌（オリックスホテルズ＆リゾーツ）",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=67259",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/67259/67259.jpg",
-      "price": 5600,
-      "address": "北海道札幌市中央区北2条西2-23",
-      "review": "4.41",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822719"
-    },
-    {
-      "id": 64,
-      "plan_id": 10,
-      "hotel_no": "139991",
-      "name": "ベッセルイン札幌中島公園（すすきの徒歩圏内）",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=139991",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/139991/139991.jpg",
-      "price": 3900,
-      "address": "北海道札幌市中央区南九条西4丁目1-2",
-      "review": "4.56",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822721"
-    },
-    {
-      "id": 65,
-      "plan_id": 10,
-      "hotel_no": "172398",
-      "name": "ベッセルホテルカンパーナすすきの｜サウナ付大浴場（札幌・すすきの）",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=172398",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/172398/172398.jpg",
-      "price": 5650,
-      "address": "北海道札幌市中央区南五条西6-16-1",
-      "review": "4.49",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822724"
-    },
-    {
-      "id": 66,
-      "plan_id": 10,
-      "hotel_no": "1430",
-      "name": "札幌ビューホテル大通公園",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=1430",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/1430/1430.jpg",
-      "price": 3995,
-      "address": "北海道札幌市中央区大通西8丁目",
-      "review": "4.41",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822726"
-    },
-    {
-      "id": 67,
-      "plan_id": 10,
-      "hotel_no": "179085",
-      "name": "ＪＲイン札幌北２条",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=179085",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/179085/179085.jpg",
-      "price": 4100,
-      "address": "北海道札幌市中央区北2条西2丁目8番地1",
-      "review": "4.49",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822728"
-    },
-    {
-      "id": 68,
-      "plan_id": 10,
-      "hotel_no": "163",
-      "name": "ニューオータニイン札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=163",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/163/163.jpg",
-      "price": 3330,
-      "address": "北海道札幌市中央区北2条西1丁目1-1",
-      "review": "4.16",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822731"
-    },
-    {
-      "id": 69,
-      "plan_id": 10,
-      "hotel_no": "184249",
-      "name": "相鉄フレッサイン　札幌すすきの",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=184249",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/184249/184249.jpg",
-      "price": 4080,
-      "address": "北海道札幌市中央区南五条西2-6-1",
-      "review": "4",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822733"
-    },
-    {
-      "id": 70,
-      "plan_id": 10,
-      "hotel_no": "625",
-      "name": "ホテルマイステイズ札幌アスペン",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=625",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/625/625.jpg",
-      "price": 4347,
-      "address": "北海道札幌市北区北８条西４丁目５番地",
-      "review": "4.21",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822735"
-    },
-    {
-      "id": 71,
-      "plan_id": 10,
-      "hotel_no": "160923",
-      "name": "ホテルネッツ札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=160923",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/160923/160923.jpg",
-      "price": 4070,
-      "address": "北海道札幌市中央区南7条西4丁目2-1",
-      "review": "4.27",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822737"
-    },
-    {
-      "id": 72,
-      "plan_id": 10,
-      "hotel_no": "19546",
-      "name": "ホテルルートイン札幌北四条",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=19546",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/19546/19546.jpg",
-      "price": 5025,
-      "address": "北海道札幌市中央区北4条西13-1-53",
-      "review": "3.77",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822739"
-    },
-    {
-      "id": 73,
-      "plan_id": 10,
-      "hotel_no": "167979",
-      "name": "東急ステイ札幌大通",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=167979",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/167979/167979.jpg",
-      "price": 5920,
-      "address": "北海道札幌市中央区南2条西5-26-2",
-      "review": "4.62",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822741"
-    },
-    {
-      "id": 74,
-      "plan_id": 10,
-      "hotel_no": "188716",
-      "name": "ｔｈｅ　ｂ　札幌（ザビー　さっぽろ）",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=188716",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/188716/188716.jpg",
-      "price": 4250,
-      "address": "北海道札幌市中央区南3条西2-17-17",
-      "review": "4.56",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822743"
-    },
-    {
-      "id": 75,
-      "plan_id": 10,
-      "hotel_no": "182561",
-      "name": "京急ＥＸホテル札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=182561",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/182561/182561.jpg",
-      "price": 5950,
-      "address": "北海道札幌市北区北6条西4丁目2-6",
-      "review": "4.59",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822745"
-    },
-    {
-      "id": 76,
-      "plan_id": 10,
-      "hotel_no": "193304",
-      "name": "札幌ホテルｂｙグランベル",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=193304",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/193304/193304.jpg",
-      "price": 6080,
-      "address": "北海道札幌市東区北6条東2-2-2",
-      "review": "3.73",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822747"
-    },
-    {
-      "id": 77,
-      "plan_id": 10,
-      "hotel_no": "70234",
-      "name": "ホテルリソルトリニティ札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=70234",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/70234/70234.jpg",
-      "price": 6000,
-      "address": "北海道札幌市中央区大通西5丁目3",
-      "review": "4.47",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822749"
-    },
-    {
-      "id": 78,
-      "plan_id": 10,
-      "hotel_no": "10888",
-      "name": "リッチモンドホテル札幌大通",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=10888",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/10888/10888.jpg",
-      "price": 4250,
-      "address": "北海道札幌市中央区南二条西4-4-1",
-      "review": "4.38",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822751"
-    },
-    {
-      "id": 79,
-      "plan_id": 10,
-      "hotel_no": "410",
-      "name": "クインテッサホテル札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=410",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/410/410.jpg",
-      "price": 3060,
-      "address": "北海道札幌市中央区南8条西5丁目",
-      "review": "4.23",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822753"
-    },
-    {
-      "id": 80,
-      "plan_id": 10,
-      "hotel_no": "167676",
-      "name": "札幌ファンゲートホテル（旧　ホテルラフィナート札幌）",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=167676",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/167676/167676.jpg",
-      "price": 2900,
-      "address": "北海道札幌市中央区南3条西9丁目998-6",
-      "review": "3.79",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822755"
-    },
-    {
-      "id": 81,
-      "plan_id": 10,
-      "hotel_no": "167971",
-      "name": "ＪＲ東日本ホテルメッツ　プレミア　札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=167971",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/167971/167971.jpg",
-      "price": 4950,
-      "address": "北海道札幌市北区北7条西2丁目5-3",
-      "review": "4.63",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822757"
-    },
-    {
-      "id": 82,
-      "plan_id": 10,
-      "hotel_no": "79254",
-      "name": "ホテル京阪　札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=79254",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/79254/79254.jpg",
-      "price": 5000,
-      "address": "北海道札幌市北区北6条西6丁目1-9",
-      "review": "4.38",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822759"
-    },
-    {
-      "id": 83,
-      "plan_id": 10,
-      "hotel_no": "196683",
-      "name": "ザ・ゲートホテル札幌　ｂｙ　ＨＵＬＩＣ",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=196683",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/196683/196683.jpg",
-      "price": 14116,
-      "address": "北海道札幌市中央区北三条西3-1-44",
-      "review": "None",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822761"
-    },
-    {
-      "id": 84,
-      "plan_id": 10,
-      "hotel_no": "635",
-      "name": "ホテルグレイスリー札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=635",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/635/635.jpg",
-      "price": 4825,
-      "address": "北海道札幌市中央区北4条西4丁目",
-      "review": "4.15",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822763"
-    },
-    {
-      "id": 85,
-      "plan_id": 10,
-      "hotel_no": "70730",
-      "name": "天然温泉　空沼の湯　スーパーホテル札幌・すすきの",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=70730",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/70730/70730.jpg",
-      "price": 5070,
-      "address": "北海道札幌市中央区南6条西2丁目8-1",
-      "review": "4",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822765"
-    },
-    {
-      "id": 86,
-      "plan_id": 10,
-      "hotel_no": "153500",
-      "name": "ＪＲイン札幌駅南口",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=153500",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/153500/153500.jpg",
-      "price": 4000,
-      "address": "北海道札幌市中央区北3条西1丁目10番",
-      "review": "4.24",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822767"
-    },
-    {
-      "id": 87,
-      "plan_id": 10,
-      "hotel_no": "109107",
-      "name": "イビススタイルズ札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=109107",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/109107/109107.jpg",
-      "price": 4000,
-      "address": "北海道札幌市中央区南8条西3丁目10-10",
-      "review": "4.31",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822769"
-    },
-    {
-      "id": 88,
-      "plan_id": 10,
-      "hotel_no": "169",
-      "name": "ＡＮＡクラウンプラザホテル札幌　ｂｙ　ＩＨＧ",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=169",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/169/169.jpg",
-      "price": 3467,
-      "address": "北海道札幌市中央区北3条西1丁目",
-      "review": "4.08",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822771"
-    },
-    {
-      "id": 89,
-      "plan_id": 10,
-      "hotel_no": "179353",
-      "name": "ＯＮＳＥＮ　ＲＹＯＫＡＮ　由縁　札幌",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=179353",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/179353/179353.jpg",
-      "price": 10800,
-      "address": "北海道札幌市中央区北1条西7-6",
-      "review": "4.25",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822773"
-    },
-    {
-      "id": 90,
-      "plan_id": 10,
-      "hotel_no": "502",
-      "name": "札幌エクセルホテル東急",
-      "url": "https://img.travel.rakuten.co.jp/image/tr/api/kw/JBe8h/?f_no=502",
-      "image_url": "https://img.travel.rakuten.co.jp/share/HOTEL/502/502.jpg",
-      "price": 5100,
-      "address": "北海道札幌市中央区南8条西5丁目420",
-      "review": "4.23",
-      "is_selected": false,
-      "created_at": "2025-11-25T07:40:30.822775"
+      "id": 91,
+      "plan_id": 4,
+      "hotel_no": "demo-hotel-1",
+      "name": "大阪デモホテル",
+      "url": "https://example.com/booking",
+      "image_url": "https://example.com/hotel.jpg",
+      "price": 12000,
+      "address": "大阪府大阪市北区1-1-1",
+      "review": "4.5",
+      "is_selected": true,
+      "created_at": "2026-01-08T00:51:15.639329"
     }
   ],
   "schedules": [
     {
-      "id": 10,
-      "plan_id": 10,
-      "daily_plan_json": [
-        {
-          "day": 1,
-          "details": [
-            {
-              "time": "13:30",
-              "activity": "新千歳空港 到着",
-              "transport_notes": "（おすすめプランに基づき到着）"
-            },
-            {
-              "time": "14:30",
-              "activity": "札幌市内の高級ホテルにチェックイン",
-              "transport_notes": "JR快速エアポートで札幌駅へ（約40分）"
-            },
-            {
-              "time": "16:00",
-              "activity": "大通公園、札幌時計台、北海道庁旧本庁舎周辺散策",
-              "transport_notes": "ホテルから徒歩圏内"
-            },
-            {
-              "time": "19:30",
-              "activity": "ちょっと贅沢なディナー（北海道食材の高級寿司または鉄板焼き）",
-              "transport_notes": "タクシー利用（約10分）"
-            }
-          ]
-        },
-        {
-          "day": 2,
-          "details": [
-            {
-              "time": "09:00",
-              "activity": "小樽観光へ出発",
-              "transport_notes": "JR函館本線で小樽へ（約40分）"
-            },
-            {
-              "time": "10:00",
-              "activity": "小樽運河周辺を散策＆ガラス工芸体験（アクティブな体験）",
-              "transport_notes": "小樽駅から徒歩15分"
-            },
-            {
-              "time": "13:00",
-              "activity": "ランチ（小樽海鮮丼）",
-              "transport_notes": "徒歩移動"
-            },
-            {
-              "time": "16:00",
-              "activity": "札幌市内に戻り、円山公園周辺で軽めのハイキングまたは散策",
-              "transport_notes": "JR・地下鉄利用"
-            },
-            {
-              "time": "19:00",
-              "activity": "藻岩山ロープウェイで夜景鑑賞",
-              "transport_notes": "市電（路面電車）と無料シャトルバス利用"
-            }
-          ]
-        },
-        {
-          "day": 3,
-          "details": [
-            {
-              "time": "09:30",
-              "activity": "定山渓温泉へ移動",
-              "transport_notes": "じょうてつバス「かっぱライナー号」（約1時間）"
-            },
-            {
-              "time": "11:00",
-              "activity": "定山渓温泉の高級旅館にて温泉とリラックスタイム（日帰り入浴+ランチ）",
-              "transport_notes": "バス停から送迎バスまたは徒歩5分"
-            },
-            {
-              "time": "16:00",
-              "activity": "札幌市内に戻る",
-              "transport_notes": "じょうてつバス（約1時間）"
-            },
-            {
-              "time": "19:00",
-              "activity": "札幌ビール園でジンギスカンを満喫",
-              "transport_notes": "地下鉄とタクシー（約15分）"
-            }
-          ]
-        },
-        {
-          "day": 4,
-          "details": [
-            {
-              "time": "09:00",
-              "activity": "札幌場外市場で朝食と買い物",
-              "transport_notes": "地下鉄と徒歩（約20分）"
-            },
-            {
-              "time": "11:00",
-              "activity": "大通公園周辺で最後の散策＆お土産購入",
-              "transport_notes": "徒歩"
-            },
-            {
-              "time": "13:00",
-              "activity": "新千歳空港へ移動",
-              "transport_notes": "JR快速エアポート（約40分）"
-            },
-            {
-              "time": "15:00",
-              "activity": "飛行機にて帰路へ",
-              "transport_notes": "（フライト時間に合わせて搭乗）"
-            }
-          ]
-        }
-      ],
-      "created_at": "2025-11-25T07:40:30.573325"
+      "id": 4,
+      "plan_id": 4,
+      "daily_plan_json": {
+        "days": 2,
+        "details": [
+          {
+            "day": 1,
+            "slot_type": "activity",
+            "title": "移動 & チェックイン",
+            "place_name": "新大阪〜梅田周辺",
+            "start_time": "09:00",
+            "end_time": "12:00",
+            "move_mode": "train",
+            "note": "キャリーケースはホテルに預ける"
+          },
+          {
+            "day": 1,
+            "slot_type": "activity",
+            "title": "道頓堀観光",
+            "place_name": "道頓堀",
+            "start_time": "13:00",
+            "end_time": "18:00",
+            "move_mode": "walk"
+          }
+        ]
+      },
+      "created_at": "2026-01-08T00:51:15.614918"
     }
   ],
-  "templates": [],
+  "templates": [
+    {
+      "template_id": 2,
+      "user_id": 3,
+      "plan_id": 4,
+      "public_title": "大阪1泊2日テンプレ（公開）",
+      "short_note": "seed.pyで投入したサンプルテンプレ",
+      "itinerary_outline_json": {
+        "days": [
+          {
+            "day": 1,
+            "title": "移動 & チェックイン",
+            "traffic_method": "電車",
+            "places": [
+              "新大阪",
+              "梅田周辺",
+              "道頓堀"
+            ],
+            "start": "09:00",
+            "end": "10:00"
+          },
+          {
+            "day": 2,
+            "title": "自由行動",
+            "traffic_method": "徒歩",
+            "places": [
+              "梅田",
+              "難波"
+            ],
+            "start": "10:00",
+            "end": "15:00"
+          }
+        ]
+      },
+      "checklist_summary_json": {
+        "essential": [
+          {
+            "name": "Tシャツ",
+            "quantity": 2,
+            "unit": "枚"
+          },
+          {
+            "name": "ズボン",
+            "quantity": 1,
+            "unit": "本"
+          }
+        ],
+        "extra": [
+          {
+            "name": "スマホ",
+            "quantity": 1,
+            "unit": "台"
+          }
+        ],
+        "items_total": 3
+      },
+      "days": 2,
+      "items_count": 3,
+      "essential_ratio": 100,
+      "tags": "大阪,1泊2日,観光",
+      "visibility": "public",
+      "display_version": 1,
+      "created_at": "2026-01-08T00:51:15.625279",
+      "updated_at": "2026-01-08T00:51:15.625293"
+    },
+    {
+      "template_id": 3,
+      "user_id": 3,
+      "plan_id": 4,
+      "public_title": "大阪グルメ中心テンプレ（非公開）",
+      "short_note": "食べ歩き中心の仮データテンプレ",
+      "itinerary_outline_json": {
+        "days": [
+          {
+            "day": 1,
+            "title": "なんば食べ歩き",
+            "traffic_method": "徒歩",
+            "places": [
+              "難波",
+              "道頓堀"
+            ],
+            "start": "11:00",
+            "end": "18:00"
+          }
+        ]
+      },
+      "checklist_summary_json": {
+        "essential": [
+          {
+            "name": "ハンカチ",
+            "quantity": 1,
+            "unit": "枚"
+          }
+        ],
+        "extra": [
+          {
+            "name": "スマホ充電器",
+            "quantity": 1,
+            "unit": "個"
+          }
+        ],
+        "items_total": 2
+      },
+      "days": 2,
+      "items_count": 2,
+      "essential_ratio": 50,
+      "tags": "大阪,食べ歩き",
+      "visibility": "private",
+      "display_version": 1,
+      "created_at": "2026-01-08T00:51:15.625298",
+      "updated_at": "2026-01-08T00:51:15.625302"
+    }
+  ],
   "shares": [],
-  "checklists": [],
-  "checklist_items": [],
-  "items": [],
-  "categories": []
+  "checklists": [
+    {
+      "checklist_id": 1,
+      "plan_id": 4,
+      "title": "大阪1泊2日 持ち物リスト",
+      "status": "draft",
+      "memo": "とりあえず最低限",
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    }
+  ],
+  "checklist_items": [
+    {
+      "checklist_item_id": 1,
+      "checklist_id": 1,
+      "item_id": 1,
+      "category_id": 1,
+      "quantity": 2,
+      "is_required": true,
+      "reason_list_json": [
+        "汗かきやすいから予備必要"
+      ],
+      "memo": "天気次第で1枚減らしてもよさそう",
+      "is_checked": false,
+      "is_crowned": false,
+      "sort_order": 1,
+      "is_deleted": false,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    },
+    {
+      "checklist_item_id": 2,
+      "checklist_id": 1,
+      "item_id": 2,
+      "category_id": 1,
+      "quantity": 1,
+      "is_required": true,
+      "reason_list_json": null,
+      "memo": null,
+      "is_checked": false,
+      "is_crowned": false,
+      "sort_order": 2,
+      "is_deleted": false,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    },
+    {
+      "checklist_item_id": 3,
+      "checklist_id": 1,
+      "item_id": 3,
+      "category_id": 2,
+      "quantity": 1,
+      "is_required": true,
+      "reason_list_json": null,
+      "memo": "充電器は別チェックリストに分けてもOK",
+      "is_checked": false,
+      "is_crowned": false,
+      "sort_order": 3,
+      "is_deleted": false,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    }
+  ],
+  "items": [
+    {
+      "item_id": 1,
+      "name": "Tシャツ",
+      "name_variants_json": null,
+      "category_id": 1,
+      "default_quantity": 2,
+      "unit": "枚",
+      "is_deleted": false,
+      "tags": "服,トップス",
+      "is_searchable": true,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    },
+    {
+      "item_id": 2,
+      "name": "ズボン",
+      "name_variants_json": null,
+      "category_id": 1,
+      "default_quantity": 1,
+      "unit": "本",
+      "is_deleted": false,
+      "tags": "服,ボトムス",
+      "is_searchable": true,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    },
+    {
+      "item_id": 3,
+      "name": "スマホ",
+      "name_variants_json": null,
+      "category_id": 2,
+      "default_quantity": 1,
+      "unit": "台",
+      "is_deleted": false,
+      "tags": "電子機器",
+      "is_searchable": true,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    }
+  ],
+  "categories": [
+    {
+      "category_id": 1,
+      "name": "衣類",
+      "sort_order": 1,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    },
+    {
+      "category_id": 2,
+      "name": "ガジェット",
+      "sort_order": 2,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    },
+    {
+      "category_id": 3,
+      "name": "その他",
+      "sort_order": 99,
+      "created_at": "2026-01-08T00:51:15.535988",
+      "updated_at": "2026-01-08T00:51:15.535988"
+    }
+  ]
 }

@@ -4,6 +4,8 @@ from flask import Flask
 # 提示されたコードに従い 'config' からインポートします
 from config import Config
 from app.extensions import db, migrate, bcrypt, login_manager
+from app.routes.root_routes import root_bp
+
 
 def create_app():
     app = Flask(__name__,
@@ -44,5 +46,6 @@ def create_app():
     
     app.register_blueprint(plan_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(root_bp)
 
     return app
