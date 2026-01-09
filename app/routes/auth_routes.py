@@ -29,7 +29,8 @@ def login():
 
         login_user(user)  # ★これが本体
         flash("ログインしました", "success")
-        return redirect(url_for("plan.plan_list"))
+        next_url = session.pop("next_url", None)
+        return redirect(next_url or url_for("plan.plan_list"))
     return render_template("auth/login.html", form=form)
 
 
