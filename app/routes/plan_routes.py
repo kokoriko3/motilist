@@ -19,6 +19,15 @@ from app.models.checklist import Checklist, ChecklistItem, Item, Category
 
 plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
+
+@plan_bp.before_request
+def require_login():
+    if current_user.is_authenticated or session.get("user_id"):
+        return None
+    flash("ログインしてください", "error")
+    session["next_url"] = url_for("plan.plan_create_form")
+    return redirect(url_for("auth.login"))
+
 # ----------------------------------------
 #  プラン一覧（トップ）
 # ----------------------------------------
@@ -35,7 +44,12 @@ def plan_list():
 
     if not user_id:
         print("ユーザIDなし（完全未ログイン＆ゲストも未作成）")
-        return render_template("plan/list.html", plans=[], show_login_link=True)
+        return render_template(
+            "plan/list.html",
+            plans=[],
+            show_login_link=True,
+            active_nav="plans",
+        )
 
     print("ユーザIDあり:", user_id)
     templates = PlanDBService.get_all_templates_by_user_id(user_id=user_id)
@@ -78,6 +92,7 @@ def plan_list():
         "plan/list.html",
         plans=templates,
         show_login_link=show_login_link,
+        active_nav="plans",
     )
 
 # 公開プラン一覧

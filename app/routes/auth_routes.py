@@ -28,7 +28,8 @@ def login():
 
         session["user_id"] = user.user_id
         flash("ログインしました", "success")
-        return redirect(url_for("plan.plan_list"))
+        next_url = session.pop("next_url", None)
+        return redirect(next_url or url_for("plan.plan_list"))
     return render_template("auth/login.html", form=form)
 
 
