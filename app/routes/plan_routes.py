@@ -27,7 +27,7 @@ def plan_list():
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
         print("Flask-Login ログインあり")
-        user_id = current_user.id
+        user_id = current_user.user_id
         show_login_link = False
     else:
         user_id = session.get("user_id")
@@ -88,7 +88,7 @@ def public_plan_list():
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
         print("Flask-Login ログインあり")
-        user_id = current_user.id
+        user_id = current_user.user_id
         show_login_link = False
     else:
         user_id = session.get("user_id")

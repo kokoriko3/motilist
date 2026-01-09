@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
+from flask_login import login_user
 from app.forms.auth_form import LoginForm
 from app.services.db_service import UserDBService
 from app.extensions import db, bcrypt
@@ -26,7 +27,7 @@ def login():
             flash("パスワードが一致しません", "error")
             return render_template("auth/login.html", form=form)
 
-        session["user_id"] = user.user_id
+        login_user(user)  # ★これが本体
         flash("ログインしました", "success")
         return redirect(url_for("plan.plan_list"))
     return render_template("auth/login.html", form=form)
