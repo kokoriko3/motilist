@@ -16,10 +16,8 @@
   <body class="{% block body_class %}{% endblock %}">
     <header class="site-header">
       <div class="header-left">
-        <button class="icon-button" aria-label="メニュー">
-          <span></span>
-          <span></span>
-          <span></span>
+        <button class="menu-button" type="button" aria-label="メニュー">
+          <span class="menu-button__icon" aria-hidden="true">も</span>
         </button>
         <div class="brand-lockup">
           <a class="brand-name">{{ config.get('BRAND_NAME', 'Mochi List') }}</a>
