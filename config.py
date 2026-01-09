@@ -13,6 +13,6 @@ class Config:
         "postgresql+psycopg://postgres:password@localhost:5432/motilist_db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    GEMINI_API_KEY = "AIzaSyATaYzhTbAevLs8nDHSnve9IioCm3hbmSA"
+    GEMINI_API_KEY = "AIzaSyBbqdY8UGA2e-24UseyO0gCN8z8RKUJK2Y"
 
     RAKUTEN_APP_ID = "1006936122241084228"

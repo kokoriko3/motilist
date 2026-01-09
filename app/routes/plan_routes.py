@@ -28,11 +28,48 @@ def require_login():
     session["next_url"] = url_for("plan.plan_create_form")
     return redirect(url_for("auth.login"))
 
+
+def paginate_items(items, page, per_page):
+    total_items = len(items)
+    total_pages = max(1, math.ceil(total_items / per_page)) if total_items else 1
+    page = max(1, min(page or 1, total_pages))
+    start = (page - 1) * per_page
+    end = start + per_page
+    return items[start:end], page, total_pages
+
+
+def build_pagination(current_page, total_pages):
+    if total_pages <= 7:
+        return list(range(1, total_pages + 1))
+
+    pages = {1, total_pages}
+
+    if current_page <= 4:
+        pages.update(range(1, 5))
+    elif current_page >= total_pages - 3:
+        pages.update(range(total_pages - 3, total_pages + 1))
+    else:
+        pages.update(range(current_page - 1, current_page + 2))
+
+    sorted_pages = sorted(p for p in pages if 1 <= p <= total_pages)
+    output = []
+    last_page = 0
+    for page in sorted_pages:
+        if page - last_page > 1:
+            output.append(None)
+        output.append(page)
+        last_page = page
+    return output
+
 # ----------------------------------------
 #  プラン一覧（トップ）
 # ----------------------------------------
 @plan_bp.route("/", methods=["GET"])
 def plan_list():
+    q = request.args.get("q", "").strip()
+    page = request.args.get("page", 1, type=int)
+    page_size = 8
+
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
         print("Flask-Login ログインあり")
@@ -49,15 +86,27 @@ def plan_list():
             plans=[],
             show_login_link=True,
             active_nav="plans",
+            query=q,
+            page=1,
+            total_pages=1,
+            pagination=[],
         )
 
     print("ユーザIDあり:", user_id)
     templates = PlanDBService.get_all_templates_by_user_id(user_id=user_id)
+    if q:
+        q_lower = q.casefold()
+        templates = [
+            tpl for tpl in templates
+            if q_lower in (tpl.public_title or "").casefold()
+        ]
+
+    templates_page, page, total_pages = paginate_items(templates, page, page_size)
 
     # --------------------------
     # ★ テンプレートごとに追加情報を付ける
     # --------------------------
-    for tpl in templates:
+    for tpl in templates_page:
         # ===== 交通手段（既存処理）=====
         traffic_methods = []
         outline = tpl.itinerary_outline_json or {}
@@ -90,15 +139,21 @@ def plan_list():
 
     return render_template(
         "plan/list.html",
-        plans=templates,
+        plans=templates_page,
         show_login_link=show_login_link,
         active_nav="plans",
+        query=q,
+        page=page,
+        total_pages=total_pages,
+        pagination=build_pagination(page, total_pages),
     )
 
 # 公開プラン一覧
 @plan_bp.route("/public", methods=["GET"])
 def public_plan_list():
-    q = request.args.get("q", "")
+    q = request.args.get("q", "").strip()
+    page = request.args.get("page", 1, type=int)
+    page_size = 8
 
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
@@ -120,15 +175,26 @@ def public_plan_list():
             result_count=0,
             active_nav="public",
             show_login_link=True,
+            page=1,
+            total_pages=1,
+            pagination=[],
         )
 
     print("ユーザIDあり:", user_id)
     templates = PlanDBService.get_public_templates()
+    if q:
+        q_lower = q.casefold()
+        templates = [
+            tpl for tpl in templates
+            if q_lower in (tpl.public_title or "").casefold()
+        ]
+
+    templates_page, page, total_pages = paginate_items(templates, page, page_size)
 
     # --------------------------
     # ★ Template ごとに表示用フィールドを作る
     # --------------------------
-    for tpl in templates:
+    for tpl in templates_page:
         # ===== 交通手段まとめ =====
         traffic_methods = []
         outline = tpl.itinerary_outline_json or {}
@@ -160,11 +226,14 @@ def public_plan_list():
 
     return render_template(
         "plan/public_list.html",
-        plans=templates,
+        plans=templates_page,
         query=q,
         result_count=len(templates),
         active_nav="public",
         show_login_link=show_login_link,
+        page=page,
+        total_pages=total_pages,
+        pagination=build_pagination(page, total_pages),
     )
 
 

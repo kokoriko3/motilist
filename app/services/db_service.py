@@ -35,11 +35,19 @@ class PlanDBService:
     
     @staticmethod
     def get_all_templates_by_user_id(user_id):
-        return Template.query.filter_by(user_id=user_id).all()
+        return (
+            Template.query.filter_by(user_id=user_id)
+            .order_by(Template.created_at.desc())
+            .all()
+        )
     
     @staticmethod
     def get_public_templates():
-        return Template.query.filter_by(visibility="public").all()
+        return (
+            Template.query.filter_by(visibility="public")
+            .order_by(Template.created_at.desc())
+            .all()
+        )
     
     @staticmethod
     def get_private_templates(user_id):
