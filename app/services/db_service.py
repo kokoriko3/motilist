@@ -26,7 +26,7 @@ class PlanDBService:
     @staticmethod
     def get_all_plans(user_id=None):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         return (
             Plan.query.filter_by(user_id=user_id)
             .order_by(Plan.created_at.desc())
@@ -77,7 +77,7 @@ class PlanDBService:
     @staticmethod
     def get_transit_by_id(plan_id, user_id=None):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         if not user_id:
             return []
         return (
@@ -93,7 +93,7 @@ class PlanDBService:
     @staticmethod
     def get_hotels_by_id(plan_id, user_id=None):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         if not user_id:
             return []
         return HotelSnapshot.query.join(Plan).filter(
@@ -104,7 +104,7 @@ class PlanDBService:
     @staticmethod
     def get_selected_transit(plan_id, user_id=None):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         if not user_id:
             return None
         return TransportSnapshot.query.join(Plan).filter(
@@ -116,7 +116,7 @@ class PlanDBService:
     @staticmethod
     def get_selected_hotel(plan_id, user_id=None):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         if not user_id:
             return None
         return HotelSnapshot.query.join(Plan).filter(
@@ -128,7 +128,7 @@ class PlanDBService:
     @staticmethod
     def select_hotel(plan_id, hotel_snapshot_id, user_id=None):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         if not user_id:
             return False
         try:
@@ -157,7 +157,7 @@ class PlanDBService:
     @staticmethod
     def select_transit(plan_id, transit_type, user_id=None):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         if not user_id:
             return False
         try:
@@ -185,7 +185,7 @@ class PlanDBService:
     @staticmethod
     def create_plan(user_id, destination, departure, start_date, days, purpose, options, plan_title, hotel = None):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         
         plan = Plan(
             user_id=user_id,
@@ -399,7 +399,7 @@ class PlanDBService:
     @staticmethod
     def get_checklist_by_id(plan_id,user_id):
         if user_id is None:
-            user_id = current_user.id
+            user_id = current_user.user_id
         if not user_id:
             return None
         return Checklist.query.join(Plan).filter(
@@ -626,3 +626,4 @@ class PlanDBService:
             import traceback
             traceback.print_exc()
             return None
+

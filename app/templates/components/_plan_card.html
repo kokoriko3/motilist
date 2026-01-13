@@ -4,7 +4,11 @@
       <p class="plan-tile__title">{{ plan.public_title }}</p>
       <p class="plan-tile__date">
         <span>日程</span>
-        {{ plan.plan.start_date }}～
+        {% if plan.plan and plan.plan.start_date %}
+          {{ plan.plan.start_date }}～
+        {% else %}
+          未設定
+        {% endif %}
         <span class="plan-tile__duration">{{ plan.days }}日間</span>
       </p>
     </div>

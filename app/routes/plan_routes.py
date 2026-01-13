@@ -73,7 +73,7 @@ def plan_list():
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
         print("Flask-Login ログインあり")
-        user_id = current_user.id
+        user_id = current_user.user_id
         show_login_link = False
     else:
         user_id = session.get("user_id")
@@ -122,6 +122,10 @@ def plan_list():
         # ===== ホテル名（新規追加）=====
         # Plan を取得
         plan = PlanDBService.get_plan_by_id(tpl.plan_id, user_id)
+        if not plan:
+            tpl.hotel_name = "未設定"
+            continue
+
         hotel_json = plan.hotel or {}
 
         selected_id = hotel_json.get("selected_id")
@@ -158,7 +162,7 @@ def public_plan_list():
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
         print("Flask-Login ログインあり")
-        user_id = current_user.id
+        user_id = current_user.user_id
         show_login_link = False
     else:
         user_id = session.get("user_id")
@@ -248,7 +252,7 @@ def plan_transit():
         flash("プランが選択されていません。先にプランを作成してください。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     options = PlanDBService.get_transit_by_id(plan_id, user_id=user_id)
@@ -288,7 +292,7 @@ def stay_select():
         flash("??????????????", "error")
         return redirect(url_for("plan.plan_list"))
 
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     if not plan:
         flash("????????????", "warning")
@@ -435,7 +439,7 @@ def stay_confirm():
         return redirect(url_for("plan.plan_list"))
 
     if current_user.is_authenticated:
-        user_id = current_user.id
+        user_id = current_user.user_id
     else:
         user_id = session.get("user_id")
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
@@ -470,7 +474,7 @@ def stay_confirm():
 @plan_bp.route("/schedule", methods=["GET"])
 def schedule_list():
     plan_id = session.get("plan_id")
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     if not plan_id or not user_id:
         flash("プランが指定されていません。最初からやり直してください。", "warning")
@@ -530,7 +534,7 @@ def schedule_list():
 @plan_bp.route("/schedule/edit", methods=["GET"])
 def schedule_edit():
     plan_id = session.get("plan_id")
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     # 1. 既存のデータを取得 (schedule_listと同じロジック)
     schedule_obj = PlanDBService.get_schedule_by_id(plan_id, user_id)
@@ -595,7 +599,7 @@ def schedule_update():
 @plan_bp.route("/save", methods=["POST"])
 def save_plan_template():
     plan_id = session.get("plan_id")
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     payload = request.get_json() or {}
     title = (payload.get("title") or "").strip()
@@ -638,7 +642,7 @@ def save_plan_template():
 @plan_bp.route("/share", methods=["POST"])
 def share_plan():
     plan_id = session.get("plan_id")
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     if not plan_id or not user_id:
         return jsonify({"status": "error", "message": "プランが選択されていません。"}), 400
@@ -688,7 +692,7 @@ def checklist_list():
         flash("プランが選択されていません。先にプランを作成してください。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     if not user_id:
         flash("ユーザーが認証されていません。", "warning")
         return redirect(url_for("auth.login"))
@@ -734,7 +738,7 @@ def checklist_edit():
         flash("プランが選択されていません。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     
     checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
     if not checklist_obj:
@@ -772,7 +776,7 @@ def checklist_update():
     if plan_id is None:
         return jsonify({"error": "プランが指定されていません。"}), 400
     
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     if not user_id:
         return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
 
@@ -839,7 +843,7 @@ def checklist_generate():
     if plan_id is None:
         return jsonify({"error": "プランが指定されていません。"}), 400
     
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     if not user_id:
         return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
 
@@ -889,7 +893,7 @@ def checklist_generate():
 def plan_detail(template_id):
     # --- ユーザー判定 ---
     if current_user.is_authenticated:
-        user_id = current_user.id
+        user_id = current_user.user_id
     else:
         user_id = session.get("user_id")
 
@@ -1015,7 +1019,7 @@ def plan_detail(template_id):
 def plan_modals(plan_id):
     # ユーザーIDの取得
     if current_user.is_authenticated:
-        user_id = current_user.id
+        user_id = current_user.user_id
     else:
         user_id = session.get("user_id")
     
@@ -1059,7 +1063,7 @@ def plan_create_form():
     if form.validate_on_submit():
         user_id = None
         if current_user.is_authenticated:
-            user_id = current_user.id
+            user_id = current_user.user_id
         else:
             user_id = session.get("user_id")
         
@@ -1156,7 +1160,7 @@ def create_dummy_plan():
     # ログインチェック
     user_id = None
     if current_user.is_authenticated:
-        user_id = current_user.id
+        user_id = current_user.user_id
     else:
         user_id = session.get("user_id")
     
@@ -1264,3 +1268,4 @@ def create_dummy_plan():
         flash(f"ダミー作成エラー: {e}", "danger")
         return redirect(url_for("plan.plan_create_form"))
     
+
