@@ -1020,6 +1020,14 @@ def plan_detail(template_id):
                 stay_locations.append(place)
     stay_locations = list(dict.fromkeys(stay_locations))
 
+    source = request.args.get("source")
+    if source == "public":
+        active_nav = "public"
+    elif source == "own":
+        active_nav = "plans"
+    else:
+        active_nav = "plans" if is_owned else "public"
+
     display_title = template.public_title or plan.title or plan.destination or "プラン"
 
     return render_template(
@@ -1034,6 +1042,7 @@ def plan_detail(template_id):
         is_owned=is_owned,
         template_note=template_note,
         display_title=display_title,
+        active_nav=active_nav,
         template_id=template_id,  # 必要なら渡しておく
     )
 
