@@ -1028,6 +1028,9 @@ def plan_detail(template_id):
     else:
         active_nav = "plans" if is_owned else "public"
 
+    if is_owned:
+        session["plan_id"] = plan.id
+
     display_title = template.public_title or plan.title or plan.destination or "プラン"
 
     return render_template(

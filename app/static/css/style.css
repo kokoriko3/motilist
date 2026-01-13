@@ -1906,6 +1906,11 @@ body.split-body .page-content {
   background: #fff;
   font-size: 15px;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .plan-tabs {

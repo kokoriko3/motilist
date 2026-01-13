@@ -26,7 +26,7 @@
         <div class="plan-detail-card__meta">
           <p>{{ meta.created_on }}</p>
           {% if is_owned %}
-            <a class="save-plan-button" href="{{ url_for('plan.plan_edit', plan_id=plan.id) }}">プランを編集</a>
+            <a class="save-plan-button" href="{{ url_for('plan.schedule_list') }}">スケジュール・持ち物を見る</a>
           {% else %}
             <a class="save-plan-button" href="{{ url_for('plan.plan_modals', plan_id=plan.id) }}">自分のプランとして保存する</a>
           {% endif %}
