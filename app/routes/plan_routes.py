@@ -1020,6 +1020,8 @@ def plan_detail(template_id):
                 stay_locations.append(place)
     stay_locations = list(dict.fromkeys(stay_locations))
 
+    display_title = template.public_title or plan.title or plan.destination or "プラン"
+
     return render_template(
         "plan/detail.html",
         plan=plan,
@@ -1031,6 +1033,7 @@ def plan_detail(template_id):
         packing_summary=packing_summary,
         is_owned=is_owned,
         template_note=template_note,
+        display_title=display_title,
         template_id=template_id,  # 必要なら渡しておく
     )
 
