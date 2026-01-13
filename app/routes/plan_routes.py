@@ -61,6 +61,31 @@ def build_pagination(current_page, total_pages):
         last_page = page
     return output
 
+
+def resolve_selected_hotel(plan):
+    if not plan:
+        return None
+    hotel_json = plan.hotel or {}
+    candidates = hotel_json.get("candidates", []) or []
+    selected_id = hotel_json.get("selected_id")
+
+    selected_hotel = None
+    if selected_id is not None:
+        selected_hotel = next(
+            (c for c in candidates if str(c.get("id")) == str(selected_id)),
+            None,
+        )
+    if not selected_hotel:
+        selected_hotel = next(
+            (c for c in candidates if c.get("is_selected")),
+            None,
+        )
+    if not selected_hotel:
+        snapshot = HotelSnapshot.query.filter_by(plan_id=plan.id, is_selected=True).first()
+        if snapshot:
+            selected_hotel = {"name": snapshot.name, "price": snapshot.price}
+    return selected_hotel
+
 # ----------------------------------------
 #  プラン一覧（トップ）
 # ----------------------------------------
@@ -126,20 +151,8 @@ def plan_list():
             tpl.hotel_name = "未設定"
             continue
 
-        hotel_json = plan.hotel or {}
-
-        selected_id = hotel_json.get("selected_id")
-        candidates = hotel_json.get("candidates", [])
-
-        selected_hotel = None
-        if selected_id:
-            selected_hotel = next(
-                (c for c in candidates if c.get("id") == selected_id),
-                None
-            )
-
-        # list.html で使えるよう template 側に載せる
-        tpl.hotel_name = selected_hotel["name"] if selected_hotel else "選択中"
+        selected_hotel = resolve_selected_hotel(plan)
+        tpl.hotel_name = selected_hotel.get("name") if selected_hotel and selected_hotel.get("name") else "選択中"
 
     return render_template(
         "plan/list.html",
@@ -214,17 +227,8 @@ def public_plan_list():
         # ===== ホテル名（Plan 経由で取得） =====
         plan = Plan.query.get(tpl.plan_id)  # 公開なので user_id で絞らない
         if plan and plan.hotel:
-            hotel_json = plan.hotel or {}
-            selected_id = hotel_json.get("selected_id")
-            candidates = hotel_json.get("candidates", []) or []
-
-            selected_hotel = None
-            if selected_id:
-                selected_hotel = next(
-                    (c for c in candidates if c.get("id") == selected_id),
-                    None
-                )
-            tpl.hotel_name = selected_hotel["name"] if selected_hotel else "選択中"
+            selected_hotel = resolve_selected_hotel(plan)
+            tpl.hotel_name = selected_hotel.get("name") if selected_hotel and selected_hotel.get("name") else "選択中"
         else:
             tpl.hotel_name = "未設定"
 
@@ -239,6 +243,35 @@ def public_plan_list():
         total_pages=total_pages,
         pagination=build_pagination(page, total_pages),
     )
+
+
+@plan_bp.route("/<int:template_id>/delete", methods=["POST"])
+def delete_plan(template_id):
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+    if not user_id:
+        flash("ログインしてください", "error")
+        return redirect(url_for("auth.login"))
+
+    template = Template.query.filter_by(template_id=template_id, user_id=user_id).first()
+    if not template:
+        flash("対象のプランが見つかりません。", "error")
+        return redirect(url_for("plan.plan_list"))
+
+    plan = Plan.query.filter_by(id=template.plan_id, user_id=user_id).first()
+
+    try:
+        if plan:
+            db.session.delete(plan)
+        else:
+            db.session.delete(template)
+        db.session.commit()
+        flash("プランを削除しました。", "success")
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Delete plan failed: {e}")
+        flash("プランの削除に失敗しました。", "error")
+
+    return redirect(url_for("plan.plan_list"))
 
 
 # ----------------------------------------
@@ -953,18 +986,8 @@ def plan_detail(template_id):
     traffic_methods = list(dict.fromkeys(traffic_methods))
 
     # --- 宿泊先（Plan.hotel JSON から） ---
-    hotel_json = plan.hotel or {}
-    selected_id = hotel_json.get("selected_id")
-    candidates = hotel_json.get("candidates", [])
-
-    selected_hotel = None
-    if selected_id:
-        selected_hotel = next(
-            (c for c in candidates if c.get("id") == selected_id),
-            None
-        )
-
-    if selected_hotel:
+    selected_hotel = resolve_selected_hotel(plan)
+    if selected_hotel and selected_hotel.get("name"):
         accommodation_label = selected_hotel.get("name")
         hotel_price = selected_hotel.get("price")
     else:

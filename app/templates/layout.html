@@ -67,7 +67,7 @@
       <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
         <p id="logout-title">ログアウトしますか</p>
         <div class="logout-modal__actions">
-          <button type="button" class="secondary-button" data-logout-cancel>戻る</button>
+          <button type="button" class="secondary-button" data-logout-cancel>キャンセル</button>
           <button
             type="button"
             class="cta-button"
@@ -79,6 +79,17 @@
         </div>
       </div>
       
+    </section>
+    <section class="logout-modal plan-delete-modal" data-plan-delete-modal hidden>
+      <div class="logout-modal__backdrop" data-plan-delete-dismiss></div>
+      <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="plan-delete-title">
+        <p id="plan-delete-title">プランを削除しますか</p>
+        <p class="plan-delete-message" data-plan-delete-message></p>
+        <div class="logout-modal__actions">
+          <button type="button" class="secondary-button" data-plan-delete-cancel>キャンセル</button>
+          <button type="button" class="cta-button" data-plan-delete-confirm>削除する</button>
+        </div>
+      </div>
     </section>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/plan_save.js') }}"></script>

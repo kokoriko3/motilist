@@ -66,4 +66,68 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         });
     }
+
+    // ▼ プラン削除確認
+    const deleteModal = document.querySelector("[data-plan-delete-modal]");
+    const deleteMessage = deleteModal?.querySelector("[data-plan-delete-message]");
+    const deleteConfirm = deleteModal?.querySelector("[data-plan-delete-confirm]");
+    const deleteCancel = deleteModal?.querySelector("[data-plan-delete-cancel]");
+    const deleteBackdrop = deleteModal?.querySelector("[data-plan-delete-dismiss]");
+    let pendingDeleteForm = null;
+
+    const openDeleteModal = (title) => {
+        if (!deleteModal) {
+        return false;
+        }
+        const message = title
+        ? `「${title}」を削除しますか？`
+        : "このプランを削除しますか？";
+        if (deleteMessage) {
+        deleteMessage.textContent = message;
+        deleteMessage.hidden = false;
+        }
+        deleteModal.hidden = false;
+        deleteModal.classList.add("is-open");
+        return true;
+    };
+
+    const closeDeleteModal = () => {
+        if (!deleteModal) {
+        return;
+        }
+        deleteModal.classList.remove("is-open");
+        deleteModal.hidden = true;
+        if (deleteMessage) {
+        deleteMessage.textContent = "";
+        deleteMessage.hidden = true;
+        }
+        pendingDeleteForm = null;
+    };
+
+    document.querySelectorAll("[data-plan-delete]").forEach((form) => {
+        form.addEventListener("submit", (event) => {
+        const title = form.getAttribute("data-plan-title");
+        if (!openDeleteModal(title)) {
+            const message = title
+            ? `「${title}」を削除しますか？`
+            : "このプランを削除しますか？";
+            if (!window.confirm(message)) {
+            event.preventDefault();
+            }
+            return;
+        }
+        event.preventDefault();
+        pendingDeleteForm = form;
+        });
+    });
+
+    deleteConfirm?.addEventListener("click", () => {
+        if (pendingDeleteForm) {
+        pendingDeleteForm.submit();
+        }
+        closeDeleteModal();
+    });
+
+    deleteCancel?.addEventListener("click", closeDeleteModal);
+    deleteBackdrop?.addEventListener("click", closeDeleteModal);
 });
