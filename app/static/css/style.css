@@ -2044,6 +2044,12 @@ body.split-body .page-content {
   color: #222;
 }
 
+.category-title-input {
+  width: 100%;
+  font: inherit;
+  font-weight: 700;
+}
+
 .item-stack {
   display: flex;
   flex-direction: column;
