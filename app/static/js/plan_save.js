@@ -9,7 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const visibilityInputs = planSaveModal?.querySelectorAll('input[name="template_visibility"]')
   const submitButton = planSaveModal?.querySelector('[data-plan-save-submit]')
   const errorLabel = planSaveModal?.querySelector('[data-plan-save-error]')
-  const defaultTitle = document.querySelector('[data-plan-title]')?.textContent?.trim()
+  const planTitleElement = document.querySelector('[data-plan-title]')
+  const defaultTitle =
+    titleInput?.defaultValue?.trim() ||
+    planTitleElement?.dataset?.planTitle?.trim() ||
+    planTitleElement?.textContent?.trim()
+  const defaultNote = noteInput?.defaultValue?.trim()
 
   const shareUrlInput = planShareModal?.querySelector('[data-share-url-input]')
   const shareCopyBtn = planShareModal?.querySelector('[data-share-copy]')
@@ -36,6 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const openSaveModal = () => {
     if (titleInput && defaultTitle && !titleInput.value) {
       titleInput.value = defaultTitle
+    }
+    if (noteInput && defaultNote && !noteInput.value) {
+      noteInput.value = defaultNote
     }
     planSaveModal.hidden = false
     planSaveModal.classList.add('is-open')

@@ -730,12 +730,17 @@ def checklist_list():
         flash("ユーザーが認証されていません。", "warning")
         return redirect(url_for("auth.login"))
 
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    if not plan:
+        flash("プランが見つかりません。", "warning")
+        return redirect(url_for("plan.plan_list"))
+
     # ★ 修正箇所: get_checklist_item_by_id ではなく get_checklist_by_id を使用
     checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
 
     if not checklist_obj:
         # まだチェックリストが生成されていない
-        return render_template("plan/checklist_create.html")
+        return render_template("plan/checklist_create.html", plan=plan)
     
     # チェックリストが存在する場合、そのアイテムを取得
     checklist_items = PlanDBService.get_checklist_item_by_id(checklist_obj.checklist_id)
@@ -761,7 +766,7 @@ def checklist_list():
     # テンプレートに渡すために辞書のリストに変換
     categories_list = [{"name": name, **data} for name, data in categories_dict.items()]
 
-    return render_template("plan/checklist_list.html", categories=categories_list)
+    return render_template("plan/checklist_list.html", categories=categories_list, plan=plan)
 
 @plan_bp.route("/checklists/edit", methods=["GET"])
 def checklist_edit():
@@ -772,6 +777,11 @@ def checklist_edit():
         return redirect(url_for("plan.plan_create_form"))
 
     user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    if not plan:
+        flash("プランが見つかりません。", "warning")
+        return redirect(url_for("plan.plan_list"))
     
     checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
     if not checklist_obj:
@@ -801,7 +811,7 @@ def checklist_edit():
     
     categories_list = list(categories_dict.values())
 
-    return render_template("plan/checklist_edit.html", categories=categories_list)
+    return render_template("plan/checklist_edit.html", categories=categories_list, plan=plan)
 
 @plan_bp.route("/checklists/update", methods=["POST"])
 def checklist_update():
