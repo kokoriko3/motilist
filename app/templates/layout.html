@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
@@ -16,10 +16,8 @@
   <body class="{% block body_class %}{% endblock %}">
     <header class="site-header">
       <div class="header-left">
-        <button class="icon-button" aria-label="メニュー">
-          <span></span>
-          <span></span>
-          <span></span>
+        <button class="menu-button" type="button" aria-label="メニュー">
+          <span class="menu-button__icon" aria-hidden="true">も</span>
         </button>
         <div class="brand-lockup">
           <a class="brand-name">{{ config.get('BRAND_NAME', 'Mochi List') }}</a>
@@ -30,16 +28,10 @@
         <a class="{{ 'active' if active_nav == 'plans' else '' }}" href="{{ url_for('plan.plan_list') }}">自分のプラン一覧</a>
         <div class="profile-dropdown" data-dropdown>
           <button class="icon-user" aria-label="アカウントメニュー" type="button"></button>
-          <div class="dropdown-panel">
-            <div class="dropdown-header">
-              <p class="dropdown-title">{{ config.get('BRAND_NAME', 'Mochi List') }}</p>
-              {% if current_user.is_authenticated %}
-                <p class="dropdown-subtitle">{{ current_user.display_name or current_user.email }}</p>
-              {% else %}
-                <p class="dropdown-subtitle">ゲスト</p>
-              {% endif %}
+            <div class="dropdown-panel">
+              <div class="dropdown-header">
               <a class="dropdown-link" href="#">アカウント情報</a>
-            </div>
+              </div>
             <a class="dropdown-row profile-link" href="">
               <span class="icon-user small"></span>
               {% if current_user.is_authenticated %}
@@ -75,7 +67,7 @@
       <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
         <p id="logout-title">ログアウトしますか</p>
         <div class="logout-modal__actions">
-          <button type="button" class="secondary-button" data-logout-cancel>戻る</button>
+          <button type="button" class="secondary-button" data-logout-cancel>キャンセル</button>
           <button
             type="button"
             class="cta-button"
@@ -87,6 +79,17 @@
         </div>
       </div>
       
+    </section>
+    <section class="logout-modal plan-delete-modal" data-plan-delete-modal hidden>
+      <div class="logout-modal__backdrop" data-plan-delete-dismiss></div>
+      <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="plan-delete-title">
+        <p id="plan-delete-title">プランを削除しますか</p>
+        <p class="plan-delete-message" data-plan-delete-message></p>
+        <div class="logout-modal__actions">
+          <button type="button" class="secondary-button" data-plan-delete-cancel>キャンセル</button>
+          <button type="button" class="cta-button" data-plan-delete-confirm>削除する</button>
+        </div>
+      </div>
     </section>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/plan_save.js') }}"></script>

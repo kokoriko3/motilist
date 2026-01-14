@@ -28,6 +28,14 @@
     {% endif %}
     <button type="button" class="pill-button" data-plan-share-trigger>共有</button>
     <button type="button" class="pill-button" data-plan-save-trigger>保存</button>
+    {% if header_action_label is defined and header_action_href is defined %}
+    <a
+      class="{{ header_action_class if header_action_class is defined else 'pill-button' }}"
+      href="{{ header_action_href }}"
+    >
+      {{ header_action_label }}
+    </a>
+    {% endif %}
   </div>
 </div>
 

@@ -29,6 +29,47 @@
           {% endwith %}
         {% endfor %}
       </div>
+      <nav class="plan-pagination" aria-label="ページネーション">
+        <div class="plan-pagination__links">
+          {% if page > 1 %}
+            <a class="page-nav" href="{{ url_for('plan.public_plan_list', page=page-1, q=query) }}" aria-label="前のページ">&lsaquo;</a>
+          {% else %}
+            <span class="page-nav is-disabled" aria-hidden="true">&lsaquo;</span>
+          {% endif %}
+          {% for page_number in pagination %}
+            {% if page_number %}
+              {% if page_number == page %}
+                <span class="page-number is-current">{{ page_number }}</span>
+              {% else %}
+                <a class="page-number" href="{{ url_for('plan.public_plan_list', page=page_number, q=query) }}">{{ page_number }}</a>
+              {% endif %}
+            {% else %}
+              <span class="page-ellipsis">&hellip;</span>
+            {% endif %}
+          {% endfor %}
+          {% if page < total_pages %}
+            <a class="page-nav" href="{{ url_for('plan.public_plan_list', page=page+1, q=query) }}" aria-label="次のページ">&rsaquo;</a>
+          {% else %}
+            <span class="page-nav is-disabled" aria-hidden="true">&rsaquo;</span>
+          {% endif %}
+        </div>
+        <form class="plan-pagination__jump" method="get" action="{{ url_for('plan.public_plan_list') }}">
+          {% if query %}
+            <input type="hidden" name="q" value="{{ query }}" />
+          {% endif %}
+          <label for="public-page-jump">ページ</label>
+          <input
+            id="public-page-jump"
+            type="number"
+            name="page"
+            min="1"
+            max="{{ total_pages }}"
+            value="{{ page }}"
+            inputmode="numeric"
+          />
+          <button type="submit">行く</button>
+        </form>
+      </nav>
     {% else %}
       <p class="plan-public__empty">※ 表示されるデータがありませんでした。</p>
     {% endif %}

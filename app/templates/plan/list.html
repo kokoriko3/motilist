@@ -10,12 +10,11 @@
         <form method="get" class="plan-search-form">
           <label class="plan-search">
             <span class="plan-search__icon">🔍</span>
-            {# ルートから query を渡していないので request から直接読む or 空文字 #}
             <input
               type="search"
               name="q"
               placeholder="自分の旅行プランを検索"
-              value="{{ request.args.get('q', '') }}"
+              value="{{ query }}"
             />
           </label>
         </form>
@@ -36,14 +35,47 @@
           {% endwith %}
         {% endfor %}
       </div>
-      <p class="plan-pagination">
-        <span class="is-current">1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
-        <span>…</span>
-        <span>20</span>
-      </p>
+      <nav class="plan-pagination" aria-label="ページネーション">
+        <div class="plan-pagination__links">
+          {% if page > 1 %}
+            <a class="page-nav" href="{{ url_for('plan.plan_list', page=page-1, q=query) }}" aria-label="前のページ">&lsaquo;</a>
+          {% else %}
+            <span class="page-nav is-disabled" aria-hidden="true">&lsaquo;</span>
+          {% endif %}
+          {% for page_number in pagination %}
+            {% if page_number %}
+              {% if page_number == page %}
+                <span class="page-number is-current">{{ page_number }}</span>
+              {% else %}
+                <a class="page-number" href="{{ url_for('plan.plan_list', page=page_number, q=query) }}">{{ page_number }}</a>
+              {% endif %}
+            {% else %}
+              <span class="page-ellipsis">&hellip;</span>
+            {% endif %}
+          {% endfor %}
+          {% if page < total_pages %}
+            <a class="page-nav" href="{{ url_for('plan.plan_list', page=page+1, q=query) }}" aria-label="次のページ">&rsaquo;</a>
+          {% else %}
+            <span class="page-nav is-disabled" aria-hidden="true">&rsaquo;</span>
+          {% endif %}
+        </div>
+        <form class="plan-pagination__jump" method="get" action="{{ url_for('plan.plan_list') }}">
+          {% if query %}
+            <input type="hidden" name="q" value="{{ query }}" />
+          {% endif %}
+          <label for="plan-page-jump">ページ</label>
+          <input
+            id="plan-page-jump"
+            type="number"
+            name="page"
+            min="1"
+            max="{{ total_pages }}"
+            value="{{ page }}"
+            inputmode="numeric"
+          />
+          <button type="submit">行く</button>
+        </form>
+      </nav>
     {% else %}
       <div class="plan-shelf__empty">
         <p class="plan-shelf__empty-count">検索結果 {{ plans|length }}件</p>
