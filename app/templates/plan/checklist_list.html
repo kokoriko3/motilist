@@ -3,12 +3,14 @@
 {% block content %}
 <section class="plan-shell">
   {% set active_tab = 'checklist' %}
+  {% set header_action_label = '編集' %}
+  {% set header_action_href = url_for('plan.checklist_edit') %}
+  {% set header_action_class = 'pill-button' %}
   {% include 'plan/_plan_header_tabs.html' %}
 
   <div class="checklist-body">
     <div class="panel-header">
       <div class="error-inline" data-checklist-error hidden>保存に失敗しました</div>
-      <a class="cta-primary small" href="{{ url_for('plan.checklist_edit') }}" name="edit">編集</a>
     </div>
 
     <div class="category-grid">

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
-from flask_login import login_user
+from flask_login import login_user, logout_user
 from app.forms.auth_form import LoginForm
 from app.services.db_service import UserDBService
 from app.extensions import db, bcrypt
@@ -27,7 +27,8 @@ def login():
             flash("パスワードが一致しません", "error")
             return render_template("auth/login.html", form=form)
 
-        login_user(user)  # ★これが本体
+        login_user(user)
+        session["user_id"] = user.user_id
         flash("ログインしました", "success")
         next_url = session.pop("next_url", None)
         return redirect(next_url or url_for("plan.plan_list"))
@@ -74,7 +75,8 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        session["user_id"] = form.email.data
+        login_user(new_user)
+        session["user_id"] = new_user.user_id
 
         # 完了画面へリダイレクト
         return redirect(url_for("auth.register_complete"))
@@ -95,5 +97,6 @@ def logout():
     ログアウト処理
     セッション情報をクリアしてログインページへリダイレクトする
     """
+    logout_user()
     session.clear()  # セッションをすべて削除
     return redirect(url_for('auth.login'))  # ログインページへリダイレクト

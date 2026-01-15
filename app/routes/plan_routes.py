@@ -28,11 +28,73 @@ def require_login():
     session["next_url"] = url_for("plan.plan_create_form")
     return redirect(url_for("auth.login"))
 
+
+def paginate_items(items, page, per_page):
+    total_items = len(items)
+    total_pages = max(1, math.ceil(total_items / per_page)) if total_items else 1
+    page = max(1, min(page or 1, total_pages))
+    start = (page - 1) * per_page
+    end = start + per_page
+    return items[start:end], page, total_pages
+
+
+def build_pagination(current_page, total_pages):
+    if total_pages <= 7:
+        return list(range(1, total_pages + 1))
+
+    pages = {1, total_pages}
+
+    if current_page <= 4:
+        pages.update(range(1, 5))
+    elif current_page >= total_pages - 3:
+        pages.update(range(total_pages - 3, total_pages + 1))
+    else:
+        pages.update(range(current_page - 1, current_page + 2))
+
+    sorted_pages = sorted(p for p in pages if 1 <= p <= total_pages)
+    output = []
+    last_page = 0
+    for page in sorted_pages:
+        if page - last_page > 1:
+            output.append(None)
+        output.append(page)
+        last_page = page
+    return output
+
+
+def resolve_selected_hotel(plan):
+    if not plan:
+        return None
+    hotel_json = plan.hotel or {}
+    candidates = hotel_json.get("candidates", []) or []
+    selected_id = hotel_json.get("selected_id")
+
+    selected_hotel = None
+    if selected_id is not None:
+        selected_hotel = next(
+            (c for c in candidates if str(c.get("id")) == str(selected_id)),
+            None,
+        )
+    if not selected_hotel:
+        selected_hotel = next(
+            (c for c in candidates if c.get("is_selected")),
+            None,
+        )
+    if not selected_hotel:
+        snapshot = HotelSnapshot.query.filter_by(plan_id=plan.id, is_selected=True).first()
+        if snapshot:
+            selected_hotel = {"name": snapshot.name, "price": snapshot.price}
+    return selected_hotel
+
 # ----------------------------------------
 #  プラン一覧（トップ）
 # ----------------------------------------
 @plan_bp.route("/", methods=["GET"])
 def plan_list():
+    q = request.args.get("q", "").strip()
+    page = request.args.get("page", 1, type=int)
+    page_size = 8
+
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
         print("Flask-Login ログインあり")
@@ -49,15 +111,27 @@ def plan_list():
             plans=[],
             show_login_link=True,
             active_nav="plans",
+            query=q,
+            page=1,
+            total_pages=1,
+            pagination=[],
         )
 
     print("ユーザIDあり:", user_id)
     templates = PlanDBService.get_all_templates_by_user_id(user_id=user_id)
+    if q:
+        q_lower = q.casefold()
+        templates = [
+            tpl for tpl in templates
+            if q_lower in (tpl.public_title or "").casefold()
+        ]
+
+    templates_page, page, total_pages = paginate_items(templates, page, page_size)
 
     # --------------------------
     # ★ テンプレートごとに追加情報を付ける
     # --------------------------
-    for tpl in templates:
+    for tpl in templates_page:
         # ===== 交通手段（既存処理）=====
         traffic_methods = []
         outline = tpl.itinerary_outline_json or {}
@@ -73,32 +147,30 @@ def plan_list():
         # ===== ホテル名（新規追加）=====
         # Plan を取得
         plan = PlanDBService.get_plan_by_id(tpl.plan_id, user_id)
-        hotel_json = plan.hotel or {}
+        if not plan:
+            tpl.hotel_name = "未設定"
+            continue
 
-        selected_id = hotel_json.get("selected_id")
-        candidates = hotel_json.get("candidates", [])
-
-        selected_hotel = None
-        if selected_id:
-            selected_hotel = next(
-                (c for c in candidates if c.get("id") == selected_id),
-                None
-            )
-
-        # list.html で使えるよう template 側に載せる
-        tpl.hotel_name = selected_hotel["name"] if selected_hotel else "選択中"
+        selected_hotel = resolve_selected_hotel(plan)
+        tpl.hotel_name = selected_hotel.get("name") if selected_hotel and selected_hotel.get("name") else "選択中"
 
     return render_template(
         "plan/list.html",
-        plans=templates,
+        plans=templates_page,
         show_login_link=show_login_link,
         active_nav="plans",
+        query=q,
+        page=page,
+        total_pages=total_pages,
+        pagination=build_pagination(page, total_pages),
     )
 
 # 公開プラン一覧
 @plan_bp.route("/public", methods=["GET"])
 def public_plan_list():
-    q = request.args.get("q", "")
+    q = request.args.get("q", "").strip()
+    page = request.args.get("page", 1, type=int)
+    page_size = 8
 
     # アプリとしての「有効なユーザID」を決める
     if current_user.is_authenticated:
@@ -120,15 +192,26 @@ def public_plan_list():
             result_count=0,
             active_nav="public",
             show_login_link=True,
+            page=1,
+            total_pages=1,
+            pagination=[],
         )
 
     print("ユーザIDあり:", user_id)
     templates = PlanDBService.get_public_templates()
+    if q:
+        q_lower = q.casefold()
+        templates = [
+            tpl for tpl in templates
+            if q_lower in (tpl.public_title or "").casefold()
+        ]
+
+    templates_page, page, total_pages = paginate_items(templates, page, page_size)
 
     # --------------------------
     # ★ Template ごとに表示用フィールドを作る
     # --------------------------
-    for tpl in templates:
+    for tpl in templates_page:
         # ===== 交通手段まとめ =====
         traffic_methods = []
         outline = tpl.itinerary_outline_json or {}
@@ -144,28 +227,51 @@ def public_plan_list():
         # ===== ホテル名（Plan 経由で取得） =====
         plan = Plan.query.get(tpl.plan_id)  # 公開なので user_id で絞らない
         if plan and plan.hotel:
-            hotel_json = plan.hotel or {}
-            selected_id = hotel_json.get("selected_id")
-            candidates = hotel_json.get("candidates", []) or []
-
-            selected_hotel = None
-            if selected_id:
-                selected_hotel = next(
-                    (c for c in candidates if c.get("id") == selected_id),
-                    None
-                )
-            tpl.hotel_name = selected_hotel["name"] if selected_hotel else "選択中"
+            selected_hotel = resolve_selected_hotel(plan)
+            tpl.hotel_name = selected_hotel.get("name") if selected_hotel and selected_hotel.get("name") else "選択中"
         else:
             tpl.hotel_name = "未設定"
 
     return render_template(
         "plan/public_list.html",
-        plans=templates,
+        plans=templates_page,
         query=q,
         result_count=len(templates),
         active_nav="public",
         show_login_link=show_login_link,
+        page=page,
+        total_pages=total_pages,
+        pagination=build_pagination(page, total_pages),
     )
+
+
+@plan_bp.route("/<int:template_id>/delete", methods=["POST"])
+def delete_plan(template_id):
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+    if not user_id:
+        flash("ログインしてください", "error")
+        return redirect(url_for("auth.login"))
+
+    template = Template.query.filter_by(template_id=template_id, user_id=user_id).first()
+    if not template:
+        flash("対象のプランが見つかりません。", "error")
+        return redirect(url_for("plan.plan_list"))
+
+    plan = Plan.query.filter_by(id=template.plan_id, user_id=user_id).first()
+
+    try:
+        if plan:
+            db.session.delete(plan)
+        else:
+            db.session.delete(template)
+        db.session.commit()
+        flash("プランを削除しました。", "success")
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Delete plan failed: {e}")
+        flash("プランの削除に失敗しました。", "error")
+
+    return redirect(url_for("plan.plan_list"))
 
 
 # ----------------------------------------
@@ -179,7 +285,7 @@ def plan_transit():
         flash("プランが選択されていません。先にプランを作成してください。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     options = PlanDBService.get_transit_by_id(plan_id, user_id=user_id)
@@ -219,7 +325,7 @@ def stay_select():
         flash("??????????????", "error")
         return redirect(url_for("plan.plan_list"))
 
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     if not plan:
         flash("????????????", "warning")
@@ -366,7 +472,7 @@ def stay_confirm():
         return redirect(url_for("plan.plan_list"))
 
     if current_user.is_authenticated:
-        user_id = current_user.id
+        user_id = current_user.user_id
     else:
         user_id = session.get("user_id")
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
@@ -401,7 +507,7 @@ def stay_confirm():
 @plan_bp.route("/schedule", methods=["GET"])
 def schedule_list():
     plan_id = session.get("plan_id")
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     if not plan_id or not user_id:
         flash("プランが指定されていません。最初からやり直してください。", "warning")
@@ -461,7 +567,7 @@ def schedule_list():
 @plan_bp.route("/schedule/edit", methods=["GET"])
 def schedule_edit():
     plan_id = session.get("plan_id")
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     # 1. 既存のデータを取得 (schedule_listと同じロジック)
     schedule_obj = PlanDBService.get_schedule_by_id(plan_id, user_id)
@@ -526,7 +632,7 @@ def schedule_update():
 @plan_bp.route("/save", methods=["POST"])
 def save_plan_template():
     plan_id = session.get("plan_id")
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     payload = request.get_json() or {}
     title = (payload.get("title") or "").strip()
@@ -569,7 +675,7 @@ def save_plan_template():
 @plan_bp.route("/share", methods=["POST"])
 def share_plan():
     plan_id = session.get("plan_id")
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
 
     if not plan_id or not user_id:
         return jsonify({"status": "error", "message": "プランが選択されていません。"}), 400
@@ -619,17 +725,22 @@ def checklist_list():
         flash("プランが選択されていません。先にプランを作成してください。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     if not user_id:
         flash("ユーザーが認証されていません。", "warning")
         return redirect(url_for("auth.login"))
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    if not plan:
+        flash("プランが見つかりません。", "warning")
+        return redirect(url_for("plan.plan_list"))
 
     # ★ 修正箇所: get_checklist_item_by_id ではなく get_checklist_by_id を使用
     checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
 
     if not checklist_obj:
         # まだチェックリストが生成されていない
-        return render_template("plan/checklist_create.html")
+        return render_template("plan/checklist_create.html", plan=plan)
     
     # チェックリストが存在する場合、そのアイテムを取得
     checklist_items = PlanDBService.get_checklist_item_by_id(checklist_obj.checklist_id)
@@ -655,7 +766,7 @@ def checklist_list():
     # テンプレートに渡すために辞書のリストに変換
     categories_list = [{"name": name, **data} for name, data in categories_dict.items()]
 
-    return render_template("plan/checklist_list.html", categories=categories_list)
+    return render_template("plan/checklist_list.html", categories=categories_list, plan=plan)
 
 @plan_bp.route("/checklists/edit", methods=["GET"])
 def checklist_edit():
@@ -665,7 +776,12 @@ def checklist_edit():
         flash("プランが選択されていません。", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    if not plan:
+        flash("プランが見つかりません。", "warning")
+        return redirect(url_for("plan.plan_list"))
     
     checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
     if not checklist_obj:
@@ -695,7 +811,7 @@ def checklist_edit():
     
     categories_list = list(categories_dict.values())
 
-    return render_template("plan/checklist_edit.html", categories=categories_list)
+    return render_template("plan/checklist_edit.html", categories=categories_list, plan=plan)
 
 @plan_bp.route("/checklists/update", methods=["POST"])
 def checklist_update():
@@ -703,7 +819,7 @@ def checklist_update():
     if plan_id is None:
         return jsonify({"error": "プランが指定されていません。"}), 400
     
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     if not user_id:
         return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
 
@@ -770,7 +886,7 @@ def checklist_generate():
     if plan_id is None:
         return jsonify({"error": "プランが指定されていません。"}), 400
     
-    user_id = current_user.id if current_user.is_authenticated else session.get("user_id")
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     if not user_id:
         return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
 
@@ -820,7 +936,7 @@ def checklist_generate():
 def plan_detail(template_id):
     # --- ユーザー判定 ---
     if current_user.is_authenticated:
-        user_id = current_user.id
+        user_id = current_user.user_id
     else:
         user_id = session.get("user_id")
 
@@ -880,18 +996,8 @@ def plan_detail(template_id):
     traffic_methods = list(dict.fromkeys(traffic_methods))
 
     # --- 宿泊先（Plan.hotel JSON から） ---
-    hotel_json = plan.hotel or {}
-    selected_id = hotel_json.get("selected_id")
-    candidates = hotel_json.get("candidates", [])
-
-    selected_hotel = None
-    if selected_id:
-        selected_hotel = next(
-            (c for c in candidates if c.get("id") == selected_id),
-            None
-        )
-
-    if selected_hotel:
+    selected_hotel = resolve_selected_hotel(plan)
+    if selected_hotel and selected_hotel.get("name"):
         accommodation_label = selected_hotel.get("name")
         hotel_price = selected_hotel.get("price")
     else:
@@ -924,6 +1030,19 @@ def plan_detail(template_id):
                 stay_locations.append(place)
     stay_locations = list(dict.fromkeys(stay_locations))
 
+    source = request.args.get("source")
+    if source == "public":
+        active_nav = "public"
+    elif source == "own":
+        active_nav = "plans"
+    else:
+        active_nav = "plans" if is_owned else "public"
+
+    if is_owned:
+        session["plan_id"] = plan.id
+
+    display_title = template.public_title or plan.title or plan.destination or "プラン"
+
     return render_template(
         "plan/detail.html",
         plan=plan,
@@ -935,6 +1054,8 @@ def plan_detail(template_id):
         packing_summary=packing_summary,
         is_owned=is_owned,
         template_note=template_note,
+        display_title=display_title,
+        active_nav=active_nav,
         template_id=template_id,  # 必要なら渡しておく
     )
 
@@ -946,7 +1067,7 @@ def plan_detail(template_id):
 def plan_modals(plan_id):
     # ユーザーIDの取得
     if current_user.is_authenticated:
-        user_id = current_user.id
+        user_id = current_user.user_id
     else:
         user_id = session.get("user_id")
     
@@ -990,7 +1111,7 @@ def plan_create_form():
     if form.validate_on_submit():
         user_id = None
         if current_user.is_authenticated:
-            user_id = current_user.id
+            user_id = current_user.user_id
         else:
             user_id = session.get("user_id")
         
@@ -1087,7 +1208,7 @@ def create_dummy_plan():
     # ログインチェック
     user_id = None
     if current_user.is_authenticated:
-        user_id = current_user.id
+        user_id = current_user.user_id
     else:
         user_id = session.get("user_id")
     
@@ -1195,3 +1316,4 @@ def create_dummy_plan():
         flash(f"ダミー作成エラー: {e}", "danger")
         return redirect(url_for("plan.plan_create_form"))
     
+

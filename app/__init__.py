@@ -1,5 +1,5 @@
 import logging
-from flask import Flask
+from flask import Flask, session
 # configモジュールの場所がルートにある場合は 'config'、app内にある場合は 'app.config' としてください
 # 提示されたコードに従い 'config' からインポートします
 from config import Config
@@ -39,6 +39,16 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @login_manager.request_loader
+    def load_user_from_request(request):
+        user_id = session.get("user_id")
+        if not user_id:
+            return None
+        try:
+            return User.query.get(int(user_id))
+        except (TypeError, ValueError):
+            return User.query.filter_by(email=str(user_id)).first()
 
     # Blueprintの登録
     from app.routes.plan_routes import plan_bp

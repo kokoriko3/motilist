@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const addRow = (stackEl) => {
+    if (!stackEl) return
     const row = document.createElement('div')
     row.className = 'edit-row'
     row.setAttribute('data-item-row', '')
@@ -72,7 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <button type="button" name="delete" class="icon-button" data-item-delete aria-label="削除">🗑</button>
       </div>
     `
-    stackEl.insertBefore(row, stackEl.querySelector('.adder'))
+    const adder = stackEl.querySelector('.adder')
+    if (adder) {
+      stackEl.insertBefore(row, adder)
+    } else {
+      stackEl.appendChild(row)
+    }
   }
 
   const bindStackEvents = (stackEl) => {
@@ -92,11 +98,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.item-stack').forEach((stackEl) => bindStackEvents(stackEl))
 
+  const getCategoryTitle = (card) => {
+    if (!card) return ''
+    const titleInput = card.querySelector('.category-title-input')
+    if (titleInput) return titleInput.value.trim()
+    const titleEl = card.querySelector('.category-title')
+    return titleEl ? titleEl.innerText.trim() : ''
+  }
+
+  const createCategoryCard = () => {
+    const card = document.createElement('article')
+    card.className = 'category-card'
+
+    const header = document.createElement('header')
+    header.className = 'category-title'
+    const titleInput = document.createElement('input')
+    titleInput.type = 'text'
+    titleInput.className = 'category-title-input'
+    titleInput.placeholder = 'カテゴリ名'
+    titleInput.value = '新しいカテゴリ'
+    header.appendChild(titleInput)
+
+    const stack = document.createElement('div')
+    stack.className = 'item-stack'
+    const adder = document.createElement('button')
+    adder.type = 'button'
+    adder.name = 'item_append'
+    adder.className = 'adder'
+    adder.setAttribute('data-item-add', '')
+    adder.textContent = '追加...'
+    stack.appendChild(adder)
+
+    card.appendChild(header)
+    card.appendChild(stack)
+
+    bindStackEvents(stack)
+    return { card, stack, titleInput }
+  }
+
   const globalAdd = document.querySelector('[data-item-add-global]')
   if (globalAdd) {
     globalAdd.addEventListener('click', () => {
-      const firstStack = document.querySelector('.item-stack')
-      if (firstStack) addRow(firstStack)
+      const categoryGrid =
+        document.querySelector('[data-checklist-list]') || document.querySelector('.category-grid')
+      if (!categoryGrid) return
+      const { card, stack, titleInput } = createCategoryCard()
+      categoryGrid.appendChild(card)
+      addRow(stack)
+      if (titleInput) {
+        titleInput.focus()
+        titleInput.select()
+      }
     })
   }
 
@@ -116,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const categoryCards = document.querySelectorAll('.category-card')
 
       categoryCards.forEach(card => {
-        const categoryTitle = card.querySelector('.category-title').innerText.trim()
+        const categoryTitle = getCategoryTitle(card) || '新しいカテゴリ'
         const items = []
         
         const rows = card.querySelectorAll('[data-item-row]')
