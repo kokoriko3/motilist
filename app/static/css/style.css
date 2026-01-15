@@ -2833,9 +2833,9 @@ a:hover {
 }
 
 .menu-button__icon {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-  color: var(--accent-ink);
-  box-shadow: 0 8px 18px rgba(48, 35, 21, 0.18);
+  background: #111;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
 }
 
 .brand-name {
