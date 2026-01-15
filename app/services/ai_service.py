@@ -43,30 +43,30 @@ def generate_plan_from_inputs(destination,start_point, days, purpose_raw, **kwar
           "plan_title": "（AIが考えたプランのタイトル）",
           "transport_options": {{
             "価格重視": {{
-              "method": "夜行バス + 徒歩"
+              "method": "夜行バス + 徒歩",
               "estimated_cost": 8000,
               "estimated_time": 480,
-              "transit_count":1,
-              "departure_time":7:00,
-              "arrival_time":14:00
+              "transit_count": 1,
+              "departure_time": "07:00",
+              "arrival_time": "14:00"
             }},
             "速度重視": {{
               "method": "新幹線 + 電車",
               "estimated_cost": 25000,
               "estimated_time": 180,
-              "transit_count":3,
-              "departure_time":7:00,
-              "arrival_time":10:00
+              "transit_count": 3,
+              "departure_time": "07:00",
+              "arrival_time": "10:00"
             }},
             "おすすめ": {{
               "method": "飛行機（LCC） + 電車",
               "estimated_cost": 15000,
               "estimated_time": 240,
-              "transit_count":3,
-              "departure_time":7:00,
-              "arrival_time":12:00
+              "transit_count": 3,
+              "departure_time": "07:00",
+              "arrival_time": "12:00"
             }},
-            "車": {{
+            "車利用": {{
               "method": "自家用車（高速道路利用）",
               "estimated_cost": 12000,
               "estimated_time": 420
@@ -125,12 +125,12 @@ def generate_item_list_from_plan(plan,schedule_json):
         厳密なJSON形式で出力してください。
         
         # 条件
-        - 出発地点:{plan.destination}
-        -日数:{plan.days}
-        -目的;{plan.purpose}
-        -オプション:{plan.options}
-
-        -スケジュール:{schedule_json}
+        - 出発地点: {plan.departure}
+        - 目的地: {plan.destination}
+        - 日数: {plan.days}
+        - 目的: {plan.purpose}
+        - オプション: {plan.options}
+        - スケジュール: {schedule_json}
         
         # 出力JSON形式
         {{
@@ -138,7 +138,7 @@ def generate_item_list_from_plan(plan,schedule_json):
             {{
               "category": "貴重品",
               "required_items": ["財布", "スマホ"],
-              "items": [""]
+              "items": ["モバイルバッテリー"]
             }},
             {{
               "category": "衣類",
@@ -152,8 +152,8 @@ def generate_item_list_from_plan(plan,schedule_json):
             }},
             {{
               "category": "その他",
-              "required_items": ["虫よけスプレー"]
-              "items": ["保険証"],
+              "required_items": ["虫よけスプレー"],
+              "items": ["保険証"]
             }}
           ]
         }}
