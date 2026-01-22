@@ -27,44 +27,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ▼ ログアウトモーダル
     const logoutTrigger = document.querySelector("[data-logout-trigger]");
-    const logoutModal   = document.querySelector("[data-logout-modal]");
+    const logoutModal = document.querySelector("[data-logout-modal]");
     const logoutConfirm = document.querySelector("[data-logout-confirm]");
-    const logoutCancel  = document.querySelector("[data-logout-cancel]");
+    const logoutCancel = document.querySelector("[data-logout-cancel]");
     const logoutBackdrop = document.querySelector("[data-logout-dismiss]");
+    const hasLogoutModal = Boolean(logoutModal && logoutConfirm);
 
-    if (logoutTrigger && logoutModal && logoutConfirm) {
-        const logoutUrl = logoutTrigger.dataset.logoutUrl;
+    if (logoutTrigger) {
+        const resolveLogoutUrl = () =>
+        logoutTrigger.dataset.logoutUrl || logoutTrigger.getAttribute("href");
 
-        
         const openModal = () => {
+        if (!logoutModal) {
+            return;
+        }
         console.log("open logout modal");
-        logoutModal.hidden = false; 
+        logoutModal.removeAttribute("hidden");
         logoutModal.classList.add("is-open");
+        dropdown?.classList.remove("open");
         };
 
         const closeModal = () => {
+        if (!logoutModal) {
+            return;
+        }
         logoutModal.classList.remove("is-open");
-        logoutModal.hidden = true;  
+        logoutModal.setAttribute("hidden", "");
         };
 
         logoutTrigger.addEventListener("click", (e) => {
+        e.preventDefault();
         e.stopPropagation();
+        if (!hasLogoutModal) {
+            const url = resolveLogoutUrl();
+            if (url) {
+            window.location.href = url;
+            }
+            return;
+        }
         openModal();
         });
 
+        if (hasLogoutModal) {
         if (logoutCancel) {
-        logoutCancel.addEventListener("click", closeModal);
+            logoutCancel.addEventListener("click", closeModal);
         }
         if (logoutBackdrop) {
-        logoutBackdrop.addEventListener("click", closeModal);
+            logoutBackdrop.addEventListener("click", closeModal);
         }
 
         logoutConfirm.addEventListener("click", () => {
-        const url = logoutConfirm.dataset.logoutUrl;
-        if (url) {
+            const url = logoutConfirm.dataset.logoutUrl || resolveLogoutUrl();
+            if (url) {
             window.location.href = url;
-        }
+            }
         });
+        }
     }
 
     // ▼ プラン削除確認

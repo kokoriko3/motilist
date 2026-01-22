@@ -1170,11 +1170,17 @@ def plan_create_form():
             return redirect(url_for("plan.plan_transit"))
 
         except Exception as e:
-            print(f"Error generating plan: {e}")
-            import traceback
-            traceback.print_exc()
+            current_app.logger.error("Error generating plan", exc_info=True)
             flash(f"プラン生成中にエラーが発生しました: {e}", "danger")
-            return redirect(url_for("plan.plan_create_form"))
+            return (
+                render_template(
+                    "plan/plan_create.html",
+                    form=form,
+                    need_options=need_options,
+                    active_nav="plans",
+                ),
+                502,
+            )
     
     if request.method == "POST" and not form.validate():
         flash(f"入力エラー詳細: {form.errors}", "danger")

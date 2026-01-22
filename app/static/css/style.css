@@ -1648,7 +1648,7 @@ body.split-body .page-content {
   background: rgba(0, 0, 0, 0.55);
   margin: 0;
   border-radius: 0;
-  z-index: 90;
+  z-index: 320;
 }
 
 .save-plan-modal[hidden] {
@@ -1776,7 +1776,7 @@ body.split-body .page-content {
   background: rgba(0, 0, 0, 0.55);
   margin: 0;
   border-radius: 0;
-  z-index: 95;
+  z-index: 320;
 }
 
 .share-plan-modal[hidden] {
@@ -1831,7 +1831,7 @@ body.split-body .page-content {
   position: fixed;
   inset: 0;
   display: none;
-  z-index: 80;
+  z-index: 320;
 }
 
 .logout-modal.is-open {
@@ -2784,6 +2784,18 @@ body::before {
   opacity: 0.5;
   pointer-events: none;
   z-index: 0;
+}
+
+.page-content,
+.site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
 }
 
 ::selection {
