@@ -58,6 +58,8 @@ body {
 
 .auth-page .site-header,
 .auth-page .site-footer {
+  position: relative; /* または fixed, sticky */
+  z-index: 1000;
   display: none;
 }
 
@@ -419,6 +421,8 @@ body.split-body .page-content {
 
 .profile-dropdown {
   position: relative;
+  position: relative; /* または fixed, sticky */
+  z-index: 1000;
 }
 
 .dropdown-panel {
@@ -2782,13 +2786,6 @@ body::before {
   z-index: 0;
 }
 
-.site-header,
-.page-content,
-.site-footer {
-  position: relative;
-  z-index: 1;
-}
-
 ::selection {
   background: rgba(201, 164, 107, 0.35);
   color: var(--accent-ink);
@@ -2864,6 +2861,8 @@ a:hover {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-soft);
+  position: absolute; /* これがないとz-indexが効きません */
+  z-index: 1000;      /* 十分大きな数値を設定 */
 }
 
 .dropdown-subtitle {
