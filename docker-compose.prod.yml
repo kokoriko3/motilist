@@ -42,9 +42,9 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data # データを永続化（コンテナを消してもデータは残る）
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: appdb
     expose:
       - "5432"
     # DBが起動完了するのを待つための設定
