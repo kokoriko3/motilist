@@ -1,9 +1,60 @@
 services:
+  # 1. Webサーバー & HTTPS化担当 (Caddy)
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+  # 2. アプリ本体 (Flask)
   web:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: always
+    # Gunicornで起動 (ポート8000)
+    # ※ "app:app" の部分は "ファイル名:Flaskインスタンス名" に合わせて書き換えてください
+    # 例: wsgi.py なら "wsgi:app"、app.py なら "app:app"
+    command: gunicorn wsgi:app --bind 0.0.0.0:8000
+    expose:
+      - "8000" # Caddyからのみアクセス可能にする
     environment:
-      - APP_ENV=prod
-    ports: ["8000:8000"]
-    restart: unless-stopped
+      # コンテナ内のDB("db")に接続する設定
+      DATABASE_URL: postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 3. データベース (PostgreSQL)
+  db:
+    image: postgres:15
+    restart: always
+    container_name: motilist-pg
+    volumes:
+      - pgdata:/var/lib/postgresql/data # データを永続化（コンテナを消してもデータは残る）
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    expose:
+      - "5432"
+    # DBが起動完了するのを待つための設定
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:       # DBデータの保存場所
+  caddy_data:   # SSL証明書の保存場所
+  caddy_config: # Caddy設定の保存場所
