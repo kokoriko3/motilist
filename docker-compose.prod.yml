@@ -36,7 +36,7 @@ services:
 
   # 3. データベース (PostgreSQL)
   db:
-    image: postgres:15
+    image: postgres:16
     restart: always
     container_name: motilist-pg
     volumes:
