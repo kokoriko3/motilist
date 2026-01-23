@@ -41,13 +41,14 @@
               {% endif %}
             </a>
             <!-- ★ これを追加 -->
-            <button
+            <a
               class="dropdown-row logout-row"
-              type="button"
-              data-logout-trigger 
+              href="{{ url_for('auth.logout') }}"
+              data-logout-trigger
+              data-logout-url="{{ url_for('auth.logout') }}"
             >
               ログアウト
-            </button>
+            </a>
           </div>
         </div>
       </nav>

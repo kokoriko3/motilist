@@ -58,6 +58,8 @@ body {
 
 .auth-page .site-header,
 .auth-page .site-footer {
+  position: relative; /* または fixed, sticky */
+  z-index: 1000;
   display: none;
 }
 
@@ -419,6 +421,8 @@ body.split-body .page-content {
 
 .profile-dropdown {
   position: relative;
+  position: relative; /* または fixed, sticky */
+  z-index: 1000;
 }
 
 .dropdown-panel {
@@ -1644,7 +1648,7 @@ body.split-body .page-content {
   background: rgba(0, 0, 0, 0.55);
   margin: 0;
   border-radius: 0;
-  z-index: 90;
+  z-index: 320;
 }
 
 .save-plan-modal[hidden] {
@@ -1772,7 +1776,7 @@ body.split-body .page-content {
   background: rgba(0, 0, 0, 0.55);
   margin: 0;
   border-radius: 0;
-  z-index: 95;
+  z-index: 320;
 }
 
 .share-plan-modal[hidden] {
@@ -1827,7 +1831,7 @@ body.split-body .page-content {
   position: fixed;
   inset: 0;
   display: none;
-  z-index: 80;
+  z-index: 320;
 }
 
 .logout-modal.is-open {
@@ -2782,11 +2786,16 @@ body::before {
   z-index: 0;
 }
 
-.site-header,
 .page-content,
 .site-footer {
   position: relative;
   z-index: 1;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
 }
 
 ::selection {
@@ -2864,6 +2873,8 @@ a:hover {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-soft);
+  position: absolute; /* これがないとz-indexが効きません */
+  z-index: 1000;      /* 十分大きな数値を設定 */
 }
 
 .dropdown-subtitle {
