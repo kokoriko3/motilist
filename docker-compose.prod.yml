@@ -19,15 +19,15 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: always
-    # Gunicornで起動 (ポート8000)
-    # ※ "app:app" の部分は "ファイル名:Flaskインスタンス名" に合わせて書き換えてください
-    # 例: wsgi.py なら "wsgi:app"、app.py なら "app:app"
+    # Gunicornで起動
     command: gunicorn wsgi:app --bind 0.0.0.0:8000
     expose:
-      - "8000" # Caddyからのみアクセス可能にする
+      - "8000"
     environment:
-      # コンテナ内のDB("db")に接続する設定
-      DATABASE_URL: postgresql+psycopg://app:pass@db:5432/appdb
+      # .envの変数を読み込んで接続文字列を作る
+      DATABASE_URL: postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
@@ -38,21 +38,24 @@ services:
     restart: always
     container_name: motilist-pg
     volumes:
-      - pgdata:/var/lib/postgresql/data # データを永続化（コンテナを消してもデータは残る）
+      - pgdata:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: appdb
+      # ここも .env の変数を使うように統一
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     expose:
       - "5432"
-    # DBが起動完了するのを待つための設定
     healthcheck:
+      # ここで変数 ${DB_USER} を使うため、上の environment も変数にする必要があります
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    env_file:
+      - .env
 
 volumes:
-  pgdata:       # DBデータの保存場所
-  caddy_data:   # SSL証明書の保存場所
-  caddy_config: # Caddy設定の保存場所
+  pgdata:
+  caddy_data:
+  caddy_config:
