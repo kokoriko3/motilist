@@ -25,7 +25,7 @@ services:
       - "8000"
     environment:
       # .envの変数を読み込んで接続文字列を作る
-      DATABASE_URL: postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${DB_NAME}
     env_file:
       - .env
     depends_on:
@@ -41,14 +41,14 @@ services:
       - pgdata:/var/lib/postgresql/data
     environment:
       # ここも .env の変数を使うように統一
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     expose:
       - "5432"
     healthcheck:
       # ここで変数 ${DB_USER} を使うため、上の environment も変数にする必要があります
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
