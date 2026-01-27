@@ -1654,13 +1654,14 @@ body.split-body .page-content {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 48px 16px;
   background: rgba(0, 0, 0, 0.55);
   margin: 0;
   border-radius: 0;
   z-index: 320;
+  overflow-y: auto;
 }
 
 .save-plan-modal[hidden] {
@@ -1676,6 +1677,8 @@ body.split-body .page-content {
   border: 1px solid #f1f1f1;
   padding: 28px;
   gap: 20px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
 }
 
 .save-plan-card .modal-back,
