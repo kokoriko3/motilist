@@ -6,6 +6,7 @@
   {% include 'plan/_plan_header_tabs.html' %}
 
   <div class="schedule-body">
+    <h1>スケジュール変更</h1>
     <div class="panel-header">
        <div class="error-inline" data-schedule-error hidden></div>
        <button class="cta-primary small" type="button" data-schedule-save>保存して完了</button>
@@ -32,6 +33,7 @@
           
           {% for activity in day.activities %}
           <div class="schedule-row editable" data-entry>
+            <input type="checkbox" class="visually-hidden schedule-checkbox" data-schedule-checkbox />
             <div class="col-time">
               <input name="time" type="time" value="{{ activity.time }}" placeholder="10:00" />
             </div>

@@ -8,56 +8,38 @@
   <form method="post" novalidate>
     {{ form.hidden_tag() }} {# CSRF トークン #}
 
+    {% if form.errors %}
+      <div class="notice error">
+        {% for errors in form.errors.values() %}
+          {% for error in errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
     {# 表示名 #}
     <div class="input-field">
       {{ form.displayName.label }}
       {{ form.displayName(class="input", placeholder="入力", id="register-displayName") }}
-      {% if form.displayName.errors %}
-        <ul class="error-messages">
-          {% for error in form.displayName.errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
     </div>
 
     {# メールアドレス #}
     <div class="input-field">
       {{ form.email.label }}
       {{ form.email(class="input", placeholder="入力", id="register-email") }}
-      {% if form.email.errors %}
-        <ul class="error-messages">
-          {% for error in form.email.errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
     </div>
 
     {# パスワード #}
     <div class="input-field">
       {{ form.password.label }}
       {{ form.password(class="input", placeholder="入力", id="register-password") }}
-      {% if form.password.errors %}
-        <ul class="error-messages">
-          {% for error in form.password.errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
     </div>
 
     {# パスワード確認 #}
     <div class="input-field">
       {{ form.password_confirm.label }}
       {{ form.password_confirm(class="input", placeholder="入力", id="register-password-confirm") }}
-      {% if form.password_confirm.errors %}
-        <ul class="error-messages">
-          {% for error in form.password_confirm.errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
     </div>
 
     <button type="submit" class="cta-button">アカウントを作成</button>

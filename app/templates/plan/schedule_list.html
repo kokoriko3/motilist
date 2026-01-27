@@ -9,6 +9,7 @@
   {% include 'plan/_plan_header_tabs.html' %}
 
   <div class="schedule-body">
+    <h1>スケジュール確定</h1>
     <div class="panel-header">
       <div class="error-inline" data-schedule-error hidden>日程の取得に失敗しました</div>
     </div>
@@ -38,6 +39,7 @@
           
           {% for activity in day.activities %}
           <div class="schedule-row">
+            <input type="checkbox" class="visually-hidden schedule-checkbox" data-schedule-checkbox />
             <div class="col-time">{{ activity.time }}</div>
             <div class="col-place">{{ activity.title }}</div>
             <div class="col-note">{{ activity.note }}</div>

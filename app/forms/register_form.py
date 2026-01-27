@@ -14,7 +14,7 @@ class RegisterForm(FlaskForm):
         "メールアドレス",
         validators=[
             DataRequired(message="メールアドレスを入力してください。"),
-            Email(message="有効なメールアドレスを入力してください。")
+            Email(message="メールアドレスを正しく入力してください。")
         ]
     )
 
@@ -30,6 +30,6 @@ class RegisterForm(FlaskForm):
         "パスワード（確認）",
         validators=[
             DataRequired(message="確認用パスワードを入力してください。"),
-            EqualTo("password", message="パスワードが一致しません。")
+            EqualTo("password", message="確認用パスワードを正しく入力してください。")
         ]
     )

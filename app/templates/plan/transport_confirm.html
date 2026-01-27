@@ -10,21 +10,40 @@
     <div class="error-inline" data-transport-error hidden>保存に失敗しました</div>
 
     <div class="transport-options">
-      <div class="transport-card selected">
-        <div class="transport-card__header">
-          <span class="transport-title">金額重視</span>
-          <span class="transport-price">300円</span>
-          <span class="transport-time">移動時間１時間</span>
+      {% if selected_transit %}
+        <div class="transport-card selected">
+          <div class="transport-card__header">
+            <span class="transport-title">{{ selected_transit.type }}</span>
+            <span class="transport-price">
+              {% if selected_transit.cost %}
+                ¥{{ "{:,}".format(selected_transit.cost) }}
+              {% else %}
+                -
+              {% endif %}
+            </span>
+            <span class="transport-time">
+              {% if selected_transit.duration %}
+                移動時間{{ selected_transit.duration }}分
+              {% else %}
+                -
+              {% endif %}
+            </span>
+          </div>
+          <div class="transport-route">{{ selected_transit.transport_method }}</div>
+          <input
+            class="input transport-readonly"
+            type="text"
+            readonly
+            value="{{ selected_transit.transport_method }}"
+          />
         </div>
-        <div class="transport-route">バス(○○前→○○駅)→電車(のぞみ3号)</div>
-      </div>
+      {% endif %}
     </div>
 
     <div class="cta-row transport-actions">
       <a class="pill-ghost" href="{{ url_for('plan.plan_transit') }}">交通手段を選び直す</a>
-      <button type="button" class="cta-primary" data-transport-save>この交通手段で確定</button>
+      <a class="cta-primary" href="{{ url_for('plan.stay_select') }}">この交通手段で確定</a>
     </div>
   </div>
 </section>
-<script defer src="{{ url_for('static', filename='js/transport.js') }}"></script>
 {% endblock %}

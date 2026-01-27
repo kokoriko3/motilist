@@ -302,9 +302,7 @@ def plan_transit():
                 flash("交通手段の保存に失敗しました。", "danger")
             else:
                 flash("交通手段を確定しました。", "success")
-                options = PlanDBService.get_transit_by_id(plan_id, user_id=user_id)
-                selected_transit = PlanDBService.get_selected_transit(plan_id, user_id=user_id)
-                selected_type = selected_transit.type if selected_transit else selected_type
+                return redirect(url_for("plan.transit_confirm"))
 
     button_label = "変更" if selected_type else "確定"
 
@@ -315,6 +313,27 @@ def plan_transit():
         selected_type=selected_type,
         confirm_target=url_for("plan.stay_select"),
         button_label=button_label
+    )
+
+@plan_bp.route("/transit/confirm", methods=["GET"])
+def transit_confirm():
+    plan_id = session.get("plan_id")
+    if not plan_id:
+        flash("プランが選択されていません。先にプランを作成してください。", "warning")
+        return redirect(url_for("plan.plan_create_form"))
+
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    selected_transit = PlanDBService.get_selected_transit(plan_id, user_id=user_id)
+
+    if not selected_transit:
+        flash("交通手段を選択してください。", "warning")
+        return redirect(url_for("plan.plan_transit"))
+
+    return render_template(
+        "plan/transport_confirm.html",
+        plan=plan,
+        selected_transit=selected_transit,
     )
 
 @plan_bp.route("/stay/", methods=["GET", "POST"])
@@ -636,17 +655,39 @@ def save_plan_template():
 
     payload = request.get_json() or {}
     title = (payload.get("title") or "").strip()
+    public_title = (payload.get("public_title") or "").strip()
     description = (payload.get("description") or "").strip()
+    tags = (payload.get("tags") or "").strip()
     visibility = (payload.get("visibility") or "private").strip() or "private"
+    storage = (payload.get("storage") or "server").strip() or "server"
+    flag_a = bool(payload.get("flag_a"))
+    flag_b = bool(payload.get("flag_b"))
+    target_date = (payload.get("date") or "").strip()
+    publish_date = None
 
-    if visibility not in ("public", "private"):
+    if visibility not in ("public", "private", "link"):
         visibility = "private"
+    if storage not in ("local", "server"):
+        storage = "server"
 
     if not plan_id or not user_id:
         return jsonify({"status": "error", "message": "プランが選択されていません。"}), 400
 
     if not title:
         return jsonify({"status": "error", "message": "タイトルを入力してください。"}), 400
+    if len(title) > 50:
+        return jsonify({"status": "error", "message": "タイトルは50文字以内で入力してください。"}), 400
+    if public_title and len(public_title) > 60:
+        return jsonify({"status": "error", "message": "公開タイトルは60文字以内で入力してください。"}), 400
+    if len(description) > 500:
+        return jsonify({"status": "error", "message": "説明は500文字以内で入力してください。"}), 400
+    if tags and len(tags) > 100:
+        return jsonify({"status": "error", "message": "タグは100文字以内で入力してください。"}), 400
+    if target_date:
+        try:
+            publish_date = date.fromisoformat(target_date)
+        except ValueError:
+            return jsonify({"status": "error", "message": "日付を正しく入力してください。"}), 400
 
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     schedule = PlanDBService.get_schedule_by_id(plan_id, user_id)
@@ -654,12 +695,20 @@ def save_plan_template():
     if not plan or not schedule:
         return jsonify({"status": "error", "message": "プラン情報の取得に失敗しました。"}), 404
 
+    if title:
+        plan.title = title
+
     template = PlanDBService.save_template(
         plan=plan,
         schedule=schedule,
-        title=title,
+        title=public_title or title,
         short_note=description,
         visibility=visibility,
+        tags=tags,
+        storage=storage,
+        flag_a=flag_a,
+        flag_b=flag_b,
+        publish_date=publish_date,
     )
 
     if not template:
@@ -693,6 +742,10 @@ def share_plan():
         title=plan.title or (plan.destination or "無題のプラン"),
         short_note=plan.purpose or "",
         visibility="public",
+        storage="server",
+        flag_a=False,
+        flag_b=False,
+        publish_date=None,
     )
     if not template:
         return jsonify({"status": "error", "message": "共有URLの生成に失敗しました。"}), 500

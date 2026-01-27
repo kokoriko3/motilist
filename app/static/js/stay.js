@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!card) return;
       hideError();
 
+      const selectedId = card.dataset.stayId;
       stayList.querySelectorAll('[data-stay-id]').forEach((c) => {
         c.classList.remove('selected', 'disabled');
         const r = c.querySelector('input[name="hotel_id"]');
@@ -34,12 +35,18 @@ document.addEventListener('DOMContentLoaded', () => {
           r.checked = false;
           r.disabled = false;
         }
+        const cb = c.querySelector('input[data-stay-checkbox]');
+        if (cb) cb.checked = false;
       });
 
       card.classList.add('selected');
       const selectedRadio = card.querySelector('input[name="hotel_id"]');
       if (selectedRadio) {
         selectedRadio.checked = true;
+      }
+      const selectedCheckbox = card.querySelector('input[data-stay-checkbox]');
+      if (selectedCheckbox) {
+        selectedCheckbox.checked = true;
       }
 
       stayList.querySelectorAll('[data-stay-id]').forEach((c) => {
@@ -73,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
       form.querySelectorAll('input[name="hotel_id"]').forEach((r) => {
         r.checked = false;
         r.disabled = false;
+      });
+      form.querySelectorAll('input[data-stay-checkbox]').forEach((cb) => {
+        cb.checked = false;
       });
 
       stayList.querySelectorAll('[data-stay-id]').forEach((c) => {

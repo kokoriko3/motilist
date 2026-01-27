@@ -10,8 +10,20 @@
         <input
           type="text"
           name="template_title"
+          maxlength="50"
           placeholder="プランタイトル"
           value="{{ plan.title if plan and plan.title else (plan.destination if plan else '') }}"
+        />
+      </label>
+
+      <label class="save-plan-field">
+        <span>公開タイトル</span>
+        <input
+          type="text"
+          name="template_public_title"
+          maxlength="60"
+          placeholder="公開用のタイトル"
+          value="{{ plan.title if plan and plan.title else '' }}"
         />
       </label>
 
@@ -19,17 +31,32 @@
         <span>説明</span>
         <textarea
           name="template_note"
-          rows="3"
+          rows="4"
+          maxlength="500"
           placeholder="どんな旅か、こだわりポイントなどを記載"
         >{{ plan.purpose or '' if plan else '' }}</textarea>
+      </label>
+
+      <label class="save-plan-field">
+        <span>タグ</span>
+        <input
+          type="text"
+          name="template_tags"
+          maxlength="100"
+          placeholder="タグをカンマ区切りで入力"
+        />
       </label>
 
       <div class="save-plan-field">
         <span>公開設定</span>
         <div class="radio-pill-options stretched">
-          <label class="radio-pill is-active">
-            <input type="radio" name="template_visibility" value="private" checked />
+          <label class="radio-pill">
+            <input type="radio" name="template_visibility" value="private" required />
             <span>非公開</span>
+          </label>
+          <label class="radio-pill is-active">
+            <input type="radio" name="template_visibility" value="link" checked />
+            <span>リンク共有</span>
           </label>
           <label class="radio-pill">
             <input type="radio" name="template_visibility" value="public" />
@@ -37,6 +64,39 @@
           </label>
         </div>
       </div>
+
+      <div class="save-plan-field">
+        <span>保存先</span>
+        <div class="radio-pill-options stretched">
+          <label class="radio-pill">
+            <input type="radio" name="template_storage" value="local" required />
+            <span>ローカル</span>
+          </label>
+          <label class="radio-pill is-active">
+            <input type="radio" name="template_storage" value="server" checked />
+            <span>サーバー</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="save-plan-field">
+        <span>オプション</span>
+        <div class="radio-pill-options stretched">
+          <label class="radio-pill">
+            <input type="checkbox" name="template_flag_a" />
+            <span>オプションA</span>
+          </label>
+          <label class="radio-pill is-active">
+            <input type="checkbox" name="template_flag_b" checked />
+            <span>オプションB</span>
+          </label>
+        </div>
+      </div>
+
+      <label class="save-plan-field">
+        <span>公開日（任意）</span>
+        <input type="date" name="template_date" />
+      </label>
     </div>
 
     <p class="form-error" data-plan-save-error hidden></p>

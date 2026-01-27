@@ -6,7 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const titleInput = planSaveModal?.querySelector('input[name="template_title"]')
   const noteInput = planSaveModal?.querySelector('textarea[name="template_note"]')
-  const visibilityInputs = planSaveModal?.querySelectorAll('input[name="template_visibility"]')
+  const publicTitleInput = planSaveModal?.querySelector('input[name="template_public_title"]')
+  const tagsInput = planSaveModal?.querySelector('input[name="template_tags"]')
+  const flagAInput = planSaveModal?.querySelector('input[name="template_flag_a"]')
+  const flagBInput = planSaveModal?.querySelector('input[name="template_flag_b"]')
+  const dateInput = planSaveModal?.querySelector('input[name="template_date"]')
+  const pillInputs = planSaveModal?.querySelectorAll('.radio-pill input')
   const submitButton = planSaveModal?.querySelector('[data-plan-save-submit]')
   const errorLabel = planSaveModal?.querySelector('[data-plan-save-error]')
   const planTitleElement = document.querySelector('[data-plan-title]')
@@ -30,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const syncRadioPills = () => {
-    visibilityInputs?.forEach((input) => {
+    pillInputs?.forEach((input) => {
       const pill = input.closest('.radio-pill')
       if (pill) {
         pill.classList.toggle('is-active', input.checked)
@@ -44,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (noteInput && defaultNote && !noteInput.value) {
       noteInput.value = defaultNote
+    }
+    if (publicTitleInput && titleInput?.value && !publicTitleInput.value) {
+      publicTitleInput.value = titleInput.value
     }
     planSaveModal.hidden = false
     planSaveModal.classList.add('is-open')
@@ -73,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hideError(shareError)
   }
 
-  visibilityInputs?.forEach((input) => {
+  pillInputs?.forEach((input) => {
     input.addEventListener('change', syncRadioPills)
   })
 
@@ -106,11 +114,33 @@ document.addEventListener('DOMContentLoaded', () => {
     hideError(errorLabel)
 
     const title = titleInput?.value.trim() || ''
+    const publicTitle = publicTitleInput?.value.trim() || ''
     const description = noteInput?.value.trim() || ''
-    const visibility = planSaveModal.querySelector('input[name="template_visibility"]:checked')?.value || 'private'
+    const tags = tagsInput?.value.trim() || ''
+    const visibility = planSaveModal.querySelector('input[name="template_visibility"]:checked')?.value || 'link'
+    const storage = planSaveModal.querySelector('input[name="template_storage"]:checked')?.value || 'server'
+    const flagA = Boolean(flagAInput?.checked)
+    const flagB = Boolean(flagBInput?.checked)
+    const date = dateInput?.value || ''
 
     if (!title) {
       showError(errorLabel, 'タイトルを入力してください')
+      return
+    }
+    if (title.length > 50) {
+      showError(errorLabel, 'タイトルは50文字以内で入力してください')
+      return
+    }
+    if (publicTitle && publicTitle.length > 60) {
+      showError(errorLabel, '公開タイトルは60文字以内で入力してください')
+      return
+    }
+    if (description.length > 500) {
+      showError(errorLabel, '説明は500文字以内で入力してください')
+      return
+    }
+    if (tags.length > 100) {
+      showError(errorLabel, 'タグは100文字以内で入力してください')
       return
     }
 
@@ -123,7 +153,17 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, description, visibility }),
+        body: JSON.stringify({
+          title,
+          public_title: publicTitle,
+          description,
+          tags,
+          visibility,
+          storage,
+          flag_a: flagA,
+          flag_b: flagB,
+          date,
+        }),
       })
       const result = await response.json().catch(() => ({}))
 
