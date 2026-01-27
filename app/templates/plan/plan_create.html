@@ -185,19 +185,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  const updateDepartureMode = (mode, preserveValue = false) => {
+  const updateDepartureMode = async (mode, preserveValue = false) => {
     if (!departureInput) return;
     if (mode === 'current') {
-      departureInput.value = '現在地';
+      departureInput.value = '現在地を取得中...';
       departureInput.readOnly = true;
       departureInput.classList.add('readonly');
+      try {
+        const position = await getCurrentPosition();
+        const address = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+        departureInput.value = address;
+      } catch (error) {
+        console.error('位置情報の取得に失敗しました:', error);
+        departureInput.value = '現在地（取得失敗）';
+        alert('位置情報の取得に失敗しました。ブラウザの設定を確認してください。');
+      }
     } else {
-      if (!preserveValue && departureInput.value === '現在地') {
+      if (!preserveValue && (departureInput.value === '現在地' || departureInput.value === '現在地を取得中...' || departureInput.value.startsWith('現在地（'))) {
         departureInput.value = '';
       }
       departureInput.readOnly = false;
       departureInput.classList.remove('readonly');
       departureInput.focus();
+    }
+  };
+
+  const getCurrentPosition = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser.'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
+      });
+    });
+  };
+
+  const reverseGeocode = async (lat, lon) => {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ja`);
+    const data = await response.json();
+    if (data && data.display_name) {
+      // 住所を簡略化（例: 東京都渋谷区... など）
+      const address = data.display_name.split(',')[0] + (data.display_name.split(',')[1] ? ', ' + data.display_name.split(',')[1] : '');
+      return address;
+    } else {
+      throw new Error('住所の取得に失敗しました');
     }
   };
 
