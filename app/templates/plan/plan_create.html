@@ -10,13 +10,40 @@
       <span class="required-note">※は必須です</span>
     </div>
     {% with messages = get_flashed_messages(with_categories=true) %}
+      {% set error_messages = [] %}
       {% if messages %}
         {% for category, message in messages %}
           {% if category in ['error', 'danger'] %}
-            <div class="notice error">{{ message }}</div>
+            {% set error_messages = error_messages + [message] %}
           {% endif %}
         {% endfor %}
       {% endif %}
+      {% set has_errors = (error_messages or form.errors) %}
+      <section
+        class="error-modal {% if has_errors %}is-open{% endif %}"
+        data-error-modal
+        {% if not has_errors %}hidden{% endif %}
+      >
+        <div class="error-modal__backdrop" data-error-dismiss></div>
+        <div class="error-modal__dialog" role="alertdialog" aria-modal="true" aria-labelledby="plan-error-title">
+          <p id="plan-error-title" class="error-modal__title">エラーが発生しました</p>
+          <ul class="error-modal__list" data-error-list>
+            {% for message in error_messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            {% if form.errors %}
+              {% for field, errors in form.errors.items() %}
+                {% for error in errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+            {% endif %}
+          </ul>
+          <div class="error-modal__actions">
+            <button type="button" class="cta-button" data-error-close>閉じる</button>
+          </div>
+        </div>
+      </section>
     {% endwith %}
 
     <form method="POST" action="{{ url_for('plan.plan_create_form') }}" class="modern-plan-form">
@@ -142,6 +169,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const hidden = document.querySelector('[data-purpose-hidden]');
   const departureInput = document.querySelector('[data-departure-input]');
   const departureRadios = document.querySelectorAll('input[name="departure_mode"]');
+  const errorModal = document.querySelector('[data-error-modal]');
+  const errorList = errorModal?.querySelector('[data-error-list]');
+
+  const openErrorModal = (messages) => {
+    if (!errorModal || !errorList) return;
+    const items = Array.isArray(messages) ? messages : [messages];
+    errorList.innerHTML = '';
+    items.filter(Boolean).forEach((message) => {
+      const li = document.createElement('li');
+      li.textContent = message;
+      errorList.appendChild(li);
+    });
+    errorModal.hidden = false;
+    errorModal.classList.add('is-open');
+  };
 
   let values = hidden.value ? hidden.value.split(',').map(s => s.trim()).filter(s => s) : [];
 
@@ -198,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.error('位置情報の取得に失敗しました:', error);
         departureInput.value = '現在地（取得失敗）';
-        alert('位置情報の取得に失敗しました。ブラウザの設定を確認してください。');
+        openErrorModal(['位置情報の取得に失敗しました。ネットワークや位置情報の設定を確認してください。']);
       }
     } else {
       if (!preserveValue && (departureInput.value === '現在地' || departureInput.value === '現在地を取得中...' || departureInput.value.startsWith('現在地（'))) {
@@ -226,6 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const reverseGeocode = async (lat, lon) => {
     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ja`);
+    if (!response.ok) {
+      throw new Error('Reverse geocode failed');
+    }
     const data = await response.json();
     if (data && data.display_name) {
       // 住所を簡略化（例: 東京都渋谷区... など）
@@ -259,6 +304,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (form && loadingOverlay) {
     form.addEventListener('submit', (e) => {
+      if (!navigator.onLine) {
+        e.preventDefault();
+        openErrorModal(['ネットワークに接続されていません。接続を確認して再度お試しください。']);
+        if (submitBtn) submitBtn.disabled = false;
+        return;
+      }
       // バリデーションチェック（required属性などが満たされているか）
       if (!form.checkValidity()) {
         // バリデーションエラー時はローディングを出さない（ブラウザのデフォルト挙動に任せる）
@@ -285,6 +336,25 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingOverlay.hidden = true;
         loadingOverlay.classList.remove('active');
         if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+
+  if (errorModal) {
+    const closeModal = () => {
+      errorModal.classList.remove('is-open');
+      errorModal.setAttribute('hidden', '');
+    };
+
+    const closeBtn = errorModal.querySelector('[data-error-close]');
+    const backdrop = errorModal.querySelector('[data-error-dismiss]');
+
+    closeBtn?.addEventListener('click', closeModal);
+    backdrop?.addEventListener('click', closeModal);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && errorModal.classList.contains('is-open')) {
+        closeModal();
       }
     });
   }
@@ -500,6 +570,54 @@ document.addEventListener('DOMContentLoaded', () => {
   margin: 4px 0 0;
   color: #d32f2f;
   font-size: 13px;
+}
+
+.error-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 10000;
+}
+.error-modal.is-open {
+  display: block;
+}
+.error-modal[hidden] {
+  display: none;
+}
+.error-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+.error-modal__dialog {
+  position: relative;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 24px 26px;
+  border-radius: 20px;
+  background: #fff;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.error-modal__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+}
+.error-modal__list {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #d32f2f;
+  font-size: 14px;
+}
+.error-modal__actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* --- ローディングオーバーレイのスタイル --- */

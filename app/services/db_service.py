@@ -288,7 +288,7 @@ class PlanDBService:
             return None
 
         itinerary_outline = schedule.daily_plan_json if schedule else {}
-        checklist_summary = {"items": []}
+        checklist_summary = PlanDBService.get_checklist_summary(plan.id, plan.user_id)
         tags_value = tags.strip() if isinstance(tags, str) and tags.strip() else tags
         if not tags_value:
             tags_value = ", ".join(plan.options) if isinstance(plan.options, list) else (plan.options if plan.options else None)
@@ -306,7 +306,7 @@ class PlanDBService:
                 template.itinerary_outline_json = itinerary_outline
                 template.checklist_summary_json = checklist_summary
                 template.days = plan.days
-                template.items_count = len(checklist_summary.get("items", [])) if isinstance(checklist_summary, dict) else 0
+                template.items_count = checklist_summary.get("items_total", 0) if isinstance(checklist_summary, dict) else 0
                 template.tags = tags_value
                 template.visibility = visibility or "private"
                 if storage_value is not None:
@@ -326,7 +326,7 @@ class PlanDBService:
                     itinerary_outline_json=itinerary_outline,
                     checklist_summary_json=checklist_summary,
                     days=plan.days,
-                    items_count=len(checklist_summary.get("items", [])) if isinstance(checklist_summary, dict) else 0,
+                    items_count=checklist_summary.get("items_total", 0) if isinstance(checklist_summary, dict) else 0,
                     essential_ratio=None,
                     tags=tags_value,
                     visibility=visibility or "private",
@@ -521,6 +521,77 @@ class PlanDBService:
     def get_checklist_item_by_id(checklist_id):
         checklistItem = ChecklistItem.query.filter_by(checklist_id=checklist_id).all()
         return checklistItem
+
+    @staticmethod
+    def build_checklist_summary(checklist_items):
+        essentials = []
+        extras = []
+        for item in checklist_items or []:
+            if not item or not item.item or not item.item.name:
+                continue
+            unit = item.item.unit or ""
+            quantity = item.quantity if item.quantity is not None else 1
+            entry = {
+                "name": item.item.name,
+                "quantity": quantity,
+                "unit": unit,
+            }
+            if item.is_required:
+                essentials.append(entry)
+            else:
+                extras.append(entry)
+        return {
+            "essential": essentials,
+            "extra": extras,
+            "items_total": len(essentials) + len(extras),
+        }
+
+    @staticmethod
+    def get_checklist_summary(plan_id, user_id):
+        checklist = PlanDBService.get_checklist_by_id(plan_id, user_id)
+        if not checklist:
+            return {"essential": [], "extra": [], "items_total": 0}
+        checklist_items = PlanDBService.get_checklist_item_by_id(checklist.checklist_id)
+        return PlanDBService.build_checklist_summary(checklist_items)
+
+    @staticmethod
+    def get_checklist_display(plan_id, user_id):
+        checklist = PlanDBService.get_checklist_by_id(plan_id, user_id)
+        if not checklist:
+            return None
+        checklist_items = PlanDBService.get_checklist_item_by_id(checklist.checklist_id)
+        essentials = []
+        extras = []
+        for item in checklist_items or []:
+            if not item or item.is_deleted:
+                continue
+            if not item.item or not item.item.name:
+                continue
+            entry = {
+                "id": item.checklist_item_id,
+                "name": item.item.name,
+                "quantity": item.quantity if item.quantity is not None else 1,
+                "unit": item.item.unit or "",
+                "is_checked": item.is_checked,
+            }
+            if item.is_required:
+                essentials.append(entry)
+            else:
+                extras.append(entry)
+        return {"essential": essentials, "extra": extras}
+
+    @staticmethod
+    def update_template_checklist_summary(plan_id, user_id):
+        if not plan_id or not user_id:
+            return False
+        template = Template.query.filter_by(plan_id=plan_id, user_id=user_id).first()
+        if not template:
+            return False
+        summary = PlanDBService.get_checklist_summary(plan_id, user_id)
+        template.checklist_summary_json = summary
+        template.items_count = summary.get("items_total", 0)
+        db.session.commit()
+        return True
     @staticmethod
     def copy_plan(plan_id, user_id):
         # 1. 元のプランを取得

@@ -858,7 +858,8 @@ def checklist_edit():
         categories_dict[category_name]["items"].append({
             "name": item.item.name,
             "quantity": item.quantity,
-            "is_checked": item.is_checked
+            "is_checked": item.is_checked,
+            "is_required": item.is_required
             # 必要に応じて他フィールドも
         })
     
@@ -919,12 +920,13 @@ def checklist_update():
                     item_id=item_obj.item_id,
                     category_id=category.category_id,
                     quantity=qty,
-                    is_required=False, # 編集画面からの追加は一旦任意扱い
+                    is_required=bool(item_data.get('is_required')),
                     is_checked=False   # 編集でリセットするか、保持するかは仕様次第（ここではリセット）
                 )
                 db.session.add(new_checklist_item)
         
         db.session.commit()
+        PlanDBService.update_template_checklist_summary(plan_id, user_id)
         return jsonify({"status": "success", "redirect_url": url_for("plan.checklist_list")})
 
     except Exception as e:
@@ -933,6 +935,39 @@ def checklist_update():
         traceback.print_exc()
         return jsonify({"error": f"保存中にエラーが発生しました: {str(e)}"}), 500
 
+
+
+@plan_bp.route("/checklists/items/<int:item_id>", methods=["PATCH"])
+def checklist_item_toggle(item_id):
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
+
+    payload = request.get_json() or {}
+    if "is_checked" not in payload and "is_required" not in payload:
+        return jsonify({"error": "更新内容がありません。"}), 400
+
+    checklist_item = (
+        ChecklistItem.query
+        .join(Checklist)
+        .join(Plan)
+        .filter(
+            ChecklistItem.checklist_item_id == item_id,
+            Plan.user_id == user_id,
+        )
+        .first()
+    )
+    if not checklist_item:
+        return jsonify({"error": "対象の持ち物が見つかりません。"}), 404
+
+    if "is_checked" in payload:
+        checklist_item.is_checked = bool(payload.get("is_checked"))
+    if "is_required" in payload:
+        checklist_item.is_required = bool(payload.get("is_required"))
+
+    db.session.commit()
+    PlanDBService.update_template_checklist_summary(checklist_item.checklist.plan_id, user_id)
+    return jsonify({"status": "success"})
 @plan_bp.route("/checklists/generate", methods=["POST"])
 def checklist_generate():
     plan_id = session.get("plan_id")
@@ -1065,10 +1100,26 @@ def plan_detail(template_id):
     )
 
     packing_summary = template.checklist_summary_json or {}
+    if not packing_summary or (not packing_summary.get("essential") and not packing_summary.get("extra")):
+        summary = PlanDBService.get_checklist_summary(plan.id, template.user_id)
+        if summary.get("items_total", 0) > 0:
+            packing_summary = summary
+            if user_id == template.user_id:
+                template.checklist_summary_json = summary
+                template.items_count = summary.get("items_total", 0)
+                db.session.commit()
+
+    checklist_display = None
+    display_total = None
+    if is_owned:
+        checklist_display = PlanDBService.get_checklist_display(plan.id, user_id)
+        if checklist_display and (checklist_display.get("essential") or checklist_display.get("extra")):
+            display_total = len(checklist_display.get("essential", [])) + len(checklist_display.get("extra", []))
+
     meta = {
         "created_on": created_on_str,
         "price": f"{hotel_price}円 / 泊" if hotel_price is not None else "",
-        "items_total": packing_summary.get("items_total", 0),
+        "items_total": display_total if display_total is not None else packing_summary.get("items_total", 0),
     }
 
     # --- 主な滞在場所 ---
@@ -1105,6 +1156,7 @@ def plan_detail(template_id):
         meta=meta,
         stay_locations=stay_locations,
         packing_summary=packing_summary,
+        checklist_display=checklist_display,
         is_owned=is_owned,
         template_note=template_note,
         display_title=display_title,
@@ -1236,7 +1288,7 @@ def plan_create_form():
             )
     
     if request.method == "POST" and not form.validate():
-        flash(f"入力エラー詳細: {form.errors}", "danger")
+        flash("入力内容を確認してください。", "danger")
 
     return render_template(
         "plan/plan_create.html",

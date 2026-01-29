@@ -50,6 +50,17 @@
           </div>
         </div>
 
+        {% if is_owned %}
+        <section class="detail-share" data-share-box>
+          <p class="section-label">共有リンク</p>
+          <div class="share-url-row">
+            <input type="text" readonly placeholder="リンクを発行してコピー" data-share-url-input />
+            <button type="button" class="cta-button ghost" data-share-action>リンクを発行</button>
+          </div>
+          <p class="form-error" data-share-error hidden></p>
+        </section>
+        {% endif %}
+
         <section class="packing-section">
           <header class="packing-section__header">
             <p class="section-label">主な持ち物</p>
@@ -62,6 +73,45 @@
               {{ template_note }}
             </p>
           {% endif %}
+
+          {% if checklist_display and (checklist_display.essential or checklist_display.extra) %}
+          <div class="packing-checklist">
+            <div class="packing-checklist__column">
+              <p class="section-label">必需品</p>
+              {% if checklist_display.essential %}
+              <ul class="packing-checklist__items" data-checklist-column="essential">
+                {% for item in checklist_display.essential %}
+                <li data-checklist-item data-checklist-item-id="{{ item.id }}">
+                  <label class="packing-check">
+                    <input type="checkbox" data-checklist-toggle data-checklist-item-id="{{ item.id }}" {% if item.is_checked %}checked{% endif %}>
+                    <span>{{ item.name }}{% if item.quantity %}（{{ item.quantity }}{{ item.unit }}）{% endif %}</span>
+                  </label>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="packing-empty">なし</p>
+              {% endif %}
+            </div>
+            <div class="packing-checklist__column">
+              <p class="section-label">補足品</p>
+              {% if checklist_display.extra %}
+              <ul class="packing-checklist__items" data-checklist-column="extra">
+                {% for item in checklist_display.extra %}
+                <li data-checklist-item data-checklist-item-id="{{ item.id }}">
+                  <label class="packing-check">
+                    <input type="checkbox" data-checklist-toggle data-checklist-item-id="{{ item.id }}" {% if item.is_checked %}checked{% endif %}>
+                    <span>{{ item.name }}{% if item.quantity %}（{{ item.quantity }}{{ item.unit }}）{% endif %}</span>
+                  </label>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="packing-empty">なし</p>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
           <table class="packing-table">
             <thead>
               <tr>
@@ -95,6 +145,8 @@
 
             </tbody>
           </table>
+          {% endif %}
+          <p class="form-error" data-checklist-toggle-error hidden>保存に失敗しました</p>
         </section>
       </section>
 
@@ -108,4 +160,6 @@
       </div>
     </article>
   </section>
+  <script defer src="{{ url_for('static', filename='js/checklist_toggle.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/plan_share.js') }}"></script>
 {% endblock %}
