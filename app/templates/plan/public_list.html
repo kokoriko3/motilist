@@ -17,10 +17,6 @@
       </div>
     </header>
 
-    {% if error_message %}
-      <p class="form-error">{{ error_message }}</p>
-    {% endif %}
-
     {% if plans %}
       <div class="plan-tiles plan-tiles--public">
         {% for plan in plans %}

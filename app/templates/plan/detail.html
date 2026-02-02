@@ -41,11 +41,14 @@
             <p>{{ meta.price }}</p>
           </div>
           <div>
-            <p class="section-label">主な滞在場所</p>
+            <p class="section-label">説明</p>
             <ul>
-              {% for place in stay_locations %}
-                <li>{{ place }}</li>
-              {% endfor %}
+            {# short_note を全体の説明として出す #}
+            {% if template_note %}
+              <p class="packing-note">
+                {{ template_note }}
+              </p>
+            {% endif %}
             </ul>
           </div>
         </div>
@@ -67,12 +70,7 @@
             <span>アイテム総数{{ meta.items_total }}</span>
           </header>
 
-          {# short_note を全体の説明として出す #}
-          {% if template_note %}
-            <p class="packing-note">
-              {{ template_note }}
-            </p>
-          {% endif %}
+
 
           {% if checklist_display and (checklist_display.essential or checklist_display.extra) %}
           <div class="packing-checklist">
