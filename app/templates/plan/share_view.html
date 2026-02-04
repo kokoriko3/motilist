@@ -1,42 +1,123 @@
-{% extends "layout.html" %}
-{% block title %}共有プラン{% endblock %}
-{% block content %}
-<section class="page-section plan-detail">
-  <article class="plan-detail-card">
-    <div class="plan-detail-card__header">
-      <div>
-        <h1>{{ template.public_title or plan.title if template and plan else 'プラン' }}</h1>
-        {% if plan %}
-        <dl class="plan-detail-summary">
-          <div>
-            <dt>日程</dt>
-            <dd>{{ plan.start_date }}　　{{ plan.days }}日</dd>
-          </div>
-          <div>
-            <dt>交通手段</dt>
-            <dd>{{ plan.transport or '-' }}</dd>
-          </div>
-          <div>
-            <dt>宿泊先</dt>
-            <dd>{{ plan.accommodation or '-' }}</dd>
-          </div>
-        </dl>
-        {% endif %}
-      </div>
-    </div>
+{% extends 'layout.html' %}
 
-    <section class="plan-detail-body">
-      <div class="info-columns">
+{% block title %}共有プラン | {{ config['BRAND_NAME'] }}{% endblock %}
+
+{% block content %}
+  <section class="page-section plan-detail" data-plan-detail data-plan-id="{{ plan.id }}">
+    <article class="plan-detail-card">
+      <div class="plan-detail-card__header">
         <div>
-          <p class="section-label">説明</p>
-          <p>{{ template.short_note or plan.purpose if template and plan else '-' }}</p>
+          <h1>{{ display_title }}</h1>
+          <dl class="plan-detail-summary">
+            <div>
+              <dt>日程</dt>
+              <dd>{{ plan.start_date }}～　　{{ template_days }}日間</dd>
+            </div>
+            <div>
+              <dt>交通手段</dt>
+              <dd>{{ traffic_methods | join(' / ') if traffic_methods else '未設定' }}</dd>
+            </div>
+            <div>
+              <dt>宿泊先</dt>
+              <dd>{{ accommodation_label }}</dd>
+            </div>
+          </dl>
         </div>
-        <div>
-          <p class="section-label">共有URL</p>
-          <p>{{ share_url }}</p>
+        <div class="plan-detail-card__meta">
+          <p>{{ meta.created_on }}</p>
+          {% if is_logged_in %}
+          <a class="save-plan-button" href="{{ url_for('plan.plan_modals', plan_id=plan.id) }}">自分のプランとして保存する</a>
+          {% endif %}
         </div>
       </div>
-    </section>
-  </article>
-</section>
+
+      <section class="plan-detail-body">
+        <div class="info-columns">
+          <div>
+            <p class="section-label">宿泊場所</p>
+            <p class="info-bold">{{ accommodation_label }}</p>
+            <p>{{ meta.price }}</p>
+          </div>
+          <div>
+            <p class="section-label">説明</p>
+            <ul>
+            {# short_note を全体の説明として出す #}
+            {% if template_note %}
+              <p class="packing-note">
+                {{ template_note }}
+              </p>
+            {% endif %}
+            </ul>
+          </div>
+        </div>
+
+        <section class="packing-section">
+          <header class="packing-section__header">
+            <p class="section-label">主な持ち物</p>
+            <span>アイテム総数{{ meta.items_total }}</span>
+          </header>
+
+          {# short_note を全体の説明として出す #}
+          {% if template_note %}
+            <p class="packing-note">
+              {{ template_note }}
+            </p>
+          {% endif %}
+
+          {% if checklist_display and (checklist_display.essential or checklist_display.extra) %}
+          <div class="packing-checklist">
+            <div class="packing-checklist__column">
+              <p class="section-label">必需品</p>
+              {% if checklist_display.essential %}
+              <ul class="packing-checklist__items" data-checklist-column="essential">
+                {% for item in checklist_display.essential %}
+                <li data-checklist-item data-checklist-item-id="{{ item.id }}">
+                  <label class="packing-check">
+                    <input type="checkbox" data-checklist-toggle data-checklist-item-id="{{ item.id }}" {% if item.is_checked %}checked{% endif %}>
+                    <span>{{ item.name }}{% if item.quantity %}（{{ item.quantity }}{{ item.unit }}）{% endif %}</span>
+                  </label>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="packing-empty">なし</p>
+              {% endif %}
+            </div>
+            <div class="packing-checklist__column">
+              <p class="section-label">補足品</p>
+              {% if checklist_display.extra %}
+              <ul class="packing-checklist__items" data-checklist-column="extra">
+                {% for item in checklist_display.extra %}
+                <li data-checklist-item data-checklist-item-id="{{ item.id }}">
+                  <label class="packing-check">
+                    <input type="checkbox" data-checklist-toggle data-checklist-item-id="{{ item.id }}" {% if item.is_checked %}checked{% endif %}>
+                    <span>{{ item.name }}{% if item.quantity %}（{{ item.quantity }}{{ item.unit }}）{% endif %}</span>
+                  </label>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="packing-empty">なし</p>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <p class="packing-empty">持ち物情報がありません</p>
+          {% endif %}
+          <p class="form-error" data-checklist-toggle-error hidden>保存に失敗しました</p>
+        </section>
+      </section>
+
+      <div class="detail-card__footer">
+        <button class="cta-button ghost"
+          type="button"
+          data-href="{{ url_for('plan.public_plan_list') }}"
+          onclick="window.location.href=this.dataset.href">
+          戻る
+        </button>
+      </div>
+    </article>
+  </section>
+  <script defer src="{{ url_for('static', filename='js/checklist_toggle.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/plan_share.js') }}"></script>
 {% endblock %}

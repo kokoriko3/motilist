@@ -32,29 +32,37 @@
               <div class="dropdown-header">
               <a class="dropdown-link" href="#">アカウント情報</a>
               </div>
-            <a class="dropdown-row profile-link" href="">
-              <span class="icon-user small"></span>
-              {% if current_user.is_authenticated %}
+            {% if current_user.is_authenticated %}
+              <p class="dropdown-row profile-link">
+                <span class="icon-user small"></span>
                 {{ current_user.display_name or current_user.email }}
-              {% else %}
-                ゲスト
-              {% endif %}
-            </a>
-            <!-- ★ これを追加 -->
-            <a
-              class="dropdown-row logout-row"
-              href="{{ url_for('auth.logout') }}"
-              data-logout-trigger
-              data-logout-url="{{ url_for('auth.logout') }}"
-            >
-              ログアウト
-            </a>
+              </p>
+              <button
+                type="submit"
+                class="dropdown-row logout-row"
+                data-logout-trigger
+                data-logout-url="{{ url_for('auth.logout') }}"
+              >
+                ログアウト
+              </button>
+            {% else %}
+              <a class="dropdown-row profile-link" href="{{ url_for('auth.login') }}">ログイン</a>
+            {% endif %}
           </div>
         </div>
       </nav>
     </header>
 
     <main class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash-message {{ 'flash-error' if category == 'error' or category == 'danger' else 'flash-success' if category == 'success' else 'flash-info' }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
       
       {% block content %}{% endblock %}
     </main>
@@ -66,7 +74,8 @@
     <section class="logout-modal" data-logout-modal hidden>
       <div class="logout-modal__backdrop" data-logout-dismiss></div>
       <div class="logout-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
-        <p id="logout-title">ログアウトしますか</p>
+        <p id="logout-title">ログアウトしますか？</p>
+        <p class="logout-modal__note">現在のセッションを終了します</p>
         <div class="logout-modal__actions">
           <button type="button" class="secondary-button" data-logout-cancel>キャンセル</button>
           <button

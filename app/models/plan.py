@@ -79,6 +79,12 @@ class Template(db.Model):
     # 定義書 No.11: visibility (旧 publish_status)
     visibility = db.Column(db.String(50), default="private", nullable=False)
 
+    # 追加: 保存先/オプション/公開日
+    storage = db.Column(db.String(20))
+    flag_a = db.Column(db.Boolean, default=False)
+    flag_b = db.Column(db.Boolean, default=False)
+    publish_date = db.Column(db.Date)
+
     # 定義書 No.12: displayVersion
     display_version = db.Column(db.Integer, default=1, nullable=False)
 

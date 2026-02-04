@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
   const planSaveTrigger = document.querySelectorAll('[data-plan-save-trigger]')
   const planSaveModal = document.querySelector('[data-plan-save-modal]')
-  const planShareTriggerButtons = document.querySelectorAll('[data-plan-share-trigger]')
-  const planShareModal = document.querySelector('[data-plan-share-modal]')
 
   const titleInput = planSaveModal?.querySelector('input[name="template_title"]')
   const noteInput = planSaveModal?.querySelector('textarea[name="template_note"]')
-  const visibilityInputs = planSaveModal?.querySelectorAll('input[name="template_visibility"]')
+  const tagsInput = planSaveModal?.querySelector('input[name="template_tags"]')
+  const pillInputs = planSaveModal?.querySelectorAll('.radio-pill input')
   const submitButton = planSaveModal?.querySelector('[data-plan-save-submit]')
   const errorLabel = planSaveModal?.querySelector('[data-plan-save-error]')
   const planTitleElement = document.querySelector('[data-plan-title]')
@@ -15,10 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     planTitleElement?.dataset?.planTitle?.trim() ||
     planTitleElement?.textContent?.trim()
   const defaultNote = noteInput?.defaultValue?.trim()
-
-  const shareUrlInput = planShareModal?.querySelector('[data-share-url-input]')
-  const shareCopyBtn = planShareModal?.querySelector('[data-share-copy]')
-  const shareError = planShareModal?.querySelector('[data-plan-share-error]')
 
   const hideError = (el) => {
     if (el) el.hidden = true
@@ -30,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const syncRadioPills = () => {
-    visibilityInputs?.forEach((input) => {
+    pillInputs?.forEach((input) => {
       const pill = input.closest('.radio-pill')
       if (pill) {
         pill.classList.toggle('is-active', input.checked)
@@ -60,20 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (submitButton) submitButton.disabled = false
   }
 
-  const openShareModal = () => {
-    if (!planShareModal) return
-    planShareModal.hidden = false
-    planShareModal.classList.add('is-open')
-    hideError(shareError)
-  }
-
-  const closeShareModal = () => {
-    planShareModal?.classList.remove('is-open')
-    if (planShareModal) planShareModal.hidden = true
-    hideError(shareError)
-  }
-
-  visibilityInputs?.forEach((input) => {
+  pillInputs?.forEach((input) => {
     input.addEventListener('change', syncRadioPills)
   })
 
@@ -87,18 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  planShareModal?.addEventListener('click', (event) => {
-    if (event.target === planShareModal || event.target.closest('[data-plan-share-close]')) {
-      closeShareModal()
-    }
-  })
-
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && planSaveModal?.classList.contains('is-open')) {
       closeSaveModal()
-    }
-    if (event.key === 'Escape' && planShareModal?.classList.contains('is-open')) {
-      closeShareModal()
     }
   })
 
@@ -107,10 +80,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const title = titleInput?.value.trim() || ''
     const description = noteInput?.value.trim() || ''
+    const tags = tagsInput?.value.trim() || ''
     const visibility = planSaveModal.querySelector('input[name="template_visibility"]:checked')?.value || 'private'
 
     if (!title) {
       showError(errorLabel, 'タイトルを入力してください')
+      return
+    }
+    if (title.length > 50) {
+      showError(errorLabel, 'タイトルは50文字以内で入力してください')
+      return
+    }
+    if (description.length > 500) {
+      showError(errorLabel, '説明は500文字以内で入力してください')
+      return
+    }
+    if (tags.length > 100) {
+      showError(errorLabel, 'タグは100文字以内で入力してください')
       return
     }
 
@@ -123,7 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, description, visibility }),
+        body: JSON.stringify({
+          title,
+          description,
+          tags,
+          visibility,
+        }),
       })
       const result = await response.json().catch(() => ({}))
 
@@ -142,49 +133,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  const fetchShareUrl = async () => {
-    hideError(shareError)
-    if (shareUrlInput) shareUrlInput.value = '発行中…'
-    try {
-      const response = await fetch('/plans/share', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      const result = await response.json().catch(() => ({}))
-
-      if (response.ok && result.status === 'success') {
-        if (shareUrlInput) shareUrlInput.value = result.url
-        return
-      }
-      showError(shareError, result.message || '共有URLの発行に失敗しました')
-    } catch (error) {
-      console.error(error)
-      showError(shareError, '通信エラーが発生しました')
-    }
-  }
-
-  const openShareAndFetch = () => {
-    openShareModal()
-    fetchShareUrl()
-  }
-
-  planShareTriggerButtons.forEach((btn) => {
-    btn.addEventListener('click', openShareAndFetch)
-  })
-
-  shareCopyBtn?.addEventListener('click', async () => {
-    if (!shareUrlInput || !shareUrlInput.value) return
-    try {
-      await navigator.clipboard.writeText(shareUrlInput.value)
-      shareCopyBtn.textContent = 'コピーしました'
-      setTimeout(() => {
-        shareCopyBtn.textContent = 'コピー'
-      }, 1200)
-    } catch (e) {
-      console.error(e)
-      showError(shareError, 'コピーに失敗しました')
-    }
-  })
 })

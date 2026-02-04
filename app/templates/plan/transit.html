@@ -7,7 +7,15 @@
     {% include 'plan/_plan_header_tabs.html' %}
 
     <div class="transport-body">
-      <div class="error-inline" data-transport-error hidden>選択してください</div>
+      <h1>交通手段変更</h1>
+      {% set flash_messages = get_flashed_messages(with_categories=true) %}
+      <div class="error-inline" data-transport-error {% if not flash_messages %}hidden{% endif %}>
+        {% if flash_messages %}
+          {{ flash_messages[0][1] }}
+        {% else %}
+          選択してください
+        {% endif %}
+      </div>
       
       <form id="transit-form" method="POST" action="{{ url_for('plan.plan_transit') }}">
           <input type="hidden" name="transit_type" id="selected-transit-type" value="{{ selected_type or '' }}">
@@ -25,6 +33,19 @@
                   {% set classes = classes + ' dimmed' %}
                 {% endif %}
                 <button type="button" class="{{ classes }}" data-option="{{ option.type }}">
+                  <input
+                    type="checkbox"
+                    class="visually-hidden transport-checkbox"
+                    data-option-checkbox
+                    value="{{ option.type }}"
+                    {% if is_current %}checked{% endif %}
+                  />
+                  <input
+                    type="text"
+                    class="visually-hidden transport-route-input"
+                    value="{{ option.transport_method }}"
+                    readonly
+                  />
                   <div class="transport-card__header">
                     <span class="transport-title">{{ option.type }}</span>
                     <div class="transport-meta">
@@ -70,6 +91,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const cards = document.querySelectorAll('[data-option]');
     const hiddenInput = document.getElementById('selected-transit-type');
+    const checkboxes = document.querySelectorAll('[data-option-checkbox]');
     const confirmBtn = document.querySelector('[data-transport-confirm]');
     const form = document.getElementById('transit-form');
     const errorMsg = document.querySelector('[data-transport-error]');
@@ -83,6 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 c.classList.remove('dimmed');
             }
+        });
+        checkboxes.forEach(cb => {
+            cb.checked = cb.value === value;
         });
     };
 

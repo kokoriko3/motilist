@@ -20,18 +20,17 @@ def login():
         user = UserDBService.get_user_by_email(form.email.data)
 
         if user is None:
-            flash("メールアドレスが登録されていません", "error")
+            flash("メールアドレスまたはパスワードが間違っています", "error")
             return render_template("auth/login.html", form=form)
 
         if not bcrypt.check_password_hash(user.passwordHash, form.password.data):
-            flash("パスワードが一致しません", "error")
+            flash("メールアドレスまたはパスワードが間違っています", "error")
             return render_template("auth/login.html", form=form)
 
         login_user(user)
         session["user_id"] = user.user_id
         flash("ログインしました", "success")
-        next_url = session.pop("next_url", None)
-        return redirect(next_url or url_for("plan.plan_list"))
+        return redirect(url_for("plan.plan_list"))
     return render_template("auth/login.html", form=form)
 
 
@@ -81,7 +80,6 @@ def register():
         # 完了画面へリダイレクト
         return redirect(url_for("auth.register_complete"))
 
-    # GET 時：フォーム表示
     return render_template("auth/register.html", form=form)
 
 

@@ -12,6 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
     errorBox.hidden = true
   }
 
+  const REQUIRED_LABEL = '必需品'
+  const OPTIONAL_LABEL = '補足品'
+
+  const setRequiredState = (row, isRequired) => {
+    if (!row) return
+    row.dataset.itemRequired = isRequired ? 'true' : 'false'
+    row.classList.toggle('is-required', isRequired)
+    const toggleBtn = row.querySelector('[data-item-required-toggle]')
+    if (toggleBtn) {
+      toggleBtn.textContent = isRequired ? REQUIRED_LABEL : OPTIONAL_LABEL
+      toggleBtn.setAttribute('aria-pressed', isRequired ? 'true' : 'false')
+    }
+  }
+
   const generateBtn = document.querySelector('[data-checklist-generate]')
   if (generateBtn) {
     generateBtn.addEventListener('click', async () => {
@@ -66,13 +80,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = document.createElement('div')
     row.className = 'edit-row'
     row.setAttribute('data-item-row', '')
+    row.setAttribute('data-item-required', 'false')
     row.innerHTML = `
       <input name="item_form" type="text" value="" placeholder="追加..." />
       <div class="row-right">
+        <button type="button" class="required-toggle" data-item-required-toggle aria-pressed="false">${OPTIONAL_LABEL}</button>
         <input name="num_from" type="text" value="" placeholder="数量:入力" />
         <button type="button" name="delete" class="icon-button" data-item-delete aria-label="削除">🗑</button>
       </div>
     `
+    setRequiredState(row, false)
     const adder = stackEl.querySelector('.adder')
     if (adder) {
       stackEl.insertBefore(row, adder)
@@ -88,6 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault()
         addRow(stackEl)
       }
+      if (target.matches('[data-item-required-toggle]')) {
+        event.preventDefault()
+        const row = target.closest('[data-item-row]')
+        if (!row) return
+        const nextRequired = row.dataset.itemRequired !== 'true'
+        setRequiredState(row, nextRequired)
+      }
       if (target.matches('[data-item-delete]')) {
         event.preventDefault()
         const row = target.closest('[data-item-row]')
@@ -97,6 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.querySelectorAll('.item-stack').forEach((stackEl) => bindStackEvents(stackEl))
+  document.querySelectorAll('[data-item-row]').forEach((row) => {
+    const isRequired = row.dataset.itemRequired === 'true'
+    setRequiredState(row, isRequired)
+  })
 
   const getCategoryTitle = (card) => {
     if (!card) return ''
@@ -178,11 +206,13 @@ document.addEventListener('DOMContentLoaded', () => {
           
           const name = nameInput ? nameInput.value.trim() : ''
           const quantity = qtyInput ? qtyInput.value.trim() : ''
+          const isRequired = row.dataset.itemRequired === 'true'
 
           if (name) {
             items.push({
               name: name,
-              quantity: quantity
+              quantity: quantity,
+              is_required: isRequired
             })
           }
         })

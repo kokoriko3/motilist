@@ -6,6 +6,7 @@
   {% include 'plan/_plan_header_tabs.html' %}
 
   <div class="stay-body">
+    <h1>宿泊場所変更</h1>
     <div class="banner error-banner" data-stay-error hidden>エラーが起きました 時間をおいて再度実行してください</div>
 
     <div class="stay-toolbar">
@@ -41,6 +42,13 @@
               value="{{ stay.id }}"
               {% if stay.is_selected %}checked{% endif %}
             >
+            <input
+              type="checkbox"
+              class="visually-hidden stay-checkbox"
+              data-stay-checkbox
+              value="{{ stay.id }}"
+              {% if stay.is_selected %}checked{% endif %}
+            >
             <div class="stay-card__main">
               <p class="stay-name">{{ stay.name }}</p>
               <p class="stay-price">
@@ -55,7 +63,9 @@
             <div class="stay-card__meta">
               <span class="stay-stars">
                 {% if stay.review is not none %}
-                  {{ stay.review }}
+                  {% set star_count = stay.review|int %}
+                  <span class="stay-stars__icons">{{ '★' * star_count }}</span>
+                  <span class="stay-stars__score">{{ stay.review }}</span>
                 {% else %}
                   -
                 {% endif %}
@@ -79,11 +89,10 @@
       <div class="stay-footer">
         <button type="button" class="pill-ghost" data-stay-clear>選択しない</button>
         <div class="pager" data-stay-pager>
-          {% if total_pages > 1 %}
-            {% for p in range(1, total_pages + 1) %}
-              <button type="button" class="pager-btn {% if p == page %}pager-current{% endif %}" data-page="{{ p }}">{{ p }}</button>
-            {% endfor %}
-          {% endif %}
+          {% set page_count = total_pages if total_pages > 1 else 1 %}
+          {% for p in range(1, page_count + 1) %}
+            <button type="button" class="pager-btn {% if p == page %}pager-current{% endif %}" data-page="{{ p }}">{{ p }}</button>
+          {% endfor %}
         </div>
         <button type="submit" class="cta-primary" data-stay-confirm>確定</button>
       </div>

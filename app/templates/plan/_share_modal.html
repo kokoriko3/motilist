@@ -10,6 +10,7 @@
         <input
           type="text"
           name="template_title"
+          maxlength="50"
           placeholder="プランタイトル"
           value="{{ plan.title if plan and plan.title else (plan.destination if plan else '') }}"
         />
@@ -19,16 +20,27 @@
         <span>説明</span>
         <textarea
           name="template_note"
-          rows="3"
+          rows="4"
+          maxlength="500"
           placeholder="どんな旅か、こだわりポイントなどを記載"
         >{{ plan.purpose or '' if plan else '' }}</textarea>
+      </label>
+
+      <label class="save-plan-field">
+        <span>タグ</span>
+        <input
+          type="text"
+          name="template_tags"
+          maxlength="100"
+          placeholder="タグをカンマ区切りで入力"
+        />
       </label>
 
       <div class="save-plan-field">
         <span>公開設定</span>
         <div class="radio-pill-options stretched">
           <label class="radio-pill is-active">
-            <input type="radio" name="template_visibility" value="private" checked />
+            <input type="radio" name="template_visibility" value="private" checked required />
             <span>非公開</span>
           </label>
           <label class="radio-pill">
@@ -45,24 +57,6 @@
       <div class="save-plan-actions__right">
         <button type="button" class="cta-large small" data-plan-save-submit>保存</button>
       </div>
-    </div>
-  </article>
-</section>
-
-<section class="modal-overlay share-plan-modal" data-plan-share-modal hidden>
-  <article class="modal-card share-plan-card" role="dialog" aria-modal="true" aria-label="共有URLを発行">
-    <header class="save-plan-header">
-      <button type="button" class="modal-back" data-plan-share-close aria-label="閉じる">← 戻る</button>
-    </header>
-
-    <div class="share-plan-body">
-      <span>共有URL</span>
-      <div class="share-url-row">
-        <input type="text" readonly data-share-url-input value="発行中…" />
-        <button type="button" class="cta-button ghost" data-share-copy>コピー</button>
-      </div>
-      <p class="form-error" data-plan-share-error hidden></p>
-      <p class="share-plan-hint">URLは誰でも閲覧できるようになります。</p>
     </div>
   </article>
 </section>

@@ -22,6 +22,8 @@ plan_bp = Blueprint("plan", __name__, url_prefix="/plans")
 
 @plan_bp.before_request
 def require_login():
+    if request.endpoint == "plan.share_view":
+        return None
     if current_user.is_authenticated or session.get("user_id"):
         return None
     flash("ログインしてください", "error")
@@ -132,17 +134,26 @@ def plan_list():
     # ★ テンプレートごとに追加情報を付ける
     # --------------------------
     for tpl in templates_page:
-        # ===== 交通手段（既存処理）=====
-        traffic_methods = []
-        outline = tpl.itinerary_outline_json or {}
-        days = []
-        if isinstance(outline, dict):
-            days = outline.get("days", [])
-        for d in days:
-            tm = d.get("traffic_method")
-            if tm and tm not in traffic_methods:
-                traffic_methods.append(tm)
-        tpl.transport_summary = " / ".join(traffic_methods) if traffic_methods else ""
+        # ===== 交通手段 =====
+        plan = PlanDBService.get_plan_by_id(tpl.plan_id, user_id)
+        if plan:
+            selected_transit = PlanDBService.get_selected_transit(plan.id, user_id)
+            if selected_transit:
+                tpl.transport_summary = selected_transit.transport_method
+            else:
+                # itinerary_outline_json から抽出
+                traffic_methods = []
+                outline = tpl.itinerary_outline_json or {}
+                days = []
+                if isinstance(outline, dict):
+                    days = outline.get("days", [])
+                for d in days:
+                    tm = d.get("traffic_method")
+                    if tm and tm not in traffic_methods:
+                        traffic_methods.append(tm)
+                tpl.transport_summary = " / ".join(traffic_methods) if traffic_methods else ""
+        else:
+            tpl.transport_summary = ""
 
         # ===== ホテル名（新規追加）=====
         # Plan を取得
@@ -198,52 +209,76 @@ def public_plan_list():
         )
 
     print("ユーザIDあり:", user_id)
-    templates = PlanDBService.get_public_templates()
-    if q:
-        q_lower = q.casefold()
-        templates = [
-            tpl for tpl in templates
-            if q_lower in (tpl.public_title or "").casefold()
-        ]
+    try :
 
-    templates_page, page, total_pages = paginate_items(templates, page, page_size)
+        templates = PlanDBService.get_public_templates()
+        if q:
+            q_lower = q.casefold()
+            templates = [
+                tpl for tpl in templates
+                if q_lower in (tpl.public_title or "").casefold()
+            ]
 
-    # --------------------------
-    # ★ Template ごとに表示用フィールドを作る
-    # --------------------------
-    for tpl in templates_page:
-        # ===== 交通手段まとめ =====
-        traffic_methods = []
-        outline = tpl.itinerary_outline_json or {}
-        days = []
-        if isinstance(outline, dict):
-            days = outline.get("days", [])
-        for d in days:
-            tm = d.get("traffic_method")
-            if tm and tm not in traffic_methods:
-                traffic_methods.append(tm)
-        tpl.transport_summary = " / ".join(traffic_methods) if traffic_methods else ""
+        templates_page, page, total_pages = paginate_items(templates, page, page_size)
 
-        # ===== ホテル名（Plan 経由で取得） =====
-        plan = Plan.query.get(tpl.plan_id)  # 公開なので user_id で絞らない
-        if plan and plan.hotel:
-            selected_hotel = resolve_selected_hotel(plan)
-            tpl.hotel_name = selected_hotel.get("name") if selected_hotel and selected_hotel.get("name") else "選択中"
-        else:
-            tpl.hotel_name = "未設定"
+        # --------------------------
+        # ★ Template ごとに表示用フィールドを作る
+        # --------------------------
+        for tpl in templates_page:
+            # ===== 交通手段まとめ =====
+            plan = Plan.query.get(tpl.plan_id)  # 公開なので user_id で絞らない
+            if plan:
+                selected_transit = PlanDBService.get_selected_transit(plan.id, tpl.user_id)
+                if selected_transit:
+                    tpl.transport_summary = selected_transit.type
+                else:
+                    # itinerary_outline_json から抽出
+                    traffic_methods = []
+                    outline = tpl.itinerary_outline_json or {}
+                    days = []
+                    if isinstance(outline, dict):
+                        days = outline.get("days", [])
+                    for d in days:
+                        tm = d.get("traffic_method")
+                        if tm and tm not in traffic_methods:
+                            traffic_methods.append(tm)
+                    tpl.transport_summary = " / ".join(traffic_methods) if traffic_methods else ""
+            else:
+                tpl.transport_summary = ""
 
-    return render_template(
-        "plan/public_list.html",
-        plans=templates_page,
-        query=q,
-        result_count=len(templates),
-        active_nav="public",
-        show_login_link=show_login_link,
-        page=page,
-        total_pages=total_pages,
-        pagination=build_pagination(page, total_pages),
-    )
+            # ===== ホテル名（Plan 経由で取得） =====
+            if plan and plan.hotel:
+                selected_hotel = resolve_selected_hotel(plan)
+                tpl.hotel_name = selected_hotel.get("name") if selected_hotel and selected_hotel.get("name") else "選択中"
+            else:
+                tpl.hotel_name = "未設定"
 
+        return render_template(
+            "plan/public_list.html",
+            plans=templates_page,
+            query=q,
+            result_count=len(templates),
+            active_nav="public",
+            show_login_link=show_login_link,
+            page=page,
+            total_pages=total_pages,
+            pagination=build_pagination(page, total_pages),
+        )
+
+    except Exception as e:
+        current_app.logger.error(f"Public plan list error: {e}")
+        flash("表示されるデータがありませんでした")
+        return render_template(
+            "plan/public_list.html",
+            plans=[],              # エラー時は空リスト
+            query=q,
+            result_count=0,
+            active_nav="public",
+            show_login_link=show_login_link,
+            page=1,
+            total_pages=1,
+            pagination=[],
+        )
 
 @plan_bp.route("/<int:template_id>/delete", methods=["POST"])
 def delete_plan(template_id):
@@ -290,7 +325,7 @@ def plan_transit():
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     options = PlanDBService.get_transit_by_id(plan_id, user_id=user_id)
     selected_transit = PlanDBService.get_selected_transit(plan_id, user_id=user_id)
-    selected_type = selected_transit.type if selected_transit else None
+    selected_type = selected_transit.transport_method if selected_transit else None
 
     if request.method == "POST":
         selected_type = request.form.get("transit_type")
@@ -302,9 +337,7 @@ def plan_transit():
                 flash("交通手段の保存に失敗しました。", "danger")
             else:
                 flash("交通手段を確定しました。", "success")
-                options = PlanDBService.get_transit_by_id(plan_id, user_id=user_id)
-                selected_transit = PlanDBService.get_selected_transit(plan_id, user_id=user_id)
-                selected_type = selected_transit.type if selected_transit else selected_type
+                return redirect(url_for("plan.transit_confirm"))
 
     button_label = "変更" if selected_type else "確定"
 
@@ -315,6 +348,27 @@ def plan_transit():
         selected_type=selected_type,
         confirm_target=url_for("plan.stay_select"),
         button_label=button_label
+    )
+
+@plan_bp.route("/transit/confirm", methods=["GET"])
+def transit_confirm():
+    plan_id = session.get("plan_id")
+    if not plan_id:
+        flash("プランが選択されていません。先にプランを作成してください。", "warning")
+        return redirect(url_for("plan.plan_create_form"))
+
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+    plan = PlanDBService.get_plan_by_id(plan_id, user_id)
+    selected_transit = PlanDBService.get_selected_transit(plan_id, user_id=user_id)
+
+    if not selected_transit:
+        flash("交通手段を選択してください。", "warning")
+        return redirect(url_for("plan.plan_transit"))
+
+    return render_template(
+        "plan/transport_confirm.html",
+        plan=plan,
+        selected_transit=selected_transit,
     )
 
 @plan_bp.route("/stay/", methods=["GET", "POST"])
@@ -615,6 +669,7 @@ def schedule_update():
         return jsonify({"error": "データがありません"}), 400
 
     try:
+        # raise Exception("これはテスト用の意図的なエラーです！")
         # 2. DB更新処理 (Serviceにメソッドを追加するか、ここで直接更新)
         # ここでは既存のScheduleモデルを更新する例を書きます
         schedule = Schedule.query.filter_by(plan_id=plan_id).first()
@@ -627,34 +682,7 @@ def schedule_update():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-    
-# save_plan_templateでチェックリストのjson構造を本来の構造に変換するための関数
-def convert_checklist_items_to_summary(checklist_items):
-    essential = []
-    extra = []
-
-    for ci in checklist_items:
-        name = ci.item.name
-        qty = ci.quantity or 1
-        unit = ci.item.unit or ""
-
-        data = {
-            "name": name,
-            "quantity": qty,
-            "unit": unit
-        }
-
-        if ci.is_required:
-            essential.append(data)
-        else:
-            extra.append(data)
-
-    return {
-        "essential": essential,
-        "extra": extra,
-        "items_total": len(essential) + len(extra)
-    }
+        return jsonify({"error": "保存に失敗しました"}), 500
 
 @plan_bp.route("/save", methods=["POST"])
 def save_plan_template():
@@ -663,17 +691,39 @@ def save_plan_template():
 
     payload = request.get_json() or {}
     title = (payload.get("title") or "").strip()
+    public_title = (payload.get("public_title") or "").strip()
     description = (payload.get("description") or "").strip()
+    tags = (payload.get("tags") or "").strip()
     visibility = (payload.get("visibility") or "private").strip() or "private"
+    storage = (payload.get("storage") or "server").strip() or "server"
+    flag_a = bool(payload.get("flag_a"))
+    flag_b = bool(payload.get("flag_b"))
+    target_date = (payload.get("date") or "").strip()
+    publish_date = None
 
-    if visibility not in ("public", "private"):
+    if visibility not in ("public", "private", "link"):
         visibility = "private"
+    if storage not in ("local", "server"):
+        storage = "server"
 
     if not plan_id or not user_id:
         return jsonify({"status": "error", "message": "プランが選択されていません。"}), 400
 
     if not title:
         return jsonify({"status": "error", "message": "タイトルを入力してください。"}), 400
+    if len(title) > 50:
+        return jsonify({"status": "error", "message": "タイトルは50文字以内で入力してください。"}), 400
+    if public_title and len(public_title) > 60:
+        return jsonify({"status": "error", "message": "公開タイトルは60文字以内で入力してください。"}), 400
+    if len(description) > 500:
+        return jsonify({"status": "error", "message": "説明は500文字以内で入力してください。"}), 400
+    if tags and len(tags) > 100:
+        return jsonify({"status": "error", "message": "タグは100文字以内で入力してください。"}), 400
+    if target_date:
+        try:
+            publish_date = date.fromisoformat(target_date)
+        except ValueError:
+            return jsonify({"status": "error", "message": "日付を正しく入力してください。"}), 400
 
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     schedule = PlanDBService.get_schedule_by_id(plan_id, user_id)
@@ -685,13 +735,20 @@ def save_plan_template():
     if not plan or not schedule:
         return jsonify({"status": "error", "message": "プラン情報の取得に失敗しました。"}), 404
 
+    if title:
+        plan.title = title
+
     template = PlanDBService.save_template(
         plan=plan,
         schedule=schedule,
-        checklist_summary=checklist_summary,
-        title=title,
+        title=public_title or title,
         short_note=description,
         visibility=visibility,
+        tags=tags,
+        storage=storage,
+        flag_a=flag_a,
+        flag_b=flag_b,
+        publish_date=publish_date,
     )
 
     if not template:
@@ -725,6 +782,10 @@ def share_plan():
         title=plan.title or (plan.destination or "無題のプラン"),
         short_note=plan.purpose or "",
         visibility="public",
+        storage="server",
+        flag_a=False,
+        flag_b=False,
+        publish_date=None,
     )
     if not template:
         return jsonify({"status": "error", "message": "共有URLの生成に失敗しました。"}), 500
@@ -743,12 +804,104 @@ def share_view(token):
     share = PlanDBService.get_share_by_token(token)
     if not share:
         flash("共有リンクが無効です。", "warning")
-        return redirect(url_for("plan.plan_list"))
+        return redirect(url_for("auth.login"))
 
     template = share.template
     plan = Plan.query.get(template.plan_id) if template else None
 
-    return render_template("plan/share_view.html", template=template, plan=plan, share_url=request.url)
+    # 日数（Template 優先、なければ Plan.days）
+    template_days = template.days or plan.days
+    template_note = template.short_note or "説明が設定されていません。"
+    
+    # まず、選択された交通手段を取得
+    selected_transit = PlanDBService.get_selected_transit(plan.id, template.user_id)
+    if selected_transit:
+        traffic_methods = [selected_transit.transport_method]
+    else:
+        # 選択されていない場合、itinerary_outline_json から抽出
+        if template.itinerary_outline_json:
+            itinerary_outline = template.itinerary_outline_json
+            days_data = []
+            if isinstance(itinerary_outline, dict):
+                days_data = itinerary_outline.get("days", [])
+            for d in days_data:
+                tm = d.get("traffic_method")
+                if tm:
+                    traffic_methods.append(tm)
+            # 重複排除
+            traffic_methods = list(dict.fromkeys(traffic_methods))
+
+    # --- 宿泊先（Plan.hotel JSON から） ---
+    selected_hotel = resolve_selected_hotel(plan)
+    if selected_hotel and selected_hotel.get("name"):
+        accommodation_label = selected_hotel.get("name")
+        hotel_price = selected_hotel.get("price")
+    else:
+        accommodation_label = "選択中です"
+        hotel_price = None
+
+    # --- メタ情報 ---
+    created_on_str = (
+        plan.created_at.strftime("%Y-%m-%d %H:%M")
+        if getattr(plan, "created_at", None)
+        else ""
+    )
+
+    packing_summary = template.checklist_summary_json or {}
+    if not packing_summary or (not packing_summary.get("essential") and not packing_summary.get("extra")):
+        summary = PlanDBService.get_checklist_summary(plan.id, template.user_id)
+        if summary.get("items_total", 0) > 0:
+            packing_summary = summary
+
+    # 共有ビューでは常にチェックリスト形式で表示
+    checklist_display = {
+        "essential": [
+            {"id": f"guest_essential_{i}", "name": item["name"], "quantity": item.get("quantity", 1), "unit": item.get("unit", ""), "is_checked": False}
+            for i, item in enumerate(packing_summary.get("essential", []))
+        ],
+        "extra": [
+            {"id": f"guest_extra_{i}", "name": item["name"], "quantity": item.get("quantity", 1), "unit": item.get("unit", ""), "is_checked": False}
+            for i, item in enumerate(packing_summary.get("extra", []))
+        ]
+    }
+    display_total = len(checklist_display.get("essential", [])) + len(checklist_display.get("extra", []))
+
+    meta = {
+        "created_on": created_on_str,
+        "price": f"{hotel_price}円 / 泊" if hotel_price is not None else "",
+        "items_total": display_total,
+    }
+
+    # --- 主な滞在場所 ---
+    stay_locations = []
+    if template.itinerary_outline_json:
+        itinerary_outline = template.itinerary_outline_json
+        days_data = []
+        if isinstance(itinerary_outline, dict):
+            days_data = itinerary_outline.get("days", [])
+        for d in days_data:
+            for place in d.get("places", []):
+                stay_locations.append(place)
+    stay_locations = list(dict.fromkeys(stay_locations))
+
+    display_title = template.public_title or plan.title or plan.destination or "プラン"
+
+    is_logged_in = current_user.is_authenticated
+
+    return render_template("plan/share_view.html", 
+        template=template, 
+        plan=plan, 
+        share_url=request.url,
+        template_days=template_days,
+        traffic_methods=traffic_methods,
+        accommodation_label=accommodation_label,
+        meta=meta,
+        stay_locations=stay_locations,
+        checklist_display=checklist_display,
+        template_note=template_note,
+        display_title=display_title,
+        is_logged_in=is_logged_in
+    )
 
 @plan_bp.route("/checklists", methods=["GET"])
 def checklist_list():
@@ -837,7 +990,8 @@ def checklist_edit():
         categories_dict[category_name]["items"].append({
             "name": item.item.name,
             "quantity": item.quantity,
-            "is_checked": item.is_checked
+            "is_checked": item.is_checked,
+            "is_required": item.is_required
             # 必要に応じて他フィールドも
         })
     
@@ -862,6 +1016,7 @@ def checklist_update():
     categories_data = data['categories']
 
     try:
+        # raise Exception("テスト用ののエラー")
         # 1. 既存のチェックリストを取得
         checklist = PlanDBService.get_checklist_by_id(plan_id, user_id)
         if not checklist:
@@ -898,12 +1053,13 @@ def checklist_update():
                     item_id=item_obj.item_id,
                     category_id=category.category_id,
                     quantity=qty,
-                    is_required=False, # 編集画面からの追加は一旦任意扱い
+                    is_required=bool(item_data.get('is_required')),
                     is_checked=False   # 編集でリセットするか、保持するかは仕様次第（ここではリセット）
                 )
                 db.session.add(new_checklist_item)
         
         db.session.commit()
+        PlanDBService.update_template_checklist_summary(plan_id, user_id)
         return jsonify({"status": "success", "redirect_url": url_for("plan.checklist_list")})
 
     except Exception as e:
@@ -912,6 +1068,39 @@ def checklist_update():
         traceback.print_exc()
         return jsonify({"error": f"保存中にエラーが発生しました: {str(e)}"}), 500
 
+
+
+@plan_bp.route("/checklists/items/<int:item_id>", methods=["PATCH"])
+def checklist_item_toggle(item_id):
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
+
+    payload = request.get_json() or {}
+    if "is_checked" not in payload and "is_required" not in payload:
+        return jsonify({"error": "更新内容がありません。"}), 400
+
+    checklist_item = (
+        ChecklistItem.query
+        .join(Checklist)
+        .join(Plan)
+        .filter(
+            ChecklistItem.checklist_item_id == item_id,
+            Plan.user_id == user_id,
+        )
+        .first()
+    )
+    if not checklist_item:
+        return jsonify({"error": "対象の持ち物が見つかりません。"}), 404
+
+    if "is_checked" in payload:
+        checklist_item.is_checked = bool(payload.get("is_checked"))
+    if "is_required" in payload:
+        checklist_item.is_required = bool(payload.get("is_required"))
+
+    db.session.commit()
+    PlanDBService.update_template_checklist_summary(checklist_item.checklist.plan_id, user_id)
+    return jsonify({"status": "success"})
 @plan_bp.route("/checklists/generate", methods=["POST"])
 def checklist_generate():
     plan_id = session.get("plan_id")
@@ -928,6 +1117,7 @@ def checklist_generate():
         return jsonify({"error": "チェックリストは既に存在します。", "redirect_url": url_for("plan.checklist_list")}), 409
 
     try:
+        # raise Exception("テスト")
         plan = PlanDBService.get_plan_by_id(plan_id, user_id)
         if not plan:
             return jsonify({"error": "対象のプランが見つかりません。"}), 404
@@ -1012,20 +1202,26 @@ def plan_detail(template_id):
     template_days = template.days or plan.days
     template_note = template.short_note or "説明が設定されていません。"
 
-    # --- 交通手段一覧を itinerary_outline_json から抽出 ---
+    # --- 交通手段一覧を取得 ---
     traffic_methods = []
-    if template.itinerary_outline_json:
-        itinerary_outline = template.itinerary_outline_json
-        days_data = []
-        if isinstance(itinerary_outline, dict):
-            days_data = itinerary_outline.get("days", [])
-        for d in days_data:
-            tm = d.get("traffic_method")
-            if tm:
-                traffic_methods.append(tm)
-
-    # 重複排除
-    traffic_methods = list(dict.fromkeys(traffic_methods))
+    
+    # まず、選択された交通手段を取得
+    selected_transit = PlanDBService.get_selected_transit(plan.id, template.user_id)
+    if selected_transit:
+        traffic_methods = [selected_transit.transport_method]
+    else:
+        # 選択されていない場合、itinerary_outline_json から抽出
+        if template.itinerary_outline_json:
+            itinerary_outline = template.itinerary_outline_json
+            days_data = []
+            if isinstance(itinerary_outline, dict):
+                days_data = itinerary_outline.get("days", [])
+            for d in days_data:
+                tm = d.get("traffic_method")
+                if tm:
+                    traffic_methods.append(tm)
+            # 重複排除
+            traffic_methods = list(dict.fromkeys(traffic_methods))
 
     # --- 宿泊先（Plan.hotel JSON から） ---
     selected_hotel = resolve_selected_hotel(plan)
@@ -1044,10 +1240,29 @@ def plan_detail(template_id):
     )
 
     packing_summary = template.checklist_summary_json or {}
+    if not packing_summary or (not packing_summary.get("essential") and not packing_summary.get("extra")):
+        summary = PlanDBService.get_checklist_summary(plan.id, template.user_id)
+        if summary.get("items_total", 0) > 0:
+            packing_summary = summary
+            if user_id == template.user_id:
+                template.checklist_summary_json = summary
+                template.items_count = summary.get("items_total", 0)
+                db.session.commit()
+
+    checklist_display = None
+    display_total = None
+    if is_owned:
+        checklist_display = PlanDBService.get_checklist_display(plan.id, user_id)
+        if checklist_display and (checklist_display.get("essential") or checklist_display.get("extra")):
+            display_total = len(checklist_display.get("essential", [])) + len(checklist_display.get("extra", []))
+    else:
+        # 所有者でない場合、checklist_display は None のまま（テーブル表示）
+        pass
+
     meta = {
         "created_on": created_on_str,
         "price": f"{hotel_price}円 / 泊" if hotel_price is not None else "",
-        "items_total": packing_summary.get("items_total", 0),
+        "items_total": display_total if display_total is not None else packing_summary.get("items_total", 0),
     }
 
     # --- 主な滞在場所 ---
@@ -1084,6 +1299,7 @@ def plan_detail(template_id):
         meta=meta,
         stay_locations=stay_locations,
         packing_summary=packing_summary,
+        checklist_display=checklist_display,
         is_owned=is_owned,
         template_note=template_note,
         display_title=display_title,
@@ -1215,7 +1431,7 @@ def plan_create_form():
             )
     
     if request.method == "POST" and not form.validate():
-        flash(f"入力エラー詳細: {form.errors}", "danger")
+        flash("入力内容を確認してください。", "danger")
 
     return render_template(
         "plan/plan_create.html",

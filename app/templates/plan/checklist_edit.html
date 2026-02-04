@@ -17,9 +17,17 @@
         <header class="category-title">{{ category.title }}</header>
         <div class="item-stack">
           {% for item in category['items'] %}
-          <div class="edit-row" data-item-row>
+          <div class="edit-row" data-item-row data-item-required="{{ 'true' if item.is_required else 'false' }}">
             <input name="item_form" type="text" value="{{ item.name }}" placeholder="追加..." />
             <div class="row-right">
+              <button
+                type="button"
+                class="required-toggle"
+                data-item-required-toggle
+                aria-pressed="{{ 'true' if item.is_required else 'false' }}"
+              >
+                {{ '必需品' if item.is_required else '補足品' }}
+              </button>
               <input name="num_from" type="text" value="{{ item.quantity }}" placeholder="数量を入力" />
               <button type="button" name="delete" class="icon-button" data-item-delete aria-label="削除">🗑</button>
             </div>
