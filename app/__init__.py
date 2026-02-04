@@ -2,7 +2,7 @@ import logging
 from flask import Flask, session
 # configモジュールの場所がルートにある場合は 'config'、app内にある場合は 'app.config' としてください
 # 提示されたコードに従い 'config' からインポートします
-from config import Config
+from app.config import Config
 from app.extensions import db, migrate, bcrypt, login_manager
 from app.routes.root_routes import root_bp
 

@@ -628,6 +628,33 @@ def schedule_update():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+    
+# save_plan_templateでチェックリストのjson構造を本来の構造に変換するための関数
+def convert_checklist_items_to_summary(checklist_items):
+    essential = []
+    extra = []
+
+    for ci in checklist_items:
+        name = ci.item.name
+        qty = ci.quantity or 1
+        unit = ci.item.unit or ""
+
+        data = {
+            "name": name,
+            "quantity": qty,
+            "unit": unit
+        }
+
+        if ci.is_required:
+            essential.append(data)
+        else:
+            extra.append(data)
+
+    return {
+        "essential": essential,
+        "extra": extra,
+        "items_total": len(essential) + len(extra)
+    }
 
 @plan_bp.route("/save", methods=["POST"])
 def save_plan_template():
@@ -650,6 +677,10 @@ def save_plan_template():
 
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     schedule = PlanDBService.get_schedule_by_id(plan_id, user_id)
+    checklist = PlanDBService.get_checklist_by_id(plan_id,user_id)
+    checklist_item = PlanDBService.get_checklist_item_by_id(checklist.checklist_id)
+
+    checklist_summary = convert_checklist_items_to_summary(checklist_item)
 
     if not plan or not schedule:
         return jsonify({"status": "error", "message": "プラン情報の取得に失敗しました。"}), 404
@@ -657,6 +688,7 @@ def save_plan_template():
     template = PlanDBService.save_template(
         plan=plan,
         schedule=schedule,
+        checklist_summary=checklist_summary,
         title=title,
         short_note=description,
         visibility=visibility,

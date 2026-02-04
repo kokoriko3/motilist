@@ -268,7 +268,7 @@ class PlanDBService:
             return False
 
     @staticmethod
-    def save_template(plan, schedule, title, short_note="", visibility="private"):
+    def save_template(plan, schedule, checklist_summary, title, short_note="", visibility="private"):
         """
         プランをテンプレートとして保存・更新する。
         既に同じプランのテンプレートがある場合は上書きする。
@@ -277,7 +277,8 @@ class PlanDBService:
             return None
 
         itinerary_outline = schedule.daily_plan_json if schedule else {}
-        checklist_summary = {"items": []}
+        # checklist_summary = checklist_summary  # ここにチェックリストのアイテム要約を格納する 
+        
         tags = ", ".join(plan.options) if isinstance(plan.options, list) else (plan.options if plan.options else None)
 
         try:
