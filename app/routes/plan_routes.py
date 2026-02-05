@@ -336,7 +336,7 @@ def plan_transit():
             if not saved:
                 flash("交通手段の保存に失敗しました。", "danger")
             else:
-                flash("交通手段を確定しました。", "success")
+                # flash("交通手段を確定しました。", "success")
                 return redirect(url_for("plan.transit_confirm"))
 
     button_label = "変更" if selected_type else "確定"
@@ -376,13 +376,13 @@ def stay_select():
     """??????Plan.hotel ???? HotelSnapshot ??????????"""
     plan_id = session.get("plan_id")
     if plan_id is None:
-        flash("??????????????", "error")
+        # flash("??????????????", "error")
         return redirect(url_for("plan.plan_list"))
 
     user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     if not plan:
-        flash("????????????", "warning")
+        # flash("????????????", "warning")
         return redirect(url_for("plan.plan_create_form"))
 
     hotel_json = plan.hotel or {}
@@ -1139,7 +1139,7 @@ def checklist_generate():
         success = PlanDBService.add_items_to_checklist(checklist.checklist_id, item_list)
         
         if success:
-            flash("AIが持ち物リストを生成しました！", "success") # flashメッセージはリダイレクト先で表示される
+            # flash("AIが持ち物リストを生成しました！", "success") # flashメッセージはリダイレクト先で表示される
             return jsonify({"status": "success", "redirect_url": url_for("plan.checklist_list")})
         else:
             return jsonify({"error": "持ち物リストの保存中にエラーが発生しました。"}), 500
@@ -1323,7 +1323,7 @@ def plan_modals(plan_id):
     new_plan_id = PlanDBService.copy_plan(plan_id, user_id)
 
     if new_plan_id:
-        flash("プランを自分のプランとして保存しました！", "success")
+        # flash("プランを自分のプランとして保存しました！", "success")
         # 新しく作ったプランを操作対象にするためセッションを更新
         session["plan_id"] = new_plan_id
     else:
