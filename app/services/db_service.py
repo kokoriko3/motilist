@@ -727,3 +727,36 @@ class PlanDBService:
             traceback.print_exc()
             return None
 
+    @staticmethod
+    def reorder_checklist_items(plan_id, dragged_id, target_id, user_id=None):
+        try:
+            # 修正: id ではなく checklist_item_id を使用。また Plan ID で絞り込む
+            dragged = ChecklistItem.query.filter_by(checklist_item_id=dragged_id).first()
+            target = ChecklistItem.query.filter_by(checklist_item_id=target_id).first()
+            
+            # モデルに sort_order プロパティがあることを前提として入れ替え
+            if dragged and target:
+                dragged.sort_order, target.sort_order = target.sort_order, dragged.sort_order
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error reordering checklist items: {e}")
+            return False
+
+    @staticmethod
+    def toggle_checklist_item(item_id, is_checked):
+        try:
+            # SQLAlchemyの get は主キーを参照するため item_id でOK。
+            # ただしプロパティ名は is_checked。
+            item = ChecklistItem.query.get(item_id)
+            if item:
+                item.is_checked = is_checked
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error toggling checklist item: {e}")
+            return False

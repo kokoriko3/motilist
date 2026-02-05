@@ -29,7 +29,7 @@ def login():
 
         login_user(user)
         session["user_id"] = user.user_id
-        flash("ログインしました", "success")
+        # flash("ログインしました", "success")
         return redirect(url_for("plan.plan_list"))
     return render_template("auth/login.html", form=form)
 

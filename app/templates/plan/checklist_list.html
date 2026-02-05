@@ -10,18 +10,46 @@
 
   <div class="checklist-body">
     <div class="panel-header">
-      <div class="error-inline" data-checklist-error hidden>保存に失敗しました</div>
+      {# checklist_toggle.js がエラー表示に使用する属性 #}
+      <div class="error-inline" data-checklist-toggle-error hidden>保存に失敗しました</div>
     </div>
+
+    {# JS側が plan_id を取得するための隠し要素 #}
+    <div style="display:none;" data-plan-id="{{ plan.id }}"></div>
 
     <div class="category-grid">
       {% for category in categories %}
       <article class="category-card">
-        <header class="category-title">{{ category.name }}</header>
+        <header class="category-title">
+          {{ category.name }}
+          {% if category.name == '必需品' %}👑{% endif %}
+        </header>
         <div class="item-stack">
           {% for item in category['items'] %}
-          <button type="button" name="item" class="item-button">
-            <span class="item-name">{{ item.name }}</span>
+          <button type="button" 
+                  class="item-button {% if item.checked %}checked{% endif %}" 
+                  data-item-id="{{ item.id }}" 
+                  draggable="true"
+                  ondragstart="dragStart(event)" 
+                  ondragover="dragOver(event)" 
+                  ondragleave="dragLeave(event)"
+                  ondrop="drop(event)"
+                  ondragend="dragEnd(event)"
+                  onclick="if(!event.defaultPrevented) this.querySelector('.item-checkbox').click();">
+            
+            <span class="item-name">
+              {% if item.is_required %}👑{% endif %}
+              {{ item.name }}
+            </span>
             {% if item.quantity %}<span class="item-qty">数量:{{ item.quantity }}</span>{% endif %}
+            
+            <input type="checkbox" 
+                  class="item-checkbox" 
+                  data-checklist-toggle 
+                  data-checklist-item-id="{{ item.id }}" 
+                  {% if item.checked %}checked{% endif %} 
+                  style="display:none;"
+                  onclick="event.stopPropagation();">
           </button>
           {% endfor %}
         </div>
@@ -30,4 +58,7 @@
     </div>
   </div>
 </section>
+
+{# 画面固有のスクリプトを読み込む #}
+<script src="{{ url_for('static', filename='js/checklist_toggle.js') }}"></script>
 {% endblock %}

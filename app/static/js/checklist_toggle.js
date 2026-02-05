@@ -1,77 +1,32 @@
-// Toggle checklist items from plan detail view
+// 持ち物リストのトグルと並び替えを制御するスクリプト
 
+let plan_id;
+
+/**
+ * 初期化処理
+ */
 document.addEventListener('DOMContentLoaded', () => {
+  // ページ内の[data-plan-id]属性を持つ要素からプランIDを取得
+  const planEl = document.querySelector('[data-plan-id]');
+  plan_id = planEl?.getAttribute('data-plan-id');
+
   const errorLabel = document.querySelector('[data-checklist-toggle-error]')
 
   const hideError = () => {
     if (errorLabel) errorLabel.hidden = true
   }
 
-  const showError = () => {
+  const showError = (message = '保存に失敗しました') => {
     if (!errorLabel) return
-    errorLabel.textContent = '保存に失敗しました'
+    errorLabel.textContent = message
     errorLabel.hidden = false
   }
 
-  // Save checklist for non-owners
-  const saveButton = document.querySelector('[data-save-checklist]')
-  if (saveButton) {
-    saveButton.addEventListener('click', async () => {
-      const planId = document.querySelector('[data-plan-detail]').getAttribute('data-plan-id')
-      if (!planId) return
-
-      const essentialItems = Array.from(document.querySelectorAll('[data-checklist-column="essential"] [data-checklist-toggle]'))
-        .map(cb => ({
-          name: cb.nextElementSibling.textContent.split('（')[0].trim(),
-          quantity: cb.nextElementSibling.textContent.includes('（') ? parseInt(cb.nextElementSibling.textContent.split('（')[1].split('）')[0].split(/[^\d]/)[0]) || 1 : 1,
-          unit: cb.nextElementSibling.textContent.includes('）') ? cb.nextElementSibling.textContent.split('）')[0].split('（')[1].replace(/\d/g, '').trim() : '',
-          is_required: true,
-          is_checked: cb.checked
-        }))
-
-      const extraItems = Array.from(document.querySelectorAll('[data-checklist-column="extra"] [data-checklist-toggle]'))
-        .map(cb => ({
-          name: cb.nextElementSibling.textContent.split('（')[0].trim(),
-          quantity: cb.nextElementSibling.textContent.includes('（') ? parseInt(cb.nextElementSibling.textContent.split('（')[1].split('）')[0].split(/[^\d]/)[0]) || 1 : 1,
-          unit: cb.nextElementSibling.textContent.includes('）') ? cb.nextElementSibling.textContent.split('）')[0].split('（')[1].replace(/\d/g, '').trim() : '',
-          is_required: false,
-          is_checked: cb.checked
-        }))
-
-      const categories = [
-        { category: '必需品', items: essentialItems },
-        { category: '補足品', items: extraItems }
-      ]
-
-      try {
-        const response = await fetch(`/plans/${planId}/checklists/save_guest`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ categories }),
-        })
-        const result = await response.json().catch(() => ({}))
-        if (response.ok && result.status === 'success') {
-          alert('チェックリストを保存しました！')
-          window.location.href = result.redirect_url
-        } else if (response.status === 401) {
-          // ログインが必要
-          alert('チェックリストを保存するにはログインが必要です。')
-          window.location.href = '/auth/login'
-        } else {
-          showError()
-        }
-      } catch (error) {
-        console.error(error)
-        showError()
-      }
-    })
-  }
-
+  // チェック状態の切り替え（PATCHリクエスト）
   document.addEventListener('change', async (event) => {
     const checkbox = event.target.closest('[data-checklist-toggle]')
     if (!checkbox) return
+    
     const itemId = checkbox.getAttribute('data-checklist-item-id')
     if (!itemId || itemId.startsWith('guest_')) return
 
@@ -82,25 +37,135 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await fetch(`/plans/checklists/items/${itemId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          is_checked: nextState,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_checked: nextState }),
       })
       const result = await response.json().catch(() => ({}))
+      
       if (!response.ok || result.status !== 'success') {
         checkbox.checked = !nextState
-        showError()
+        showError();
+      } else {
+        // 成功したら親ボタンのスタイルを更新
+        const btn = checkbox.closest('.item-button');
+        if (btn) btn.classList.toggle('checked', nextState);
       }
     } catch (error) {
-      console.error(error)
+      console.error('Update Error:', error)
       checkbox.checked = !nextState
       showError()
     } finally {
       checkbox.disabled = false
     }
   })
-
 })
+
+/**
+ * ドラッグ開始イベント
+ */
+function dragStart(event) {
+  const target = event.target.closest('.item-button');
+  if (!target) return;
+
+  // ドラッグするアイテムのIDを保存
+  const id = target.dataset.itemId;
+  event.dataTransfer.setData('text/plain', id);
+  event.dataTransfer.effectAllowed = 'move';
+  
+  // ドラッグ中の見た目
+  setTimeout(() => target.classList.add('dragging'), 0);
+}
+
+/**
+ * ドラッグ中（要素の上に乗っている時）
+ */
+function dragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  
+  const target = event.target.closest('.item-button');
+  if (target && !target.classList.contains('dragging')) {
+    target.classList.add('drag-over');
+  }
+}
+
+/**
+ * ドラッグ要素が離れた時
+ */
+function dragLeave(event) {
+  const target = event.target.closest('.item-button');
+  if (target) target.classList.remove('drag-over');
+}
+
+/**
+ * ドロップされた時
+ */
+function drop(event) {
+  event.preventDefault();
+  const target = event.target.closest('.item-button');
+  
+  // クラスのクリーンアップ
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  
+  if (target) {
+    const draggedId = event.dataTransfer.getData('text/plain');
+    const targetId = target.dataset.itemId;
+
+    if (draggedId && targetId && draggedId !== targetId) {
+      console.log(`Reordering: ${draggedId} -> ${targetId}`);
+      reorderItems(draggedId, targetId);
+    }
+  }
+}
+
+/**
+ * ドラッグ終了（ドロップ完了またはキャンセル）
+ */
+function dragEnd(event) {
+  const target = event.target.closest('.item-button');
+  if (target) target.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+/**
+ * サーバーへ並び替え順を送信し、DOMを更新する
+ */
+function reorderItems(draggedId, targetId) {
+  if (!plan_id) return;
+
+  fetch(`/plans/${plan_id}/checklist/reorder`, { // /plan/ ではなく /plans/
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      dragged_id: draggedId,
+      target_id: targetId
+    })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
+  })
+  .then(data => {
+    if (data.success) {
+      const dragged = document.querySelector(`[data-item-id="${draggedId}"]`);
+      const target = document.querySelector(`[data-item-id="${targetId}"]`);
+      
+      if (dragged && target && dragged.parentNode === target.parentNode) {
+        const parent = dragged.parentNode;
+        // ターゲットの前か後に挿入
+        const isAfter = dragged.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING;
+        if (isAfter) {
+          parent.insertBefore(dragged, target.nextSibling);
+        } else {
+          parent.insertBefore(dragged, target);
+        }
+      }
+    } else {
+      console.error('Server reported failure in reordering');
+    }
+  })
+  .catch(err => {
+    console.error('Reorder error:', err);
+    // 失敗した場合はリロードして整合性を取ることも検討
+  });
+}

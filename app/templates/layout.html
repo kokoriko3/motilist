@@ -54,15 +54,7 @@
     </header>
 
     <main class="page-content">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, message in messages %}
-            <div class="flash-message {{ 'flash-error' if category == 'error' or category == 'danger' else 'flash-success' if category == 'success' else 'flash-info' }}">
-              {{ message }}
-            </div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
+
       
       {% block content %}{% endblock %}
     </main>

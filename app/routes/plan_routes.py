@@ -799,8 +799,8 @@ def share_plan():
 def share_view(token):
     share = PlanDBService.get_share_by_token(token)
     if not share:
-        flash("共有リンクが無効です。", "warning")
-        return redirect(url_for("auth.login"))
+        flash("チェックリストが存在しません", "warning")
+        return redirect(url_for("plan.plan_list"))
 
     template = share.template
     plan = Plan.query.get(template.plan_id) if template else None
@@ -903,30 +903,21 @@ def share_view(token):
 def checklist_list():
     plan_id = session.get("plan_id")
     if not plan_id:
-        flash("プランが選択されていません。先にプランを作成してください。", "warning")
-        return redirect(url_for("plan.plan_create_form"))
+        flash("プランが選択されていません。", "warning")
+        return redirect(url_for("plan.plan_list"))
 
     user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
-    if not user_id:
-        flash("ユーザーが認証されていません。", "warning")
-        return redirect(url_for("auth.login"))
-
     plan = PlanDBService.get_plan_by_id(plan_id, user_id)
     if not plan:
         flash("プランが見つかりません。", "warning")
         return redirect(url_for("plan.plan_list"))
 
-    # ★ 修正箇所: get_checklist_item_by_id ではなく get_checklist_by_id を使用
     checklist_obj = PlanDBService.get_checklist_by_id(plan_id, user_id)
-
     if not checklist_obj:
-        # まだチェックリストが生成されていない
         return render_template("plan/checklist_create.html", plan=plan)
     
-    # チェックリストが存在する場合、そのアイテムを取得
     checklist_items = PlanDBService.get_checklist_item_by_id(checklist_obj.checklist_id)
     
-    # カテゴリごとにアイテムをグループ化する
     categories_dict = {}
     for item in checklist_items:
         category_name = item.category.name if item.category else "その他"
@@ -937,16 +928,15 @@ def checklist_list():
             }
         
         categories_dict[category_name]["items"].append({
+            "id": item.checklist_item_id, # テンプレート側では 'id' として扱う
             "name": item.item.name,
-            "is_checked": item.is_checked,
+            "checked": item.is_checked,
             "is_required": item.is_required,
             "quantity": item.quantity,
             "memo": item.memo
         })
     
-    # テンプレートに渡すために辞書のリストに変換
     categories_list = [{"name": name, **data} for name, data in categories_dict.items()]
-
     return render_template("plan/checklist_list.html", categories=categories_list, plan=plan)
 
 @plan_bp.route("/checklists/edit", methods=["GET"])
@@ -1064,39 +1054,49 @@ def checklist_update():
         traceback.print_exc()
         return jsonify({"error": f"保存中にエラーが発生しました: {str(e)}"}), 500
 
-
-
 @plan_bp.route("/checklists/items/<int:item_id>", methods=["PATCH"])
 def checklist_item_toggle(item_id):
+    """持ち物アイテムのチェック状態を切り替えるAPI"""
     user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
     if not user_id:
-        return jsonify({"error": "ユーザー情報が見つかりません。"}), 401
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
 
     payload = request.get_json() or {}
-    if "is_checked" not in payload and "is_required" not in payload:
-        return jsonify({"error": "更新内容がありません。"}), 400
+    is_checked = payload.get("is_checked")
 
-    checklist_item = (
-        ChecklistItem.query
-        .join(Checklist)
-        .join(Plan)
-        .filter(
-            ChecklistItem.checklist_item_id == item_id,
-            Plan.user_id == user_id,
-        )
-        .first()
-    )
-    if not checklist_item:
-        return jsonify({"error": "対象の持ち物が見つかりません。"}), 404
+    # Service側で checklist_item_id を用いて更新
+    success = PlanDBService.toggle_checklist_item(item_id, is_checked)
+    if success:
+        try:
+            PlanDBService.update_template_checklist_summary_by_item(item_id, user_id)
+        except Exception as e:
+            current_app.logger.error(f"Summary update error: {str(e)}")
+        return jsonify({"status": "success"})
+    
+    return jsonify({"status": "error", "message": "Update failed"}), 400
 
-    if "is_checked" in payload:
-        checklist_item.is_checked = bool(payload.get("is_checked"))
-    if "is_required" in payload:
-        checklist_item.is_required = bool(payload.get("is_required"))
+@plan_bp.route('/<int:plan_id>/checklist/reorder', methods=['POST'])
+def reorder_checklist(plan_id):
+    """ドラッグ&ドロップによる並び替え順の保存"""
+    user_id = current_user.user_id if current_user.is_authenticated else session.get("user_id")
+    if not user_id:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
-    db.session.commit()
-    PlanDBService.update_template_checklist_summary(checklist_item.checklist.plan_id, user_id)
-    return jsonify({"status": "success"})
+    data = request.get_json()
+    try:
+        # 文字列として送られてくる可能性があるので明示的にint変換
+        dragged_id = int(data.get('dragged_id'))
+        target_id = int(data.get('target_id'))
+        
+        # Service層を呼び出し。
+        # 内部で「.id」を使っている箇所があれば、Service側で「.checklist_item_id」に修正が必要です。
+        success = PlanDBService.reorder_checklist_items(plan_id, dragged_id, target_id, user_id=user_id)
+        
+        return jsonify({'success': bool(success)})
+    except Exception as e:
+        current_app.logger.error(f"Reorder Error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 400
+    
 @plan_bp.route("/checklists/generate", methods=["POST"])
 def checklist_generate():
     plan_id = session.get("plan_id")
@@ -1565,5 +1565,5 @@ def create_dummy_plan():
         traceback.print_exc()
         flash(f"ダミー作成エラー: {e}", "danger")
         return redirect(url_for("plan.plan_create_form"))
-    
+
 
