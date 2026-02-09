@@ -8,7 +8,14 @@
   <div class="stay-body">
     <h1>宿泊場所変更</h1>
     <div class="banner error-banner" data-stay-error hidden>エラーが起きました 時間をおいて再度実行してください</div>
-
+      {% set flash_messages = get_flashed_messages(with_categories=true) %}
+      <div class="error-inline" data-transport-error {% if not flash_messages %}hidden{% endif %}>
+        {% if flash_messages %}
+          {{ flash_messages[0][1] }}
+        {% else %}
+          選択してください
+        {% endif %}
+      </div>
     <div class="stay-toolbar">
       <div class="support-label">
         <!-- Rakuten Web Services Attribution Snippet FROM HERE -->

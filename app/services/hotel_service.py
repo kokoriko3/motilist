@@ -106,7 +106,7 @@ def search_rakuten_hotels(keyword):
             })
             
         # 取得データのログ出力
-        current_app.logger.info(f"取得したホテルリスト: {json.dumps(simplified_hotels, ensure_ascii=False, indent=2)}")
+        # current_app.logger.info(f"取得したホテルリスト: {json.dumps(simplified_hotels, ensure_ascii=False, indent=2)}")
         
         return simplified_hotels
 

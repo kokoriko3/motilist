@@ -16,6 +16,7 @@ def generate_plan_from_inputs(destination,start_point, days, purpose_raw, **kwar
 
         system_prompt = "あなたは日本の旅行プランを作成するプロのAIアシスタントです。"
 
+        current_app.logger.info("出発地点",start_point)
         user_prompt = f"""
         以下の条件に基づいて、日本の旅行プランを「主要交通手段の提案」「日程」を含む
         厳密なJSON形式で出力してください。
@@ -175,8 +176,13 @@ def generate_item_list_from_plan(plan,schedule_json):
             raise Exception("AIからの応答が空でした。")
 
         ai_response_content = response.text
+
+        parsed_response = json.loads(ai_response_content)
+        # ログは要点だけを出力（JSONが長すぎるため）
+        checklist_info = f"カテゴリ数: {len(parsed_response.get('checklist', []))}"
+        current_app.logger.info(f"aiからの返答 - {checklist_info}")
             
-        return json.loads(ai_response_content)
+        return parsed_response
 
     except Exception as e:
         current_app.logger.error(f"AIサービスでエラーが発生: {e}")

@@ -399,20 +399,20 @@ def stay_select():
     if request.method == "POST":
         selected_id = request.form.get("hotel_id", type=int)
         if selected_id is None:
-            flash("??????????????", "error")
+            flash("宿泊場所が選択されていません", "error")
             return redirect(url_for("plan.stay_select"))
 
         hotel_json = plan.hotel or {}
         candidates = hotel_json.get("candidates", [])
         selected = next((c for c in candidates if c.get("id") == selected_id), None)
         if selected is None:
-            flash("???????????????", "error")
+            flash("宿泊場所の保存に失敗しました", "error")
             return redirect(url_for("plan.stay_select"))
 
         hotel_json["selected_id"] = selected_id
         plan.hotel = hotel_json
         db.session.commit()
-        flash("????????????????????????", "success")
+        # flash("????????????????????????", "success")
         return redirect(url_for("plan.stay_confirm"))
 
     # ---------- GET: ???? ----------
@@ -1372,6 +1372,7 @@ def plan_create_form():
         days = form.days.data
         purpose_raw = form.purposes_raw.data
         options = form.options.data
+        # flash(departure)
 
         try:
             # オプションの文字列化
