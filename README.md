@@ -3,20 +3,21 @@
 `<img src="https://img.shields.io/badge/Python-black?logo=python&logoColor=#3776AB"><img src="https://img.shields.io/badge/FLASK-grey?logo=flask">`
 
 ## 目次
-1.プロジェクト概要
-2.環境
-3.ディレクトリ構造
-4.環境構築
+1.プロジェクト概要  
+2.環境  
+3.ディレクトリ構造  
+4.環境構築  
 
 # プロジェクト概要
 
-## アプリ名:もちリスト
+## アプリ名
+もちリスト
 
 ## アプリ概要
 
-目的地、日数を入力するだけで、「旅行プラン(時間と訪れる場所、交通手段、宿泊先)」を提案します。生成されたものを自由に編集・カスタマイズ・することき、旅行の計画建てをサポートします。
-さらに作られた旅行プランから持ち物リストを作成することができ。こちらもカスタマイズ可能です。
-また、作られた旅行プランは保存・共有することができ、過去のプランの確認や人のプランの確認ができます。
+目的地、日数を入力するだけで、「旅行プラン(時間と訪れる場所、交通手段、宿泊先)」を提案します。  
+生成されたものを自由に編集・カスタマイズ・することき、旅行の計画建てをサポートします。  
+また、作られた旅行プランは保存・共有することができ、過去のプランの確認や人のプランの確認ができます。  
 
 # 環境
 |言語・フレームワーク|バージョン|
@@ -29,147 +30,142 @@
 # ディレクトリ構造
 
 C:.
-|   .dockerignore
-|   .env
-|   .gitignore
-|   Caddyfile
-|   config.py
-|   docker-compose.prod.yml
-|   docker-compose.yml
-|   Dockerfile
-|   Dockerfile.dev
-|   manage_data.py
-|   README.md
-|   requirements.txt
-|   seed.py
-|   seed_data.json
-|   tree.txt
-|   wsgi.py
-|   
-+---app
-|   |   extensions.py
-|   |   __init__.py
-|   |   
-|   +---forms
-|   |   |   auth_form.py
-|   |   |   plan_form.py
-|   |   |   register_form.py
-|   |   |   __init__.py
-|   |   |   
-|   |   \---__pycache__
-|   |           plan_form.cpython-313.pyc
-|   |           __init__.cpython-313.pyc
-|   |           
-|   +---models
-|   |   |   checklist.py
-|   |   |   plan.py
-|   |   |   user.py
-|   |   |   __init__.py
-|   |   |   
-|   |   \---__pycache__
-|   |           checklist.cpython-313.pyc
-|   |           plan.cpython-313.pyc
-|   |           user.cpython-313.pyc
-|   |           __init__.cpython-313.pyc
-|   |           
-|   +---routes
-|   |   |   auth_routes.py
-|   |   |   plan_routes.py
-|   |   |   root_routes.py
-|   |   |   
-|   |   \---__pycache__
-|   |           plan_routes.cpython-313.pyc
-|   |           root_routes.cpython-313.pyc
-|   |           
-|   +---services
-|   |   |   ai_service.py
-|   |   |   db_service.py
-|   |   |   hotel_service.py
-|   |   |   __init__.py
-|   |   |   
-|   |   \---__pycache__
-|   |           ai_service.cpython-313.pyc
-|   |           db_service.cpython-313.pyc
-|   |           hotel_service.cpython-313.pyc
-|   |           __init__.cpython-313.pyc
-|   |           
-|   +---sql
-|   |       user_table.sql
-|   |       
-|   +---static
-|   |   +---css
-|   |   |       style.css
-|   |   |       
-|   |   +---img
-|   |   |       logo.png
-|   |   |       rakuten_logo.svg
-|   |   |       
-|   |   \---js
-|   |           checklist.js
-|   |           checklist_toggle.js
-|   |           main.js
-|   |           plan_detail.js
-|   |           plan_save.js
-|   |           plan_share.js
-|   |           schedule.js
-|   |           stay.js
-|   |           transport.js
-|   |           
-|   +---templates
-|   |   |   layout.html
-|   |   |   
-|   |   +---account
-|   |   |       account.html
-|   |   |       
-|   |   +---auth
-|   |   |       auth_base.html
-|   |   |       login.html
-|   |   |       register.html
-|   |   |       register_complete.html
-|   |   |       
-|   |   +---components
-|   |   |       _plan_card.html
-|   |   |       
-|   |   \---plan
-|   |           checklist_create.html
-|   |           checklist_edit.html
-|   |           checklist_list.html
-|   |           detail.html
-|   |           guest_required.html
-|   |           hotel_confirm.html
-|   |           hotel_select.html
-|   |           item_list.html
-|   |           list.html
-|   |           modals.html
-|   |           plan_create.html
-|   |           plan_edit.html
-|   |           public_list.html
-|   |           schedule.html
-|   |           schedule_create.html
-|   |           schedule_edit.html
-|   |           schedule_list.html
-|   |           share_view.html
-|   |           transit.html
-|   |           transport_confirm.html
-|   |           _load.html
-|   |           _plan_header_tabs.html
-|   |           _share_modal.html
-|   |           
-|   \---__pycache__
-|           extensions.cpython-313.pyc
-|           extensions.cpython-38.pyc
-|           __init__.cpython-313.pyc
-|           __init__.cpython-38.pyc
-|           
-\---migrations
-    |   alembic.ini
-    |   env.py
-    |   README
-    |   script.py.mako
-    |   
-    \---versions
-            9249e0cf39c7_initial.py
-            eb09e9dc500e_add_template_save_fields.py
+|   .dockerignore  
+|   .env  
+|   .gitignore  
+|   Caddyfile  
+|   config.py  
+|   docker-compose.prod.yml  
+|   docker-compose.yml  
+|   Dockerfile  
+|   Dockerfile.dev  
+|   manage_data.py  
+|   README.md  
+|   requirements.txt  
+|   seed.py  
+|   seed_data.json  
+|   tree.txt  
+|   wsgi.py  
+|     
++---app  
+|   |   extensions.py  
+|   |   __init__.py  
+|   |     
+|   +---forms  
+|   |   |   auth_form.py  
+|   |   |   plan_form.py  
+|   |   |   register_form.py  
+|   |   |   __init__.py  
+|   |   |     
+|   |   \---__pycache__  
+|   |           plan_form.cpython-313.pyc  
+|   |           __init__.cpython-313.pyc  
+|   |             
+|   +---models  
+|   |   |   checklist.py  
+|   |   |   plan.py  
+|   |   |   user.py  
+|   |   |   __init__.py  
+|   |   |     
+|   |   \---__pycache__  
+|   |           checklist.cpython-313.pyc  
+|   |           plan.cpython-313.pyc  
+|   |           user.cpython-313.pyc  
+|   |           __init__.cpython-313.pyc  
+|   |             
+|   +---routes  
+|   |   |   auth_routes.py  
+|   |   |   plan_routes.py  
+|   |   |   root_routes.py  
+|   |   |     
+|   |   \---__pycache__  
+|   |           plan_routes.cpython-313.pyc  
+|   |           root_routes.cpython-313.pyc  
+|   |             
+|   +---services  
+|   |   |   ai_service.py  
+|   |   |   db_service.py  
+|   |   |   hotel_service.py  
+|   |   |   __init__.py  
+|   |   |     
+|   |   \---__pycache__  
+|   |           ai_service.cpython-313.pyc  
+|   |           db_service.cpython-313.pyc  
+|   |           hotel_service.cpython-313.pyc  
+|   |           __init__.cpython-313.pyc  
+|   |             
+|   +---sql  
+|   |       user_table.sql  
+|   |         
+|   +---static  
+|   |   +---css  
+|   |   |       style.css  
+|   |   |         
+|   |   +---img  
+|   |   |       logo.png  
+|   |   |       rakuten_logo.svg  
+|   |   |         
+|   |   \---js  
+|   |           checklist.js  
+|   |           checklist_toggle.js  
+|   |           main.js  
+|   |           plan_detail.js  
+|   |           plan_save.js  
+|   |           plan_share.js  
+|   |           schedule.js  
+|   |           stay.js   
+|   |           transport.js  
+|   |             
+|   +---templates  
+|   |   |   layout.html  
+|   |   |     
+|   |   +---account  
+|   |   |       account.html  
+|   |   |         
+|   |   +---auth  
+|   |   |       auth_base.html  
+|   |   |       login.html  
+|   |   |       register.html  
+|   |   |       register_complete.html  
+|   |   |         
+|   |   +---components  
+|   |   |       _plan_card.html  
+|   |   |         
+|   |   \---plan  
+|   |           checklist_create.html  
+|   |           checklist_edit.html  
+|   |           checklist_list.html  
+|   |           detail.html  
+|   |           guest_required.html  
+|   |           hotel_confirm.html  
+|   |           hotel_select.html  
+|   |           item_list.html  
+|   |           list.html  
+|   |           modals.html  
+|   |           plan_create.html  
+|   |           plan_edit.html  
+|   |           public_list.html  
+|   |           schedule.html  
+|   |           schedule_create.html  
+|   |           schedule_edit.html  
+|   |           schedule_list.html   
+|   |           share_view.html  
+|   |           transit.html  
+|   |           transport_confirm.html  
+|   |           _load.html  
+|   |           _plan_header_tabs.html  
+|   |           _share_modal.html  
+|   |             
+|             
+\---migrations  
+    |   alembic.ini  
+    |   env.py  
+    |   README   
+    |   script.py.mako  
+    |     
+    \---versions    
+            9249e0cf39c7_initial.py     
+            eb09e9dc500e_add_template_save_fields.py  
            
 
 # 環境構築
@@ -177,9 +173,9 @@ C:.
 ## 開発環境
 .env ファイルを以下の環境変数例を元に作成
 
-POSTGRES_USER=app
-POSTGRES_PASSWORD=pass
-POSTGRES_DB=appdb
+POSTGRES_USER=app  
+POSTGRES_PASSWORD=pass  
+POSTGRES_DB=appdb  
 
 config.pyファイルを以下の例をもとに作成
 
@@ -256,6 +252,7 @@ docker compose down --remove-orphans
 
 ###  コマンド一覧
 |コマンド|実行する処理|
+|---|---|
 |docker-compose run --rm web flask db upgrade|データベースの更新(初回起動時に実行)|
 |docker compose up build |テスト環境で実行|
 |docer down -v | テスト環境のダウン|
