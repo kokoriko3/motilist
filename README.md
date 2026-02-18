@@ -1,6 +1,7 @@
 # 使用術一覧
 
-`<img src="https://img.shields.io/badge/Python-black?logo=python&logoColor=#3776AB"><img src="https://img.shields.io/badge/FLASK-grey?logo=flask">`
+<img src="https://img.shields.io/badge/Python-black?logo=python&logoColor=#3776AB">
+<img src="https://img.shields.io/badge/FLASK-grey?logo=flask&logoColor=#3BABC3">
 
 ## 目次
 1.プロジェクト概要  
