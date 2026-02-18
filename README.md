@@ -1,7 +1,6 @@
 # 使用術一覧
 
-<img src="https://img.shields.io/badge/Python-black?logo=python&logoColor=#3776AB">
-<img src="https://img.shields.io/badge/FLASK-grey?logo=flask&logoColor=#3BABC3">
+<img src="https://img.shields.io/badge/Python-black?logo=python&logoColor=#3776AB"><img src="https://img.shields.io/badge/-HTML5-333.svg?logo=html5&style=flat"><img src="https://img.shields.io/badge/-CSS3-1572B6.svg?logo=css3&style=flat"><img src="https://img.shields.io/badge/Javascript-276DC3.svg?logo=javascript&style=flat"><img src="https://img.shields.io/badge/FLASK-grey?logo=flask&logoColor=#3BABC3"><img src="https://img.shields.io/badge/postgresql-green?logo=fpostgresql&logoColor=#4169E1"><img src="https://img.shields.io/badge/-Amazon%20AWS-232F3E.svg?logo=amazon-aws&style=flat"><img src="https://img.shields.io/badge/-Docker-EEE.svg?logo=docker&style=flat">
 
 ## 目次
 1.プロジェクト概要  
