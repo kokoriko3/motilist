@@ -219,10 +219,10 @@ EC2でのAmazon LInuxでインスタンスを作成する
 
 sshでアクセスし、以下のコマンドを入力しDocker をインストールする
 
->dockerのインストール
+>dockerのインストール　　
 sudo apt-get install -y docker.io docker-compose-plugin
 
->dockerコマンドをsudoなしで打てるようにする（一度ログアウトが必要）
+>dockerコマンドをsudoなしで打てるようにする（一度ログアウトが必要）　　
 sudo usermod -aG docker $USER
 
 Elastic ipでアドレスを固定しアドレスをメモしておく。
@@ -230,7 +230,7 @@ Elastic ipでアドレスを固定しアドレスをメモしておく。
 開発環境と同じく.envとconfig.pyを作成する.
 その後、以下のコマンドから本番環境を構築
 
-docker-compose run --rm web flask db upgrade
+docker-compose run --rm web flask db upgrade　　
 docker compose -f docker-compose.pord.yml up build
 
 #### 動作確認
